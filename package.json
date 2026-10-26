@@ -1,0 +1,31 @@
+{
+  "name": "la-finca-matematica",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "La Finca Matemática: PWA sin conexión para practicar las operaciones básicas en contexto rural (San Vicente de Chucurí, Santander).",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "iconos": "node scripts/generar-iconos.mjs",
+    "catalogo": "tsx scripts/catalogo-plantillas.ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.5",
+    "workbox-window": "^7.4.1"
+  }
+}

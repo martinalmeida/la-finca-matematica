@@ -1,0 +1,38 @@
+// Estado global: pantalla actual (enrutamiento en memoria), perfil activo, ajustes y avisos.
+
+import { createContext, useContext } from 'react';
+import type { Ajustes, Perfil, Rol } from './almacenamiento/datos';
+import type { Efecto, ResultadoNivel } from './juego/progresion';
+
+export type Pantalla =
+  | { nombre: 'bienvenida' }
+  | { nombre: 'quien' }
+  | { nombre: 'crear'; rol: Rol }
+  | { nombre: 'mapa' }
+  | { nombre: 'nivel'; nivel: number; repaso?: boolean; clave?: number }
+  | { nombre: 'resultado'; resultado: ResultadoNivel; efecto: Efecto }
+  | { nombre: 'mifinca' }
+  | { nombre: 'ajustes' }
+  | { nombre: 'familias'; seccion?: 'menu' | 'acompanar' | 'avance' }
+  | { nombre: 'docente' }
+  | { nombre: 'pareja' };
+
+export type EstadoApp = {
+  pantalla: Pantalla;
+  perfil: Perfil | null;
+  ajustes: Ajustes;
+  ir: (p: Pantalla, opciones?: { reemplazar?: boolean }) => void;
+  volver: () => void;
+  elegirPerfil: (p: Perfil | null) => void;
+  actualizarPerfil: (p: Perfil) => void;
+  cambiarAjustes: (a: Ajustes) => void;
+  avisar: (texto: string) => void;
+};
+
+export const ContextoApp = createContext<EstadoApp | null>(null);
+
+export function useApp(): EstadoApp {
+  const c = useContext(ContextoApp);
+  if (!c) throw new Error('useApp fuera del proveedor');
+  return c;
+}
