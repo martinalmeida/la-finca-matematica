@@ -39,7 +39,7 @@ export default function CrearPerfil({ rol }: { rol: Rol }) {
       <main className="pantalla">
         <Barra titulo="¿En qué grado estás?" />
         <p className="suave" style={{ margin: 0 }}>
-          Cada grado tiene su ruta de 10 niveles, uno por tema. Al empezar harás una prueba corta para preparar la ruta a tu medida.
+          Cada grado tiene su ruta de niveles, uno por tema. Al empezar harás una prueba corta para preparar la ruta a tu medida.
         </p>
         <div className="columna">
           {([1, 2, 3, 4, 5] as const).map((g) => (

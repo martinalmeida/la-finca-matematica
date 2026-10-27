@@ -27,6 +27,9 @@ const TEXTOS: Record<Interaccion['tipo'], { titulo: string; texto: Texto }> = {
   escribir: { titulo: 'Escribir con el dedo', texto: ['Escribe cada cifra con el dedo en su casilla.', 'Escriba cada cifra con el dedo en su casilla.'] },
   trazar: { titulo: 'Repasar con el dedo', texto: ['Empieza en el punto verde y sigue los puntitos.', 'Empiece en el punto verde y siga los puntitos.'] },
   emparejar: { titulo: 'Número y cantidad', texto: ['Toca el grupo que tiene la cantidad pedida.', 'Toque el grupo que tiene la cantidad pedida.'] },
+  figuras: { titulo: 'Tocar el dibujo', texto: ['Mira bien los dibujos y toca el que se pide.', 'Mire bien los dibujos y toque el que se pide.'] },
+  clasificar: { titulo: 'Clasificar', texto: ['Toca una figura y luego la canasta donde va.', 'Toque una figura y luego la canasta donde va.'] },
+  ordenar: { titulo: 'Ordenar', texto: ['Toca los dibujos en orden, del más bajo al más alto.', 'Toque los dibujos en orden, del más bajo al más alto.'] },
 };
 
 /** Mini-ejemplo de tocar: 3 gallinas. */

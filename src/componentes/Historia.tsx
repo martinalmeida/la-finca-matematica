@@ -5,7 +5,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useApp } from '../estado';
 import type { Leccion } from '../contenido/lecciones';
-import type { Unidad } from '../juego/complejidad';
+import { etiquetaUnidad, type Unidad } from '../juego/complejidad';
 import { Avatar } from './Ilustraciones';
 import { avatarDeAutor } from '../contenido/red';
 import { useLecturaAutomatica, useVoz } from '../servicios/voz';
@@ -94,7 +94,7 @@ export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCe
   const { ajustes, perfil } = useApp();
   const [paso, setPaso] = useState(0);
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
-  const video = perfil ? videoDeLeccion(pistaDePerfil(perfil), unidad.indice) : null;
+  const video = perfil ? videoDeLeccion(pistaDePerfil(perfil), unidad.inicio - 1) : null;
 
   const diapositivas: { clave: string; voz: string; contenido: ReactNode }[] = [
     {
@@ -106,7 +106,7 @@ export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCe
             <IconoEmoji emoji={l.emoji} tamano={96} anim="siempre" />
           </span>
           <span className="chip">
-            Nivel {unidad.inicio} · {unidad.complejidad.nombre} <Medidor barras={unidad.complejidad.barras} />
+            Nivel {etiquetaUnidad(unidad)} · {unidad.complejidad.nombre} <Medidor barras={unidad.complejidad.barras} />
           </span>
           <h2 className="historia-titulo">{l.titulo}</h2>
           <p className="suave">{unidad.titulo}</p>
@@ -183,7 +183,7 @@ export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCe
           <h2 className="historia-titulo">{tu('¡Ya sabes cómo se hace!', '¡Listo!')}</h2>
           <p>
             {alPracticar
-              ? tu(`Ahora practica en el nivel ${unidad.inicio} de tu ruta.`, `Ahora practique en el nivel ${unidad.inicio}.`)
+              ? tu(`Ahora practica en el nivel ${etiquetaUnidad(unidad)} de tu ruta.`, `Ahora practique en el nivel ${etiquetaUnidad(unidad)}.`)
               : tu('Este nivel se abre cuando avances en tu ruta. ¡Vas muy bien!', 'Este nivel se abre cuando avance en su ruta.')}
           </p>
           {alPracticar && (

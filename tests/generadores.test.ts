@@ -55,7 +55,8 @@ export function revisar(ej: Ejercicio, limite: number): string | null {
     if (!opciones.some((o) => String(o) === String(objetivo))) return `la respuesta ${objetivo} no está entre las opciones ${opciones.join(', ')}`;
     if (opciones.some((o) => typeof o === 'number' && o < 0)) return 'opción negativa';
   }
-  if (typeof r === 'string' && i.tipo !== 'razonable' && !opciones) return 'respuesta de texto sin opciones';
+  const conFiguras = i.tipo === 'figuras' || i.tipo === 'clasificar' || i.tipo === 'ordenar';
+  if (typeof r === 'string' && i.tipo !== 'razonable' && !opciones && !conFiguras) return 'respuesta de texto sin opciones';
   switch (i.tipo) {
     case 'contar':
       if (i.cantidad !== r || i.cantidad > 20) return `contar: cantidad ${i.cantidad}`;
@@ -95,6 +96,30 @@ export function revisar(ej: Ejercicio, limite: number): string | null {
     case 'emparejar':
       if (i.opciones.some((o) => o < 1 || o > 10)) return `emparejar: grupo fuera de 1 a 10 (${i.opciones.join(', ')})`;
       break;
+    case 'figuras': {
+      const ids = i.opciones.map((o) => o.id);
+      if (ids.length < 2 || ids.length > 4) return `figuras: ${ids.length} opciones`;
+      if (new Set(ids).size !== ids.length) return `figuras: ids repetidos ${ids.join(', ')}`;
+      if (!ids.includes(String(r))) return `figuras: la respuesta ${r} no está entre ${ids.join(', ')}`;
+      if (ej.validar(ids.find((x) => x !== String(r))!)) return 'figuras: una opción equivocada también valida';
+      if (i.opciones.some((o) => !o.etiqueta.trim())) return 'figuras: opción sin etiqueta';
+      break;
+    }
+    case 'clasificar': {
+      const destinos = String(r).split(',');
+      if (destinos.length !== i.items.length) return `clasificar: ${destinos.length} destinos para ${i.items.length} figuras`;
+      if (destinos.some((x) => x !== '0' && x !== '1')) return `clasificar: destino inválido en ${r}`;
+      if (!destinos.includes('0') || !destinos.includes('1')) return 'clasificar: una canasta queda vacía';
+      if (new Set(i.items.map((o) => o.id)).size !== i.items.length) return 'clasificar: ids repetidos';
+      break;
+    }
+    case 'ordenar': {
+      const orden = String(r).split('|');
+      const ids = i.items.map((o) => o.id);
+      if (orden.length !== ids.length || [...orden].sort().join() !== [...ids].sort().join()) return `ordenar: ${r} no ordena ${ids.join(', ')}`;
+      if (ids.join('|') === orden.join('|')) return 'ordenar: ya aparecen en orden';
+      break;
+    }
     default:
       break;
   }
@@ -105,12 +130,15 @@ describe('generadores de ejercicios', () => {
   for (const pista of PISTAS) {
     const def = definiciones[pista];
     describe(pista, () => {
-      it('cada plantilla está registrada y se usa en algún tema; hay 10 temas', () => {
+      it('cada plantilla está registrada y se usa en algún tema; hay 10 temas (23 en Inclusión, en bloques)', () => {
         const usadas = new Set(def.temas.flatMap((t) => [...t.usos, ...(t.prueba ? [t.prueba] : [])].map((u) => u.plantilla.id)));
         for (const p of def.plantillas) expect(usadas.has(p.id), p.id).toBe(true);
         for (const id of usadas) expect(def.plantillas.some((p) => p.id === id), `${id} no está en plantillas`).toBe(true);
         expect(new Set(def.plantillas.map((p) => p.id)).size).toBe(def.plantillas.length);
-        expect(def.temas.length).toBe(10);
+        if (def.bloques) {
+          expect(def.temas.length).toBe(23);
+          expect(def.bloques.reduce((s, b) => s + b.niveles, 0)).toBe(def.temas.length);
+        } else expect(def.temas.length).toBe(10);
       });
 
       def.temas.forEach((tema, t) => {

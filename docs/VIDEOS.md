@@ -1,28 +1,43 @@
 # Videos de ayuda (YouTube)
 
-Cada nivel de cada ruta tiene un video corto en español que sirve de introducción (100 niveles con video, 69 videos distintos contando la guía de familias). Están en `src/contenido/videos.ts`.
+Cada nivel de cada ruta tiene un video corto en español que sirve de introducción (113 niveles con video, 77 videos distintos contando la guía de familias). Están en `src/contenido/videos.ts`.
 
 - **Dónde aparecen:** al empezar cada nivel, en la tarjeta «Antes de empezar» (después de la prueba diagnóstica, en la ruta); al final de cada lección (historia), en la lección del día del Inicio, en los ejercicios cuando se piden dos o más pistas o se ve la solución, y en *Cuaderno de la finca → Videos para acompañar en casa*.
 - **Sin internet:** el video muestra un aviso y el resto de la aplicación sigue funcionando igual.
 - **Privacidad:** se usa el reproductor de privacidad mejorada (`youtube-nocookie.com`) y solo se carga cuando alguien toca «Ver video». Los niños lo ven dentro de la app; a los adultos también se les ofrece abrirlo en YouTube.
 - **Apagar:** *Ajustes → Videos de ayuda de YouTube*.
-- **Verificación:** los videos se comprobaron con oEmbed de YouTube (existen, permiten verse dentro de otra página, título y canal) el 26 de octubre de 2026; los de decimales de 5.º y los que completaron los niveles sin video, el 27 de octubre de 2026. Son de terceros: pueden cambiar o desaparecer. Antes del pilotaje conviene que el equipo docente los vea completos y marque la columna «Revisado».
+- **Verificación:** los videos se comprobaron con oEmbed de YouTube (existen, permiten verse dentro de otra página, título y canal) el 26 de octubre de 2026; los de decimales de 5.º, los que completaron los niveles sin video y los de la nueva ruta de Inclusión, el 27 de octubre de 2026. Son de terceros: pueden cambiar o desaparecer. Antes del pilotaje conviene que el equipo docente los vea completos y marque la columna «Revisado».
 
 
 ## Inclusión
 
+23 niveles en 7 bloques (el nivel 1.2 es el segundo del bloque 1); una lección por bloque.
+
 | Nivel | Lección | Video | Canal | Duración | Enlace | Revisado |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1. Mirar y tocar: 1, 2 y 3 | Mirar y tocar: 1, 2 y 3 | La canción de los números del 1 al 20 | Smile and Learn | 2:41 | [ver](https://www.youtube.com/watch?v=O-37lugLe9s) | ☐ |
-| 2. Contar hasta 5 | Contar hasta 5 | La canción de los números del 1 al 20 | Smile and Learn | 2:41 | [ver](https://www.youtube.com/watch?v=O-37lugLe9s) | ☐ |
-| 3. Escribir del 0 al 4 | Escribir del 0 al 4 | Aprender a escribir los números hasta el 5 | Peques Aprenden Jugando | 2:29 | [ver](https://www.youtube.com/watch?v=-bgsBMUyzwA) | ☐ |
-| 4. Escribir del 5 al 9 | Escribir del 5 al 9 | Aprender a escribir los números hasta el 10 | Peques Aprenden Jugando | 5:18 | [ver](https://www.youtube.com/watch?v=wd8h8fAUsJA) | ☐ |
-| 5. Contar hasta 10 | Contar hasta 10 | La canción de los números del 1 al 20 | Smile and Learn | 2:41 | [ver](https://www.youtube.com/watch?v=O-37lugLe9s) | ☐ |
-| 6. Número y cantidad | Número y cantidad | Los números del 1 al 5 | Babyradio | 4:32 | [ver](https://www.youtube.com/watch?v=FkBEPfM4PcQ) | ☐ |
-| 7. ¿Dónde hay más? | ¿Dónde hay más? | Más, menos e igual | Plaza Sésamo | 1:40 | [ver](https://www.youtube.com/watch?v=XARHIfXjk-o) | ☐ |
-| 8. Juntar en la canasta | Juntar en la canasta | Sumar juntando objetos | Peques Aprenden Jugando | 2:54 | [ver](https://www.youtube.com/watch?v=FY5oSo9bFwM) | ☐ |
-| 9. Quitar de la canasta | Quitar de la canasta | Restar quitando hasta 10 | ElShowDelNerd | 1:52 | [ver](https://www.youtube.com/watch?v=_-qI2BK-18U) | ☐ |
-| 10. Repaso: contar, escribir y juntar | Repaso con calma | Escribir y contar los números del 1 al 10 | Smile and Learn | 5:22 | [ver](https://www.youtube.com/watch?v=qHkEDhTaPnk) | ☐ |
+| 1.1. Clasificar por color, forma y tamaño | Mirar, comparar y agrupar | Clasificar por color, forma y tamaño | ElShowDelNerd | 1:51 | [ver](https://www.youtube.com/watch?v=N8PCwLkkepM) | ☐ |
+| 1.2. Alto y bajo, grande y pequeño, largo y corto | Mirar, comparar y agrupar | Alto y bajo para niños | MunDoPeKes | 4:44 | [ver](https://www.youtube.com/watch?v=YIBu6S6zDVY) | ☐ |
+| 1.3. Uno, muchos y ninguno | Mirar, comparar y agrupar | Muchos, pocos, uno, ninguno | Moreh Higa | 3:51 | [ver](https://www.youtube.com/watch?v=8NR0QQF32EU) | ☐ |
+| 1.4. Más, menos e igual | Mirar, comparar y agrupar | Más, menos e igual | Plaza Sésamo | 1:40 | [ver](https://www.youtube.com/watch?v=XARHIfXjk-o) | ☐ |
+| 2.1. Reconocer y contar 1, 2 y 3 | El 1, el 2 y el 3 | Los números 1, 2 y 3 con la canción de los elefantes | Cantatoo | 2:57 | [ver](https://www.youtube.com/watch?v=GfvAKWv8qCc) | ☐ |
+| 2.2. Cantidad y número | El 1, el 2 y el 3 | Los números del 1 al 5 | Babyradio | 4:32 | [ver](https://www.youtube.com/watch?v=FkBEPfM4PcQ) | ☐ |
+| 2.3. Ordenar 3 objetos por su altura | El 1, el 2 y el 3 | Los tamaños: pequeño, mediano y grande | Peques Aprenden Jugando | 5:58 | [ver](https://www.youtube.com/watch?v=VRPVBZgxh0Q) | ☐ |
+| 3.1. Contar de uno en uno hasta 10 | Los números hasta el 10 | Escribir y contar los números del 1 al 10 | Smile and Learn | 5:22 | [ver](https://www.youtube.com/watch?v=qHkEDhTaPnk) | ☐ |
+| 3.2. Conocer los números de dos en dos | Los números hasta el 10 | Aprender a escribir los números hasta el 10 | Peques Aprenden Jugando | 5:18 | [ver](https://www.youtube.com/watch?v=wd8h8fAUsJA) | ☐ |
+| 3.3. Completar la fila: 1, 2, __ | Los números hasta el 10 | Secuencias numéricas para niños pequeños | DUCASIDAD - Educación Especial Primaria | 3:52 | [ver](https://www.youtube.com/watch?v=Mk6ZR3h8Q-I) | ☐ |
+| 3.4. Mayor y menor | Los números hasta el 10 | Mayor que, menor que e igual | Minders | 3:01 | [ver](https://www.youtube.com/watch?v=Rxj_0DsQzk8) | ☐ |
+| 4.1. Contar y escribir hasta 20 | Los números hasta el 20 | La canción de los números del 1 al 20 | Smile and Learn | 2:41 | [ver](https://www.youtube.com/watch?v=O-37lugLe9s) | ☐ |
+| 4.2. Antes, después y entre | Los números hasta el 20 | Número anterior y posterior | Peques Aprenden Jugando | 6:04 | [ver](https://www.youtube.com/watch?v=__zZXFW0bBc) | ☐ |
+| 4.3. Partir un número: el 5 es 3 y 2 | Los números hasta el 20 | Componer números hasta el 10 | Profesora Constanza Olave | 3:28 | [ver](https://www.youtube.com/watch?v=MCv52Le4bGc) | ☐ |
+| 5.1. Juntar dos grupos y contar todo | Unir y quitar | Sumar juntando objetos | Peques Aprenden Jugando | 2:54 | [ver](https://www.youtube.com/watch?v=FY5oSo9bFwM) | ☐ |
+| 5.2. Quitar y contar lo que queda | Unir y quitar | Restar quitando hasta 10 | ElShowDelNerd | 1:52 | [ver](https://www.youtube.com/watch?v=_-qI2BK-18U) | ☐ |
+| 5.3. Cuentos cortos con dibujos | Unir y quitar | Cuento de la suma | Cecilia Silva Sandoval | 2:38 | [ver](https://www.youtube.com/watch?v=Jthm7qPtGiU) | ☐ |
+| 6.1. Sumas hasta 5 y luego hasta 10 | Sumar y restar | Aprendiendo a sumar | Happy Learning | 4:47 | [ver](https://www.youtube.com/watch?v=oexd_Dfic_Q) | ☐ |
+| 6.2. Restas hasta 5 y luego hasta 10 | Sumar y restar | Aprendiendo a restar | Happy Learning | 4:33 | [ver](https://www.youtube.com/watch?v=42vjqtleG9E) | ☐ |
+| 6.3. Sumar y restar sin dibujos | Sumar y restar | Cómo sumar con ayuda de mis dedos | Lore Hernández | 1:27 | [ver](https://www.youtube.com/watch?v=POEJVNbBegQ) | ☐ |
+| 6.4. Problemas sencillos | Sumar y restar | Problemas de suma y resta | Smile and Learn | 3:35 | [ver](https://www.youtube.com/watch?v=Sa_3MIlJwPs) | ☐ |
+| 7.1. Decena y unidad | Decenas y números hasta 100 | Unidades, decenas y centenas | Happy Learning | 4:59 | [ver](https://www.youtube.com/watch?v=Gg1j4W3xJuM) | ☐ |
+| 7.2. Sumas y restas hasta 20 y hasta 100 | Decenas y números hasta 100 | Sumas de 2 cifras sin llevar | La BiBlioTHeKa | 2:48 | [ver](https://www.youtube.com/watch?v=-UTpOFdGPkc) | ☐ |
 
 ## 1.º grado
 

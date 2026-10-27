@@ -11,6 +11,7 @@ import { Medidor } from '../componentes/Historia';
 import { barrasGrado, nombreGrado, pistaDeGrado, RESUMEN_GRADO } from '../juego/complejidad';
 import { useVoz } from '../servicios/voz';
 import Icono from '../componentes/Icono';
+import { AUTOR, DERECHOS, PROGRAMA, UNIVERSIDAD } from '../contenido/autoria';
 
 export default function Ajustes() {
   const { ajustes, cambiarAjustes, perfil, actualizarPerfil, ir, avisar } = useApp();
@@ -203,6 +204,16 @@ export default function Ajustes() {
         <button type="button" className="boton" onClick={() => ir({ nombre: 'quien' })}>
           <Icono nombre="personas" tamano={26} /> Cambiar de jugador
         </button>
+      </section>
+
+      <section className="tarjeta columna" aria-label="Acerca de La Finca Matemática">
+        <h2>Acerca de</h2>
+        <p className="pequeno" style={{ margin: 0 }}>
+          <strong>La Finca Matemática</strong>. Autor: <strong>{AUTOR}</strong>, estudiante de la {PROGRAMA} de la {UNIVERSIDAD}.
+        </p>
+        <p className="pequeno suave" style={{ margin: 0 }}>
+          {DERECHOS}
+        </p>
       </section>
     </main>
   );

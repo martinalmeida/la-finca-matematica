@@ -4,11 +4,11 @@ Aplicación web progresiva (PWA) para practicar **suma, resta, multiplicación y
 
 - Estudiantes de 1.º a 5.º (aulas multigrado), grado **Inclusión** y sección propia para familias.
 - **Prueba de entrada → 10 niveles → prueba final.** Cada ruta tiene 10 niveles, uno por tema, con 10 preguntas cada uno. La prueba de entrada (diagnóstica, que también hace de tutorial) asigna la exigencia —Refuerzo, Básico o Avanzado— y, en familias, uno de tres cuadernos. La prueba final repite los temas con otros números y se compara tema por tema con la de entrada (`src/juego/pruebas.ts`, `src/pantallas/Prueba.tsx`).
-- Rutas: 1.º a 5.º, Inclusión y tres cuadernos de familias, generadas por código con **120 plantillas** (ver [docs/PLANTILLAS.md](docs/PLANTILLAS.md)); 5.º incluye números decimales (`src/contenido/plantillas/decimales.ts`).
+- Rutas: 1.º a 5.º, Inclusión y tres cuadernos de familias, generadas por código con **139 plantillas** (ver [docs/PLANTILLAS.md](docs/PLANTILLAS.md)); 5.º incluye números decimales (`src/contenido/plantillas/decimales.ts`).
 - **100 % sin conexión** después de la primera carga: sin APIs, CDN, fuentes externas, analítica ni anuncios. Todo va empaquetado.
 - **Videos de ayuda opcionales** (YouTube, en español): solo se cargan si alguien toca «Ver video» y hay internet; sin señal se avisa y lo demás sigue igual. Se apagan en Ajustes. Catálogo y revisión docente: [docs/VIDEOS.md](docs/VIDEOS.md).
 - Varios perfiles por celular, datos solo en `localStorage` del dispositivo; nada sale del celular.
-- **Grado Inclusión** (autismo y otras formas de aprender): sin pruebas y sin perder; agenda «Primero… Después…», pausa para respirar, pantalla calmada, trazar cifras, contar tocando, número y cantidad, juntar y quitar arrastrando (`src/contenido/plantillas/inclusion.ts`).
+- **Grado Inclusión** (autismo y otras formas de aprender): sin pruebas y sin perder; agenda «Primero… Después…», pausa para respirar, pantalla calmada. Ruta de 23 niveles en 7 bloques, del pre-número sin cifras (clasificar, tamaños, uno/muchos/ninguno, más/menos/igual) a las decenas y las sumas hasta 100 (`src/contenido/plantillas/inclusion.ts`).
 - **Banda Refuerzo** (0–4 aciertos en la prueba de entrada): números más pequeños, dos opciones, dibujo de ayuda visible, enunciado frase por frase con voz lenta, paso a paso. A cualquier estudiante se le ofrece el paso a paso tras dos errores (`src/juego/apoyo.ts`, `src/componentes/PasoAPaso.tsx`).
 - **Escribir números con el dedo (Inclusión):** Taller de números (mira, repasa, escribe solo) y actividades de trazar en la ruta. Reconocedor de cifras propio, sin librerías ni internet (nubes de puntos $P, `src/juego/trazos.ts`; trazos de las cifras en `src/contenido/cifras.ts`).
 - **Realidad aumentada opcional** (apagada por defecto, la activa un adulto) con [LocAR.js](https://github.com/AR-js-org/locar.js) y three.js: la cámara (Webcam de LocAR), la orientación del celular (DeviceOrientationControls) y los objetos de la finca anclados alrededor del niño con `LocAR.add`, que se quedan en su sitio al girar el celular. Sin GPS: el origen es fijo (`fakeGps`). Se carga aparte, solo al abrir la cámara (`src/servicios/ra.ts`, `src/componentes/EscenaRA.tsx`). La imagen no se graba ni se envía.
@@ -168,6 +168,12 @@ const cajonesFermentacion: Plantilla = {
 - El registro detallado por ejercicio solo se guarda si el docente activa el **modo investigación** (desactivado por defecto), que debe usarse solo con el consentimiento informado de las familias. Sin él, la app guarda solo los resúmenes agregados (aciertos por operación y tipos de error) que usan el panel docente y la vista de familias.
 - Las exportaciones (CSV/JSON) llevan códigos, nunca apodos ni nombres.
 - Los resultados no se presentan como notas escolares.
+
+## Autoría y derechos
+
+Autor: **Yerson Julian Albarracin Almeida**, estudiante de la Maestría en Educación de la Universidad de Investigación y Desarrollo (UDI), Santander, Colombia.
+
+© 2026 Yerson Julian Albarracin Almeida. Todos los derechos reservados. Ver [LICENSE](LICENSE).
 
 ## Guía para el docente
 

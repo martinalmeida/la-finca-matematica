@@ -45,6 +45,25 @@ export type Respuesta = number | string;
 /** Dónde están o a dónde van los objetos al arrastrar o repartir: el nombre que dice el enunciado y su dibujo. */
 export type Recipiente = { nombre: string; dibujo?: Objeto | 'nino' | 'adulto' | 'mula' };
 
+/** Colores y formas del pre-número (Inclusión). */
+export type ColorFigura = 'rojo' | 'azul' | 'amarillo' | 'verde';
+export type FormaFigura = 'circulo' | 'cuadrado' | 'triangulo';
+
+/** Dibujo sin números para comparar y clasificar (Inclusión). La escala va de 0,4 a 1. */
+export type Figura =
+  | { forma: FormaFigura; /** Sin color: gris (cuando lo que importa es la forma). */ color?: ColorFigura; escala?: number }
+  /** Un objeto; con cantidad, un grupo de objetos dentro de una canasta (0 = canasta vacía). */
+  | { objeto: Objeto; escala?: number; cantidad?: number }
+  /** Torre de cajas (alta o baja). */
+  | { torre: number }
+  /** Un lazo: largo de 0,3 a 1. */
+  | { lazo: number }
+  /** El botón «igual» (dos grupos con la misma cantidad). */
+  | { igual: true };
+
+/** Una figura que se puede tocar: el id es la respuesta; la etiqueta, lo que se lee en voz alta. */
+export type OpcionFigura = { id: string; etiqueta: string; figura: Figura };
+
 /** Ayuda visual de la pista 2. */
 export type Visual =
   | { tipo: 'objetos'; objeto: Objeto; grupos: number[]; tachados?: number; /** Espacios vacíos (lo que falta para completar). */ vacios?: number; /** Recipiente de cada grupo (cubeta, bolsa…). */ grupo?: Recipiente }
@@ -54,6 +73,8 @@ export type Visual =
   | { tipo: 'reparto'; total: number; grupos: number; objeto?: Objeto; grupo?: Recipiente }
   /** Monedas y billetes, cada uno con su valor en pesos. */
   | { tipo: 'dinero'; valores: number[] }
+  /** Figuras sin números (pre-número). */
+  | { tipo: 'figuras'; figuras: OpcionFigura[] }
   | { tipo: 'texto'; texto: string };
 
 /** Forma de responder: cada variante es un componente táctil. */
@@ -84,7 +105,13 @@ export type Interaccion =
   /** Repasar una cifra sobre la guía punteada (Inclusión). */
   | { tipo: 'trazar'; cifra: number }
   /** Elegir el grupo de dibujos que tiene la cantidad pedida (Inclusión). */
-  | { tipo: 'emparejar'; objeto: Objeto; opciones: number[] };
+  | { tipo: 'emparejar'; objeto: Objeto; opciones: number[] }
+  /** Tocar la figura que se pide (Inclusión, sin números). */
+  | { tipo: 'figuras'; opciones: OpcionFigura[] }
+  /** Llevar cada figura a su canasta. La respuesta es el número de canasta de cada figura, «0,1,1,0». */
+  | { tipo: 'clasificar'; items: OpcionFigura[]; grupos: [OpcionFigura, OpcionFigura] }
+  /** Tocar las figuras en orden (del más bajo al más alto). La respuesta son los id en orden, «a|b|c». */
+  | { tipo: 'ordenar'; items: OpcionFigura[] };
 
 /** Cálculo principal del ejercicio: lo usa el detector de errores. */
 export type Calculo = {
@@ -105,8 +132,12 @@ export type Ejercicio = {
   /** Instrucción corta con ícono (para quienes apenas leen). */
   instruccion?: string;
   ilustracion?: Objeto;
+  /** Dibujo que acompaña siempre al enunciado (cuentos y cuentas con dibujos). */
+  dibujo?: Visual;
   datos: Record<string, number | string>;
   respuesta: Respuesta;
+  /** Cómo se dice la respuesta cuando no es un número ni una opción («cada figura en su canasta»). */
+  respuestaTexto?: string;
   /** Unidad para mostrar junto al teclado (p. ej., "huevos"). */
   unidad?: string;
   validar(r: Respuesta): boolean;
@@ -159,6 +190,8 @@ export type Uso = { plantilla: Plantilla; params?: Parametros };
 /** Un tema = un nivel de la ruta (10 preguntas). */
 export type Tema = {
   titulo: string;
+  /** Idea de la lección que se muestra al empezar el nivel (por defecto, la de la lección de su bloque). */
+  idea?: string;
   usos: Uso[];
   /** Uso de la pregunta de este tema en la diagnóstica y en la final (por defecto, el primero). */
   prueba?: Uso;
@@ -168,7 +201,9 @@ export type DefinicionPista = {
   pista: Pista;
   /** Mayor número permitido en datos y respuestas (prueba de rango). */
   limite: number;
-  /** Los 10 temas (niveles 1 a 10). */
+  /** Los temas, uno por nivel (10 en las rutas con pruebas). */
   temas: Tema[];
+  /** Bloques de la ruta: cada uno agrupa varios niveles seguidos y tiene una lección (Inclusión). */
+  bloques?: { titulo: string; niveles: number }[];
   plantillas: Plantilla[];
 };

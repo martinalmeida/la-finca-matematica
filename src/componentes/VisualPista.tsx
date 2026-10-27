@@ -2,6 +2,7 @@
 
 import type { Visual } from '../juego/tipos';
 import { DibujoObjeto, DibujoRecipiente } from './Ilustraciones';
+import { DibujoFigura } from './Figuras';
 import { RectaDibujo } from './interacciones/Recta';
 import { BloquesDibujo, descomponer } from './interacciones/Bloques';
 
@@ -24,6 +25,17 @@ export default function VisualPista({ visual }: { visual: Visual }) {
     case 'texto':
       // pre-line: las pistas usan saltos de línea (una operación por renglón).
       return <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{visual.texto}</p>;
+    case 'figuras':
+      return (
+        <div className="visual-figuras" role="img" aria-label={visual.figuras.map((f) => f.etiqueta).join(', ')}>
+          {visual.figuras.map((f) => (
+            <span key={f.id} className="visual-figura">
+              <DibujoFigura figura={f.figura} tamano={56} />
+              <span className="pequeno">{f.etiqueta}</span>
+            </span>
+          ))}
+        </div>
+      );
     case 'dinero':
       return (
         <div className="visual-dinero" role="img" aria-label={visual.valores.map((v) => `$${v.toLocaleString('es-CO')}`).join(', ')}>

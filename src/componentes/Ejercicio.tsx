@@ -51,7 +51,11 @@ export function textoLectura(ej: TEjercicio): string {
   return t;
 }
 
-function textoRespuesta(r: Respuesta): string {
+function textoRespuesta(ej: TEjercicio): string {
+  if (ej.respuestaTexto) return ej.respuestaTexto;
+  const r = ej.respuesta;
+  const i = ej.interaccion;
+  if (i.tipo === 'figuras') return i.opciones.find((o) => o.id === r)?.etiqueta ?? String(r);
   if (typeof r === 'string' && /^(si|no):/.test(r)) {
     const [sn, est] = r.split(':');
     return `${sn === 'si' ? 'Sí es razonable' : 'No es razonable'}; estimación: ${textoOpcion(Number(est))}`;
@@ -130,7 +134,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
       const n = errores + 1;
       setErrores(n);
       setFallidas((f) => [...f, r]);
-      const m = n >= 3 ? `La respuesta es ${textoRespuesta(ej.respuesta)}. ¡Tú puedes!` : animosInclusion[(n - 1) % animosInclusion.length];
+      const m = n >= 3 ? `La respuesta es ${textoRespuesta(ej)}. ¡Tú puedes!` : animosInclusion[(n - 1) % animosInclusion.length];
       setMensaje(m);
       decir(m);
       if (pistas < 2) setPistas(2);
@@ -224,6 +228,11 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
             <Enunciado texto={ej.enunciado} clave={ej.id} apoyo={apoyo} />
           </div>
         </div>
+        {ej.dibujo && (
+          <div className="dibujo-enunciado">
+            <VisualPista visual={ej.dibujo} />
+          </div>
+        )}
         <div className="fila">
           <BotonEscuchar texto={lectura} clave={ej.id} etiqueta={adulto ? 'Escuchar de nuevo' : 'Escuchar otra vez'} />
           {ajustes.realidadAumentada && escena && estado === 'jugando' && !prueba && (
@@ -276,7 +285,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
       {estado === 'solucion' && !prueba && (
         <div className="tarjeta columna">
           <p style={{ margin: 0 }}>
-            <strong>Respuesta:</strong> {textoRespuesta(ej.respuesta)}
+            <strong>Respuesta:</strong> {textoRespuesta(ej)}
           </p>
           <p style={{ margin: 0 }}>{ej.explicacion}</p>
           {pistasMostradas < 2 && <BotonVideo video={video ?? null} adulto={adulto} clase="boton" texto={adulto ? 'Ver cómo se hace en un video' : 'Verlo explicado en un video'} />}

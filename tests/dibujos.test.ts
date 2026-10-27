@@ -2,8 +2,8 @@
 // dibujan canastas, y si los depósitos dicen «Mesa» el enunciado habla de mesas.
 import { describe, expect, it } from 'vitest';
 import { definiciones } from '../src/contenido/pistas';
-import { generarNivel, generarPrueba } from '../src/juego/motor';
-import type { Banda, Ejercicio, Objeto, Pista, Recipiente } from '../src/juego/tipos';
+import { generarNivel, generarPrueba, nivelMaximo } from '../src/juego/motor';
+import type { Banda, Ejercicio, Objeto, OpcionFigura, Pista, Recipiente, Visual } from '../src/juego/tipos';
 
 /** Palabras del enunciado que justifican cada dibujo (todas las expresiones deben aparecer). */
 const PALABRAS: Record<Objeto, RegExp[]> = {
@@ -78,6 +78,23 @@ function revisar(ej: Ejercicio): string[] {
     else [i.origen, i.destino].forEach((r) => recipiente('arrastrar', r));
   }
   if (i.tipo === 'bloques' && i.unidad) [i.unidad, i.decena, i.centena].forEach((o) => dibujo('bloques', o));
+  // Figuras del pre-número: los objetos dibujados y las torres de cajas también deben nombrarse.
+  const figuras = (donde: string, lista: OpcionFigura[]) => {
+    for (const o of lista) {
+      const f = o.figura;
+      if ('objeto' in f) dibujo(donde, f.objeto);
+      if ('torre' in f && !/torre/i.test(texto)) malos.push(`${donde}: se dibujan torres pero el texto no dice «torre»`);
+      if ('lazo' in f && !/lazo/i.test(texto)) malos.push(`${donde}: se dibujan lazos pero el texto no dice «lazo»`);
+      if ('cantidad' in f && !/canasta/i.test(texto)) malos.push(`${donde}: se dibujan canastas pero el texto no dice «canasta»`);
+    }
+  };
+  if (i.tipo === 'figuras') figuras('figuras', i.opciones);
+  if (i.tipo === 'clasificar') figuras('clasificar', [...i.items, ...i.grupos]);
+  if (i.tipo === 'ordenar') figuras('ordenar', i.items);
+  const visual = (donde: string, x: Visual | undefined) => {
+    if (x?.tipo === 'objetos') dibujo(donde, x.objeto);
+  };
+  visual('dibujo del enunciado', ej.dibujo);
   const v = ej.pistas[1];
   if ((v.tipo === 'objetos' || v.tipo === 'arreglo' || v.tipo === 'reparto') && v.objeto) dibujo(`pista ${v.tipo}`, v.objeto);
   if (v.tipo === 'objetos' || v.tipo === 'reparto') recipiente(`pista ${v.tipo}`, v.grupo);
@@ -93,7 +110,7 @@ describe('los dibujos corresponden al enunciado', () => {
       const fallos: Fallo[] = [];
       for (let c = 0; c < 12; c++) {
         const ejs: Ejercicio[] = [];
-        for (const banda of bandas) for (let nivel = 1; nivel <= 10; nivel++) ejs.push(...generarNivel({ codigo: `D${c}`, pista, nivel, intento: 1 + (c % 3), repaso: c % 4 === 0, banda }));
+        for (const banda of bandas) for (let nivel = 1; nivel <= nivelMaximo(pista); nivel++) ejs.push(...generarNivel({ codigo: `D${c}`, pista, nivel, intento: 1 + (c % 3), repaso: c % 4 === 0, banda }));
         if (pista !== 'inclusion') for (const tipo of ['diagnostica', 'final'] as const) ejs.push(...generarPrueba({ codigo: `P${c}`, pista, tipo }));
         for (const ej of ejs) for (const motivo of revisar(ej)) fallos.push({ plantilla: ej.plantilla, motivo, enunciado: ej.enunciado });
       }

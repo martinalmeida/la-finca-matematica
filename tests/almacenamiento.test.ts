@@ -39,13 +39,32 @@ describe('almacenamiento', () => {
     escribirTexto('fincaMat:v1:progreso:p1:g2', JSON.stringify({ nivelMaximoDesbloqueado: 57 }));
     escribirTexto('fincaMat:v1:tutorialVisto:p1', 'true');
     migrar();
-    expect(versionGuardada()).toBe(2);
+    expect(versionGuardada()).toBe(VERSION_ACTUAL);
     const [perfil] = listarPerfiles();
     expect(perfil.codigo).toBe('FM-2-ABCD');
     expect('apoyo' in perfil).toBe(false);
     expect(leerTexto('fincaMat:v1:progreso:p1:g2')).toBeNull();
     expect(leerTexto('fincaMat:v1:tutorialVisto:p1')).toBeNull();
     expect(necesitaDiagnostica(perfil)).toBe(true);
+  });
+  it('migración v2 → v3: borra solo el progreso y las lecciones vistas de Inclusión', () => {
+    for (const k of clavesApp()) borrar(k);
+    escribirTexto('fincaMat:version', '2');
+    escribirTexto('fincaMat:v1:perfiles', JSON.stringify([
+      { id: 'i1', codigo: 'FM-I-ABCD', apodo: 'Loro', avatar: 'loro', rol: 'estudiante', grado: 'inclusion', creado: '' },
+      { id: 'g1', codigo: 'FM-1-ABCD', apodo: 'Perro', avatar: 'perro', rol: 'estudiante', grado: 1, creado: '' },
+    ]));
+    escribirTexto('fincaMat:v1:progreso:i1:inclusion', JSON.stringify({ nivelMaximoDesbloqueado: 7 }));
+    escribirTexto('fincaMat:v1:historiasVistas:i1', '["0","1"]');
+    escribirTexto('fincaMat:v1:progreso:g1:g1', JSON.stringify({ nivelMaximoDesbloqueado: 4 }));
+    escribirTexto('fincaMat:v1:historiasVistas:g1', '["0"]');
+    migrar();
+    expect(versionGuardada()).toBe(3);
+    expect(leerTexto('fincaMat:v1:progreso:i1:inclusion')).toBeNull();
+    expect(leerTexto('fincaMat:v1:historiasVistas:i1')).toBeNull();
+    expect(leerTexto('fincaMat:v1:progreso:g1:g1')).not.toBeNull();
+    expect(leerTexto('fincaMat:v1:historiasVistas:g1')).toBe('["0"]');
+    expect(listarPerfiles()).toHaveLength(2);
   });
   it('las pruebas se guardan por grado e Inclusión no hace diagnóstica', () => {
     const p = crearPerfil('estudiante', 3, 'loro', []);

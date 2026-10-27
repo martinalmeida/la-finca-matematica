@@ -3,7 +3,8 @@ import { Estrellas } from '../componentes/Comunes';
 import { Planta } from '../componentes/Ilustraciones';
 import type { Efecto, ResultadoNivel } from '../juego/progresion';
 import { insignia } from '../juego/progresion';
-import { NIVEL_MAXIMO, aciertosParaAprobar } from '../juego/motor';
+import { aciertosParaAprobar, nivelMaximo } from '../juego/motor';
+import { nivelConTotal } from '../juego/complejidad';
 import { haceDiagnostica, leerPruebas } from '../almacenamiento/datos';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
@@ -18,14 +19,15 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
   const crecio = e.progreso.etapaPlanta !== e.etapaAnterior;
   const inclusion = r.pista === 'inclusion';
   // Al superar el último nivel se ofrece la prueba final (si aún no la hizo).
-  const ofrecerFinal = e.aprobado && r.nivel === NIVEL_MAXIMO && !!perfil && haceDiagnostica(perfil) && (!leerPruebas(perfil).final || !!leerPruebas(perfil).repetirFinal);
+  const maximo = nivelMaximo(r.pista);
+  const ofrecerFinal = e.aprobado && r.nivel === maximo && !!perfil && haceDiagnostica(perfil) && (!leerPruebas(perfil).final || !!leerPruebas(perfil).repetirFinal);
 
   return (
     <main className="pantalla centro">
       <section className="vidrio tarjeta-resultado">
       <h1 className="titulo-degradado">{e.aprobado ? (inclusion ? '¡Lo lograste!' : '¡Nivel superado!') : adulto ? 'Casi lo logra' : '¡Buen intento!'}</h1>
       <p style={{ margin: 0 }}>
-        Nivel {r.nivel} de {NIVEL_MAXIMO}
+        Nivel {nivelConTotal(r.pista, r.nivel)}
       </p>
       <Estrellas n={e.estrellas} />
       {inclusion ? (
@@ -72,7 +74,7 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
             <Icono nombre="medalla" tamano={26} /> {adulto ? 'Hacer la prueba final' : '¡Haz la prueba final!'}
           </button>
         )}
-        {e.aprobado && r.nivel < NIVEL_MAXIMO && (
+        {e.aprobado && r.nivel < maximo && (
           <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: r.nivel + 1 }, { reemplazar: true })}>
             Siguiente nivel <Icono nombre="siguiente" tamano={24} />
           </button>

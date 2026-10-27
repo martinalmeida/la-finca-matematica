@@ -1,4 +1,4 @@
-// Motor de niveles: cada ruta tiene 10 temas (niveles 1 a 10) y cada nivel trae 10 preguntas
+// Motor de niveles: cada ruta tiene sus temas (10, o 23 en Inclusión) y cada nivel trae 10 preguntas
 // de su tema. La dificultad d sube de pregunta en pregunta dentro del rango de la banda.
 // También arma las pruebas diagnóstica y final: una pregunta por tema, con d fija.
 
@@ -8,7 +8,6 @@ import { definiciones } from '../contenido/pistas';
 import { igualNumero } from '../contenido/plantillas/util';
 import { reducirOpciones } from './apoyo';
 
-export const NIVEL_MAXIMO = 10;
 export const PREGUNTAS_POR_NIVEL = 10;
 /** Dificultad de las preguntas de las pruebas (diagnóstica y final). */
 export const D_PRUEBA = 0.5;
@@ -37,7 +36,12 @@ export function definicion(pista: Pista): DefinicionPista {
   return definiciones[pista];
 }
 
-/** Tema de un nivel (1 a 10). */
+/** Último nivel de la ruta (10 en las rutas con pruebas). */
+export function nivelMaximo(pista: Pista): number {
+  return definicion(pista).temas.length;
+}
+
+/** Tema de un nivel (1 a nivelMaximo). */
 export function temaDe(pista: Pista, nivel: number): Tema {
   const temas = definicion(pista).temas;
   return temas[Math.min(temas.length, Math.max(1, nivel)) - 1];

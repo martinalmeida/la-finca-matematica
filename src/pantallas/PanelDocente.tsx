@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { useApp } from '../estado';
 import { Barra } from '../componentes/Comunes';
 import Teclado from '../componentes/Teclado';
-import { eliminarPerfil, guardarDocente, guardarPruebas, leerDocente, leerPruebas, reiniciarPerfil, type Perfil } from '../almacenamiento/datos';
+import { eliminarPerfil, guardarDocente, guardarPruebas, leerDocente, leerPruebas, pistaDePerfil, reiniciarPerfil, type Perfil } from '../almacenamiento/datos';
 import { hashTexto } from '../juego/rng';
 import { csvRegistro, csvResumen, informeTodos, jsonInvestigacion, nombresOperacion } from '../juego/informes';
 import { descargar, fechaArchivo } from '../almacenamiento/copia';
 import type { Banda, Operacion } from '../juego/tipos';
-import { BANDAS, NIVEL_MAXIMO } from '../juego/motor';
-import { RESUMEN_GRADO } from '../juego/complejidad';
+import { BANDAS } from '../juego/motor';
+import { nivelConTotal, RESUMEN_GRADO } from '../juego/complejidad';
 import Icono from '../componentes/Icono';
 
 const hashPin = (pin: string) => String(hashTexto('finca-docente|' + pin));
@@ -156,7 +156,7 @@ export default function PanelDocente() {
                 <tr key={f.perfil.id}>
                   <th scope="row">{f.perfil.codigo}</th>
                   <td>{f.perfil.grado === 'inclusion' ? 'Inclusión' : f.perfil.grado ? `${f.perfil.grado}.º` : 'Familia'}</td>
-                  <td>{f.nivelMaximo} de {NIVEL_MAXIMO}</td>
+                  <td>{nivelConTotal(pistaDePerfil(f.perfil), f.nivelMaximo)}</td>
                   <td>{f.estrellas}</td>
                   {ops.map((o) => (
                     <td key={o}>{f.porcentajes[o] ? `${f.porcentajes[o]!.pct} % (${f.porcentajes[o]!.total})` : '—'}</td>

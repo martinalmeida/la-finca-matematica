@@ -5,9 +5,9 @@ import { useApp } from '../estado';
 import Historia, { Medidor } from '../componentes/Historia';
 import { CabeceraVidrio } from '../componentes/Red';
 import { historiasVistas, leerProgreso, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
-import { barrasGrado, leccionDisponible, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
+import { barrasGrado, etiquetaNivel, leccionDisponible, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
 import { lecciones } from '../contenido/lecciones';
-import { NIVEL_MAXIMO } from '../juego/motor';
+import { nivelMaximo } from '../juego/motor';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 import { videoDeLeccion } from '../contenido/videos';
 
@@ -18,7 +18,8 @@ export default function Aprender() {
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
   const pista = pistaDePerfil(p);
   const progreso = useMemo(() => leerProgreso(p.id, pista), [p.id, pista]);
-  const actual = Math.min(progreso.nivelMaximoDesbloqueado, NIVEL_MAXIMO);
+  const maximo = nivelMaximo(pista);
+  const actual = Math.min(progreso.nivelMaximoDesbloqueado, maximo);
   const unidades = useMemo(() => unidadesDe(pista), [pista]);
   const lista = lecciones[pista];
   const [vistas, setVistas] = useState(() => historiasVistas(p.id));
@@ -50,7 +51,7 @@ export default function Aprender() {
             {adulto
               ? 'Su cuaderno tiene 10 temas, elegidos según su prueba de entrada. Cada tema tiene su lección.'
               : pista === 'inclusion'
-                ? 'Tu ruta tiene 10 temas tranquilos, uno por nivel. Cada tema tiene su historia.'
+                ? `Tu ruta tiene ${unidades.length} niveles tranquilos, cada uno con sus pasos (${maximo} en total). Cada nivel tiene su historia.`
                 : `Tu ruta tiene 10 temas, uno por nivel, y cada uno es un poco más difícil que el anterior: Inicio → Básico → Intermedio → Avanzado → Reto.`}
           </p>
         </section>
@@ -74,7 +75,7 @@ export default function Aprender() {
           {unidades.map((u) => {
             const l = lista[u.indice];
             const libre = leccionDisponible(u, actual);
-            const completa = actual > u.fin || (u.fin === NIVEL_MAXIMO && progreso.niveles[NIVEL_MAXIMO]?.completado);
+            const completa = actual > u.fin || (u.fin === maximo && progreso.niveles[maximo]?.completado);
             const enCurso = !completa && actual >= u.inicio;
             const estado = completa ? 'Completada' : enCurso ? 'En curso' : libre ? 'Adelanto' : 'Más adelante';
             const iconoEstado = completa ? 'check' : enCurso ? 'jugar' : libre ? 'ojo' : 'candado';
@@ -86,7 +87,9 @@ export default function Aprender() {
                   </span>
                   <span className="columna" style={{ flex: 1, gap: 2, minWidth: 0, textAlign: 'left' }}>
                     <span className="pequeno suave">
-                      Tema {u.indice + 1} · Nivel {u.inicio}
+                      {u.fin > u.inicio
+                        ? `Nivel ${u.indice + 1} · Pasos ${etiquetaNivel(pista, u.inicio)} a ${etiquetaNivel(pista, u.fin)}`
+                        : `Tema ${u.indice + 1} · Nivel ${u.inicio}`}
                     </span>
                     <strong>{l?.titulo ?? u.titulo}</strong>
                     <span className="pequeno suave">{u.titulo}</span>
@@ -97,7 +100,7 @@ export default function Aprender() {
                       <span className="suave fila" style={{ gap: 4 }}>
                         <Icono nombre={iconoEstado} tamano={18} /> {estado}
                       </span>
-                      {ajustes.videos && libre && videoDeLeccion(pista, u.indice) && (
+                      {ajustes.videos && libre && videoDeLeccion(pista, u.inicio - 1) && (
                         <span className="suave fila" style={{ gap: 4 }}>
                           <Icono nombre="video" tamano={18} anim="no" /> Con video
                         </span>

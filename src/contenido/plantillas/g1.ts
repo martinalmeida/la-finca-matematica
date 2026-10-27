@@ -660,4 +660,4 @@ export const g1: DefinicionPista = {
 };
 
 /** Plantillas de 1.º que también usa el grado Inclusión. */
-export const plantillasG1 = { contar, comparar, sumaJuntar, restaQuitar };
+export const plantillasG1 = { siguiente, sumaJuntar, restaQuitar, sumaCambio, comparaDiferencia, decenas, sumaCalculo };

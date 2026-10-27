@@ -67,7 +67,7 @@ Además encuentran consejos para acompañar a sus hijos y el avance de los niño
 - Ante un error, la app reconoce errores típicos y responde con un mensaje específico: suma sin llevar, resta del menor al mayor, operación equivocada, tabla vecina, residuo ignorado o conteo.
 - **Vibración:** el celular vibra una sola vez, corto (35 ms), **solo cuando hay un error**, como aviso de «revisa». Los aciertos no vibran. Se apaga en **Ajustes → Vibración**. En iPhone, la vibración depende del sistema (iOS 18 o posterior).
 - **Paso a paso:** si un estudiante se equivoca dos veces en el mismo ejercicio, la app le ofrece resolverlo paso a paso: 1) elegir qué pasa en el problema (juntar, quitar, repetir grupos o repartir), 2) ver la operación con un dibujo y 3) responder. Puede saltarlo si prefiere.
-- **Semillas, planta e insignias** premian la constancia, no la velocidad. La planta crece cada dos niveles superados. No hay clasificaciones entre estudiantes ni cronómetros.
+- **Semillas, planta e insignias** premian la constancia, no la velocidad. La planta crece cada dos niveles superados (en Inclusión, en cinco pasos a lo largo de la ruta). No hay clasificaciones entre estudiantes ni cronómetros.
 - **Silo de la escuela:** reúne las semillas de todos los perfiles del celular. Cuando se llena, hay una celebración colectiva.
 - **Reto en pareja:** dos estudiantes de grados cercanos (máximo un grado de diferencia) resuelven por turnos los pasos de un problema en el mismo celular.
 
@@ -75,9 +75,17 @@ Además encuentran consejos para acompañar a sus hijos y el avance de los niño
 
 ## 4. Grado Inclusión
 
-Para niños con autismo y otras formas de aprender. Se elige como un grado más al crear el perfil. No tiene prueba de entrada ni prueba final: el niño va directo a su ruta de **10 niveles de 10 actividades**:
+Para niños con autismo y otras formas de aprender. Se elige como un grado más al crear el perfil. No tiene prueba de entrada ni prueba final: el niño va directo a su ruta de **7 niveles**, cada uno partido en pasos cortos (23 en total, de 10 actividades cada uno). En la app se nombran «1.1», «1.2»…: el primer número es el nivel y el segundo, el paso. Cada nivel tiene su lección y cada paso su video de introducción.
 
-1. mirar y tocar: 1, 2 y 3; 2. contar hasta 5; 3. escribir del 0 al 4 (repasar con el dedo); 4. escribir del 5 al 9; 5. contar hasta 10 (a veces escribiendo el número con el dedo); 6. número y cantidad (tocar el grupo que tiene ese número); 7. ¿dónde hay más?; 8. juntar en la canasta; 9. quitar de la canasta; 10. repaso.
+1. **Pre-número (sin cifras):** 1.1 clasificar por color, forma y tamaño (llevar cada figura a su canasta y encontrar la diferente); 1.2 alto/bajo, grande/pequeño, largo/corto; 1.3 uno, muchos y ninguno; 1.4 más, menos e igual.
+2. **Números del 1 al 3:** 2.1 reconocer y contar 1, 2 y 3 (y repasarlos con el dedo); 2.2 emparejar cantidad y número; 2.3 ordenar 3 objetos por su altura.
+3. **Números del 1 al 10:** 3.1 contar de uno en uno; 3.2 conocer los números de dos en dos (1 y 2, luego 3 y 4… hasta 10); 3.3 completar secuencias (1, 2, __); 3.4 mayor y menor.
+4. **Números del 1 al 20:** 4.1 contar y escribir el número con el dedo; 4.2 antes, después y entre; 4.3 partir un número (el 5 es 3 y 2).
+5. **Unir y quitar con objetos:** 5.1 juntar dos grupos y contar todo; 5.2 quitar y contar lo que queda; 5.3 cuentos cortos con dibujos («Tenía 2, llegó 1»).
+6. **Suma y resta:** 6.1 sumas hasta 5 y luego hasta 10; 6.2 restas hasta 5 y luego hasta 10; 6.3 sin dibujos (ayuda en la recta); 6.4 problemas sencillos.
+7. **Extensión:** 7.1 decena y unidad con cajas de 10; 7.2 sumas y restas hasta 20 y luego hasta 100, sin llevar.
+
+Dentro de cada paso las actividades avanzan poco a poco: por ejemplo, en 6.1 las primeras sumas llegan a 5 y las últimas a 10.
 
 Cómo está pensado:
 
@@ -88,8 +96,6 @@ Cómo está pensado:
 - El **Taller de números** (abajo) queda en *Aprender* solo para este grado.
 
 ## 5. Taller de números (Inclusión)
-
-## 5. Taller de números (1.º)
 
 En **Aprender → Taller de números** (perfiles de Inclusión), el niño aprende a escribir las cifras del 0 al 9 a su ritmo, fuera de los niveles:
 
@@ -165,3 +171,7 @@ Muchas lecciones traen un video corto de YouTube en español (los temas sin un v
 - Use los resultados para decidir qué reforzar, no como nota.
 - Si un estudiante está bloqueado en un nivel, el repaso con pistas le permite avanzar. Acompáñelo con material concreto (granos, piedritas, tapas). Si la exigencia le queda grande o pequeña, cámbiela en el panel docente.
 - Antes de usarla con estudiantes, la plataforma debe pasar por la validación de expertos y el pilotaje previstos en la tesis (apartado 5.8).
+
+---
+
+La Finca Matemática. Autor: Yerson Julian Albarracin Almeida, estudiante de la Maestría en Educación de la Universidad de Investigación y Desarrollo (UDI), Santander, Colombia. © 2026. Todos los derechos reservados.

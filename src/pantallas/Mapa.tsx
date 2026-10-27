@@ -1,4 +1,5 @@
 // Ruta del grado: 10 niveles (un tema cada uno, con su lección) y, al final, la prueba final.
+// En Inclusión, los niveles van agrupados en bloques: cada bloque tiene su lección.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../estado';
@@ -6,9 +7,9 @@ import Celebracion from '../componentes/Celebracion';
 import Historia, { Medidor } from '../componentes/Historia';
 import { CabeceraVidrio } from '../componentes/Red';
 import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
-import { barrasBanda, barrasGrado, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
+import { barrasBanda, barrasGrado, etiquetaNivel, nivelConTotal, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
 import { lecciones } from '../contenido/lecciones';
-import { BANDAS, NIVEL_MAXIMO } from '../juego/motor';
+import { BANDAS, nivelMaximo, temaDe } from '../juego/motor';
 import { hayCosechaNueva } from '../juego/silo';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
@@ -27,7 +28,9 @@ export default function Mapa() {
   const banda = bandaDePerfil(p);
   const conPruebas = haceDiagnostica(p);
   const pruebas = useMemo(() => leerPruebas(p), [p.id]);
-  const rutaTerminada = !!progreso.niveles[NIVEL_MAXIMO]?.completado;
+  const maximo = nivelMaximo(pista);
+  const enJuego = Math.min(actual, maximo);
+  const rutaTerminada = !!progreso.niveles[maximo]?.completado;
   const finalPendiente = conPruebas && rutaTerminada && (!pruebas.final || pruebas.repetirFinal);
 
   useEffect(() => {
@@ -40,7 +43,7 @@ export default function Mapa() {
     const estado = progreso.niveles[n];
     const bloqueado = n > actual;
     const esActual = n === actual && !rutaTerminada;
-    const etiqueta = `Jugar el nivel ${n}${bloqueado ? ', bloqueado' : ''}${estado?.completado ? `, ${estado.estrellas} estrellas` : ''}${esActual ? ', nivel actual' : ''}`;
+    const etiqueta = `Jugar el nivel ${etiquetaNivel(pista, n)}${bloqueado ? ', bloqueado' : ''}${estado?.completado ? `, ${estado.estrellas} estrellas` : ''}${esActual ? ', nivel actual' : ''}`;
     return (
       <button
         ref={esActual ? refActual : undefined}
@@ -50,7 +53,7 @@ export default function Mapa() {
         onClick={() => ir({ nombre: 'nivel', nivel: n })}
         aria-label={etiqueta}
       >
-        {bloqueado ? <Icono nombre="candado" tamano={26} anim="no" /> : <span>{n}</span>}
+        {bloqueado ? <Icono nombre="candado" tamano={26} anim="no" /> : <span>{etiquetaNivel(pista, n)}</span>}
         {estado?.completado && (
           <span className="estrellas-mini" aria-hidden="true">
             {'★'.repeat(estado.estrellas)}
@@ -65,7 +68,7 @@ export default function Mapa() {
     <>
       <CabeceraVidrio
         titulo={resumen.nombre}
-        subtitulo={`Nivel ${Math.min(actual, NIVEL_MAXIMO)} de ${NIVEL_MAXIMO} · ${rangoNumeros(pista)}`}
+        subtitulo={`Nivel ${nivelConTotal(pista, enJuego)} · ${rangoNumeros(pista)}`}
         derecha={
           conPruebas && !adulto ? (
             <span className="chip pequeno" title={BANDAS[banda].descripcion}>
@@ -82,28 +85,50 @@ export default function Mapa() {
             <Icono nombre="medalla" tamano={26} /> {adulto ? 'Hacer la prueba final' : '¡Haz la prueba final!'}
           </button>
         ) : (
-          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: Math.min(actual, NIVEL_MAXIMO) })}>
-            <Icono nombre="jugar-simple" tamano={24} /> {adulto ? 'Continuar' : 'Jugar'} el nivel {Math.min(actual, NIVEL_MAXIMO)}
+          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: enJuego })}>
+            <Icono nombre="jugar-simple" tamano={24} /> {adulto ? 'Continuar' : 'Jugar'} el nivel {etiquetaNivel(pista, enJuego)}
           </button>
         )}
         <div className="camino" aria-label="Ruta de niveles">
           {unidades.map((u) => {
             const abiertaU = u.inicio <= actual;
             const l = lecciones[pista][u.indice];
+            const bloque = u.fin > u.inicio;
+            const niveles = Array.from({ length: u.fin - u.inicio + 1 }, (_, k) => u.inicio + k);
             return (
-              <section key={u.indice} className={`zona tema vidrio revelar zona-${Math.floor(u.indice / 2)} ${abiertaU ? '' : 'cerrada'}`} aria-label={`Nivel ${u.inicio}: ${u.titulo}`}>
+              <section
+                key={u.indice}
+                className={`zona tema vidrio revelar ${abiertaU ? '' : 'cerrada'}`}
+                aria-label={bloque ? `Nivel ${u.indice + 1}: ${u.titulo}` : `Nivel ${u.inicio}: ${u.titulo}`}
+              >
                 <header className="zona-cabecera">
-                  {nodo(u.inicio)}
+                  {bloque ? (
+                    <span className="zona-numero" aria-hidden="true">
+                      {u.indice + 1}
+                    </span>
+                  ) : (
+                    nodo(u.inicio)
+                  )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3>{u.titulo}</h3>
+                    <h3>{bloque ? `Nivel ${u.indice + 1} · ${u.titulo}` : u.titulo}</h3>
                     <div className="fila pequeno">
                       <span className={`chip complejidad c-${u.complejidad.id}`}>
                         <Medidor barras={u.complejidad.barras} /> {u.complejidad.nombre}
                       </span>
-                      <span className="suave">10 preguntas</span>
+                      <span className="suave">{bloque ? `${niveles.length} niveles de 10 actividades` : '10 preguntas'}</span>
                     </div>
                   </div>
                 </header>
+                {bloque && (
+                  <ol className="bloque-niveles">
+                    {niveles.map((n) => (
+                      <li key={n} className={n > actual ? 'bloqueado' : ''}>
+                        {nodo(n)}
+                        <span>{temaDe(pista, n).titulo}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
                 {l && abiertaU && (
                   <button
                     type="button"
@@ -132,7 +157,7 @@ export default function Mapa() {
                       ? `${adulto ? 'Hecha' : 'Hecha'}: ${pruebas.final.aciertos} de ${pruebas.final.total} (al entrar: ${pruebas.diagnostica?.aciertos ?? '–'})`
                       : rutaTerminada
                         ? adulto ? 'Compare cómo terminó con cómo empezó.' : 'Mira cuánto aprendiste desde el comienzo.'
-                        : `Se abre al superar el nivel ${NIVEL_MAXIMO}.`}
+                        : `Se abre al superar el nivel ${maximo}.`}
                   </div>
                 </div>
               </header>

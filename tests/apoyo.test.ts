@@ -1,6 +1,6 @@
 // Banda Refuerzo: menos opciones (siempre con la correcta) y paso a paso.
 import { describe, expect, it } from 'vitest';
-import { generarNivel, NIVEL_MAXIMO } from '../src/juego/motor';
+import { generarNivel, nivelMaximo } from '../src/juego/motor';
 import { accionDe, dosOpciones } from '../src/juego/apoyo';
 import { TODAS_LAS_PISTAS } from '../src/almacenamiento/datos';
 import type { Ejercicio } from '../src/juego/tipos';
@@ -19,7 +19,7 @@ describe('banda Refuerzo', () => {
 
   it('en todas las rutas (menos Inclusión), las opciones bajan a 2 y la respuesta sigue ahí', () => {
     for (const pista of TODAS_LAS_PISTAS.filter((p) => p !== 'inclusion')) {
-      for (let nivel = 1; nivel <= NIVEL_MAXIMO; nivel++) {
+      for (let nivel = 1; nivel <= nivelMaximo(pista); nivel++) {
         for (const ej of generarNivel({ codigo: 'AB12', pista, nivel, intento: 1, banda: 'refuerzo' })) {
           expect(ej.apoyo).toBe(true);
           const op = opcionesDe(ej);

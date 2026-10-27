@@ -3665,6 +3665,39 @@ button.frase:active {
   left: 0;
 }
 
+/* Niveles de un bloque (Inclusión): cada nivel con su nombre. */
+.bloque-niveles {
+  list-style: none;
+  margin: 0;
+  padding: 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bloque-niveles li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bloque-niveles li > span {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.bloque-niveles li.bloqueado > span {
+  color: var(--tinta-suave);
+}
+
+.bloque-niveles .nodo {
+  flex-shrink: 0;
+  left: 0;
+}
+
 .zona-final .zona-numero {
   background: var(--acento-naranja);
 }
@@ -3702,6 +3735,178 @@ button.frase:active {
 .grupo-emparejar.correcta {
   border-color: var(--verde);
   background: var(--ok-fondo);
+}
+
+/* Pre-número (Inclusión): figuras, clasificar y ordenar */
+.figuras,
+.ordenar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+.figura-opcion {
+  min-height: 120px;
+  padding: 10px;
+  border-radius: var(--radio);
+  border: 2px solid var(--borde-vidrio);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.figuras-lazos {
+  grid-template-columns: 1fr;
+}
+
+.figuras-lazos .figura-opcion {
+  min-height: 72px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.figura-opcion.fallida {
+  opacity: 0.45;
+}
+
+.figura-opcion.correcta,
+.ordenar-ficha.marcada {
+  border-color: var(--verde);
+  background: var(--ok-fondo);
+}
+
+.ordenar-puntos {
+  display: flex;
+  gap: 4px;
+  min-height: 12px;
+}
+
+.punto-turno {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--verde);
+}
+
+.figura-torre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.figura-canasta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 2px;
+  width: 100%;
+  max-width: 130px;
+  min-height: 72px;
+  padding: 6px;
+  border: 4px solid #b7793f;
+  border-top-width: 2px;
+  border-radius: 6px 6px 22px 22px;
+  background: #fdf6e7;
+}
+
+.figura-igual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 800;
+}
+
+.clasificar-canastas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.clasificar-canasta {
+  border-radius: var(--radio);
+  border: 2px dashed var(--borde-vidrio);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  min-height: 150px;
+}
+
+.clasificar-canasta.esperando {
+  border-color: var(--acento);
+}
+
+.clasificar-rotulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  border: 1px solid var(--borde-vidrio);
+  background: rgba(255, 255, 255, 0.7);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.clasificar-dentro,
+.clasificar-sueltas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.figura-ficha {
+  min-width: 60px;
+  min-height: 60px;
+  border-radius: 14px;
+  border: 2px solid var(--borde-vidrio);
+  background: rgba(255, 255, 255, 0.75);
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+
+.figura-ficha.elegida {
+  border-color: var(--acento-naranja);
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.4);
+}
+
+.visual-figuras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.visual-figura {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 140px;
+  text-align: center;
+}
+
+.dibujo-enunciado {
+  padding: 4px 0;
+}
+
+/* El dibujo del cuento se ve grande: es parte de la pregunta. */
+.dibujo-enunciado .visual-grupo svg {
+  width: 40px;
+  height: 40px;
 }
 
 /* ===================== Grado Inclusión ===================== */

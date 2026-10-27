@@ -4,14 +4,13 @@ import { Avatar } from '../componentes/Ilustraciones';
 import { informePerfil, nombresOperacion } from '../juego/informes';
 import { leerPruebas, listarPerfiles, pistaDePerfil } from '../almacenamiento/datos';
 import Comparacion from '../componentes/Comparacion';
-import { NIVEL_MAXIMO } from '../juego/motor';
+import { temaDe } from '../juego/motor';
 import { consejosFamilia as consejos } from '../contenido/red';
 import { CabeceraVidrio } from '../componentes/Red';
-import { nombreGrado } from '../juego/complejidad';
+import { nivelConTotal, nombreGrado } from '../juego/complejidad';
 import Icono from '../componentes/Icono';
 import { BotonVideo } from '../componentes/Video';
 import { guiaFamilias, videosLecciones } from '../contenido/videos';
-import { lecciones } from '../contenido/lecciones';
 import type { Pista } from '../juego/tipos';
 
 const GRADOS: { pista: Pista; nombre: string }[] = [
@@ -63,7 +62,7 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
                   v && (
                     <div key={v.id + k} className="columna" style={{ gap: 4 }}>
                       <span className="pequeno suave">
-                        Tema {k + 1}: {lecciones[pista][k]?.titulo}
+                        Nivel {k + 1}: {temaDe(pista, k + 1).titulo}
                       </span>
                       <BotonVideo video={v} adulto clase="boton" texto={v.titulo} />
                     </div>
@@ -116,7 +115,7 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
                 </div>
               </div>
               <p style={{ margin: 0 }}>
-                Va en el <strong>nivel {f.nivelMaximo} de {NIVEL_MAXIMO}</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
+                Va en el <strong>nivel {nivelConTotal(pistaDePerfil(p), f.nivelMaximo)}</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
               </p>
               {pr.diagnostica && !pr.final && (
                 <p className="pequeno" style={{ margin: 0 }}>

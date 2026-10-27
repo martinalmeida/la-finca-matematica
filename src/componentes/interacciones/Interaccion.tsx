@@ -2,11 +2,14 @@ import Algoritmo from './Algoritmo';
 import Arrastrar from './Arrastrar';
 import Arreglo from './Arreglo';
 import Bloques from './Bloques';
+import Clasificar from './Clasificar';
 import Contar from './Contar';
 import Emparejar from './Emparejar';
 import Escribir from './Escribir';
+import Figuras from './Figuras';
 import Numerica from './Numerica';
 import Opciones from './Opciones';
+import Ordenar from './Ordenar';
 import Razonable from './Razonable';
 import Recta from './Recta';
 import Tabla from './Tabla';
@@ -43,5 +46,11 @@ export default function Interaccion(props: PropsInteraccion) {
       return <Trazar {...props} />;
     case 'emparejar':
       return <Emparejar {...props} />;
+    case 'figuras':
+      return <Figuras {...props} />;
+    case 'clasificar':
+      return <Clasificar {...props} />;
+    case 'ordenar':
+      return <Ordenar {...props} />;
   }
 }

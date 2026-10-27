@@ -10,8 +10,8 @@ import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, listarPerfil
 import Comparacion from '../componentes/Comparacion';
 import { catalogoInsignias, ETAPAS } from '../juego/progresion';
 import { estadoSilo } from '../juego/silo';
-import { RESUMEN_GRADO, unidadDe } from '../juego/complejidad';
-import { BANDAS, NIVEL_MAXIMO } from '../juego/motor';
+import { nivelConTotal, RESUMEN_GRADO, unidadDe } from '../juego/complejidad';
+import { BANDAS, nivelMaximo, temaDe } from '../juego/motor';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
 const nombresEtapa = ['Semilla', 'Brote', 'Planta', 'Flor', 'Fruto', 'Cosecha'];
@@ -24,7 +24,7 @@ export default function MiFinca() {
   const silo = estadoSilo();
   const etapa = ETAPAS.indexOf(prog.etapaPlanta);
   const [pestana, setPestana] = useState<'insignias' | 'planta' | 'silo'>('insignias');
-  const actual = Math.min(prog.nivelMaximoDesbloqueado, NIVEL_MAXIMO);
+  const actual = Math.min(prog.nivelMaximoDesbloqueado, nivelMaximo(pista));
   const unidad = unidadDe(pista, actual);
   const estrellas = Object.values(prog.niveles).reduce((s, n) => s + n.estrellas, 0);
   const catalogo = catalogoInsignias();
@@ -67,7 +67,7 @@ export default function MiFinca() {
           <div>
             <strong>{RESUMEN_GRADO[pista].nombre}</strong>
             <p className="pequeno" style={{ margin: '2px 0 0' }}>
-              {RESUMEN_GRADO[pista].foco}. {adulto ? 'Va' : 'Voy'} en el nivel {unidad.inicio} de {NIVEL_MAXIMO}: {unidad.titulo}.
+              {RESUMEN_GRADO[pista].foco}. {adulto ? 'Va' : 'Voy'} en el nivel {nivelConTotal(pista, actual)}: {temaDe(pista, actual).titulo}.
             </p>
             <div className="fila" style={{ marginTop: 8 }}>
               <span className={`chip complejidad c-${unidad.complejidad.id}`}>

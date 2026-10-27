@@ -2,6 +2,8 @@
   "name": "la-finca-matematica",
   "private": true,
   "version": "1.0.0",
+  "author": "Yerson Julian Albarracin Almeida",
+  "license": "UNLICENSED",
   "type": "module",
   "description": "La Finca Matemática: PWA sin conexión para practicar las operaciones básicas en contexto rural (San Vicente de Chucurí, Santander).",
   "scripts": {

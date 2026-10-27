@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { guiaFamilias, todosLosVideos, videosLecciones } from '../src/contenido/videos';
 import { lecciones } from '../src/contenido/lecciones';
+import { unidadesDe } from '../src/juego/complejidad';
+import { nivelMaximo } from '../src/juego/motor';
+import type { Pista } from '../src/juego/tipos';
 
 describe('videos de ayuda', () => {
-  it('cada ruta tiene 10 lecciones y un video de introducción en cada uno de sus 10 niveles', () => {
-    for (const [pista, lista] of Object.entries(lecciones)) {
-      expect(lista, pista).toHaveLength(10);
-      const videos = videosLecciones[pista as keyof typeof videosLecciones];
-      expect(videos, pista).toHaveLength(10);
+  it('cada ruta tiene una lección por unidad y un video de introducción en cada nivel', () => {
+    for (const [pista, lista] of Object.entries(lecciones) as [Pista, unknown[]][]) {
+      expect(lista, pista).toHaveLength(unidadesDe(pista).length);
+      const videos = videosLecciones[pista];
+      expect(videos, pista).toHaveLength(nivelMaximo(pista));
       videos.forEach((v, k) => expect(v, `${pista}, nivel ${k + 1}`).toBeTruthy());
     }
   });

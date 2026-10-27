@@ -10,12 +10,12 @@ import Historia, { Medidor, MiniReto } from '../componentes/Historia';
 import { BarraHistorias, CabeceraVidrio, Publicacion } from '../componentes/Red';
 import { LogoConPanel } from './Bienvenida';
 import { haceDiagnostica, historiasVistas, leerProgreso, leerPruebas, listarPerfiles, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
-import { leccionDisponible, nivelParaPracticar, RESUMEN_GRADO, unidadDe, unidadesDe, type Unidad } from '../juego/complejidad';
+import { etiquetaNivel, etiquetaUnidad, nivelConTotal, leccionDisponible, nivelParaPracticar, RESUMEN_GRADO, unidadDe, unidadesDe, type Unidad } from '../juego/complejidad';
 import { lecciones } from '../contenido/lecciones';
 import { avatarDeAutor, consejosFamilia, datosCuriosos, indiceDelDia } from '../contenido/red';
 import { insignia } from '../juego/progresion';
 import { estadoSilo, hayCosechaNueva } from '../juego/silo';
-import { NIVEL_MAXIMO } from '../juego/motor';
+import { nivelMaximo, temaDe } from '../juego/motor';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 import { BotonVideo } from '../componentes/Video';
 import { videoDeLeccion } from '../contenido/videos';
@@ -27,7 +27,8 @@ export default function Inicio() {
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
   const pista = pistaDePerfil(p);
   const progreso = useMemo(() => leerProgreso(p.id, pista), [p.id, pista]);
-  const actual = Math.min(progreso.nivelMaximoDesbloqueado, NIVEL_MAXIMO);
+  const maximo = nivelMaximo(pista);
+  const actual = Math.min(progreso.nivelMaximoDesbloqueado, maximo);
   const unidades = useMemo(() => unidadesDe(pista), [pista]);
   const unidad = unidadDe(pista, actual);
   const lista = lecciones[pista];
@@ -48,11 +49,11 @@ export default function Inicio() {
   };
 
   const estrellas = Object.values(progreso.niveles).reduce((s, n) => s + n.estrellas, 0);
-  // Avance de la ruta: niveles superados de 10.
+  // Avance de la ruta: niveles superados del total.
   const superados = Object.values(progreso.niveles).filter((n) => n.completado).length;
   const pruebas = leerPruebas(p);
-  const finalPendiente = haceDiagnostica(p) && !!progreso.niveles[NIVEL_MAXIMO]?.completado && (!pruebas.final || !!pruebas.repetirFinal);
-  const avanceUnidad = Math.round((superados / NIVEL_MAXIMO) * 100);
+  const finalPendiente = haceDiagnostica(p) && !!progreso.niveles[maximo]?.completado && (!pruebas.final || !!pruebas.repetirFinal);
+  const avanceUnidad = Math.round((Math.min(superados, maximo) / maximo) * 100);
 
   // Reto del día: una unidad ya abierta, distinta cada día.
   const abiertas = unidades.filter((u) => u.inicio <= actual);
@@ -100,13 +101,13 @@ export default function Inicio() {
         <section className="tarjeta-ruta vidrio revelar" aria-label="Tu ruta">
           <div className="fila" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
             <div className="anillo-progreso" style={{ ['--p' as string]: `${avanceUnidad}%` }} aria-hidden="true">
-              <span>{actual}</span>
+              <span>{etiquetaNivel(pista, actual)}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="pequeno suave">
-                {RESUMEN_GRADO[pista].nombre} · Nivel {unidad.inicio} de {NIVEL_MAXIMO}
+                {RESUMEN_GRADO[pista].nombre} · Nivel {nivelConTotal(pista, actual)}
               </div>
-              <strong className="titulo-tarjeta">{unidad.titulo}</strong>
+              <strong className="titulo-tarjeta">{temaDe(pista, actual).titulo}</strong>
               <div className="fila pequeno" style={{ marginTop: 4 }}>
                 <span className={`chip complejidad c-${unidad.complejidad.id}`}>
                   <Medidor barras={unidad.complejidad.barras} /> {unidad.complejidad.nombre}
@@ -123,7 +124,7 @@ export default function Inicio() {
             </button>
           ) : (
             <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: actual })}>
-              <Icono nombre="jugar-simple" tamano={24} /> {tu('Jugar', 'Continuar')} el nivel {actual}
+              <Icono nombre="jugar-simple" tamano={24} /> {tu('Jugar', 'Continuar')} el nivel {etiquetaNivel(pista, actual)}
             </button>
           )}
         </section>
@@ -134,7 +135,7 @@ export default function Inicio() {
             id={`leccion-${pista}-${unidad.indice}`}
             avatar={avatarDeAutor(lista[unidad.indice].autor)}
             autor={lista[unidad.indice].autor}
-            meta={`Lección del nivel ${unidad.inicio}`}
+            meta={`Lección del nivel ${etiquetaUnidad(unidad)}`}
             lectura={`${lista[unidad.indice].titulo}. ${lista[unidad.indice].idea}`}
             etiqueta={<><Icono nombre="libro" tamano={20} /> Aprende</>}
             acciones={
@@ -142,7 +143,7 @@ export default function Inicio() {
                 <button type="button" className="boton vidrio-boton" onClick={() => abrir(unidad)}>
                   Ver la historia <Icono nombre="siguiente" tamano={20} />
                 </button>
-                <BotonVideo video={videoDeLeccion(pista, unidad.indice)} clase="boton vidrio-boton" texto="Video" />
+                <BotonVideo video={videoDeLeccion(pista, unidad.inicio - 1)} clase="boton vidrio-boton" texto="Video" />
               </>
             }
           >
@@ -220,7 +221,7 @@ export default function Inicio() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <strong>{x.perfil.id === p.id ? `${x.perfil.apodo} (${tu('tú', 'usted')})` : x.perfil.apodo}</strong>
                     <div className="pequeno suave">
-                      Nivel {Math.min(x.progreso.nivelMaximoDesbloqueado, NIVEL_MAXIMO)} · {RESUMEN_GRADO[x.pista].nombre} · ★ {x.estrellas}
+                      Nivel {etiquetaNivel(x.pista, Math.min(x.progreso.nivelMaximoDesbloqueado, nivelMaximo(x.pista)))} · {RESUMEN_GRADO[x.pista].nombre} · ★ {x.estrellas}
                     </div>
                   </div>
                 </li>

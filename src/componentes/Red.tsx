@@ -5,7 +5,7 @@ import { useApp } from '../estado';
 import { Avatar, type AvatarId } from './Ilustraciones';
 import { alternarReaccion, leerReacciones } from '../almacenamiento/datos';
 import { sonar } from '../servicios/sonido';
-import type { Unidad } from '../juego/complejidad';
+import { etiquetaUnidad, type Unidad } from '../juego/complejidad';
 import type { Leccion } from '../contenido/lecciones';
 import Icono, { IconoEmoji } from './Icono';
 import { BotonEscuchar } from './Comunes';
@@ -122,7 +122,7 @@ export function BarraHistorias({
                   {libre ? <IconoEmoji emoji={l?.emoji ?? '📖'} tamano={40} anim="siempre" /> : <Icono nombre="candado" tamano={32} anim="no" />}
                 </span>
               </span>
-              <span className="historia-nombre">{enCurso ? 'Ahora' : `Nivel ${u.inicio}`}</span>
+              <span className="historia-nombre">{enCurso ? 'Ahora' : `Nivel ${etiquetaUnidad(u)}`}</span>
             </button>
           </div>
         );

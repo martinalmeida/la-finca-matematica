@@ -3,7 +3,7 @@
 
 import { borrar, clavesApp, escribirTexto, leerTexto, PREFIJO_V1 } from './almacen';
 
-export const VERSION_ACTUAL = 2;
+export const VERSION_ACTUAL = 3;
 export const CLAVE_VERSION = 'fincaMat:version';
 
 type Migracion = { a: number; aplicar: () => void };
@@ -36,6 +36,24 @@ const migraciones: Migracion[] = [
       for (const k of clavesApp()) {
         if (k.startsWith(PREFIJO_V1 + 'progreso:') || k.startsWith(PREFIJO_V1 + 'tutorialVisto:')) borrar(k);
       }
+    },
+  },
+  {
+    a: 3,
+    aplicar: () => {
+      // v2 → v3: la ruta de Inclusión pasa de 10 temas a 23 niveles en 7 bloques.
+      // Su progreso no corresponde a los niveles nuevos y las lecciones vistas eran de otros temas.
+      let inclusion: string[] = [];
+      try {
+        const lista = JSON.parse(leerTexto(PREFIJO_V1 + 'perfiles') ?? '[]') as { id?: string; grado?: unknown }[];
+        if (Array.isArray(lista)) inclusion = lista.filter((x) => x.grado === 'inclusion' && typeof x.id === 'string').map((x) => x.id!);
+      } catch {
+        // perfiles ilegibles: solo se borra el progreso
+      }
+      for (const k of clavesApp()) {
+        if (k.startsWith(PREFIJO_V1 + 'progreso:') && k.endsWith(':inclusion')) borrar(k);
+      }
+      for (const id of inclusion) borrar(PREFIJO_V1 + 'historiasVistas:' + id);
     },
   },
 ];

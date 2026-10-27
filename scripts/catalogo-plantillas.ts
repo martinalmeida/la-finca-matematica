@@ -2,6 +2,7 @@
 import { writeFileSync } from 'node:fs';
 import { definiciones } from '../src/contenido/pistas';
 import type { Pista } from '../src/juego/tipos';
+import { etiquetaNivel, unidadDe } from '../src/juego/complejidad';
 
 const nombres: Record<Pista, string> = {
   g1: '1.º grado',
@@ -17,16 +18,23 @@ const nombres: Record<Pista, string> = {
 };
 let md =
   '# Catálogo de plantillas\n\nGenerado automáticamente desde `src/contenido/plantillas` (`npm run catalogo`).\n\n' +
-  'Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas. La columna «Prueba» es la plantilla de la pregunta de ese tema en la prueba diagnóstica y en la final.\n\n';
+  'Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas; Inclusión tiene 23 niveles en 7 bloques y no hace pruebas. La columna «Prueba» es la plantilla de la pregunta de ese tema en la prueba diagnóstica y en la final.\n\n';
 const ids = new Set<string>();
 for (const [pista, def] of Object.entries(definiciones) as [Pista, (typeof definiciones)[Pista]][]) {
   def.plantillas.forEach((p) => ids.add(p.id));
   md += `## ${nombres[pista]} (${def.plantillas.length} plantillas, números hasta ${def.limite.toLocaleString('es-CO')})\n\n| Plantilla | Dimensión | Operación | Descripción |\n| --- | --- | --- | --- |\n`;
   for (const p of def.plantillas) md += `| \`${p.id}\` | ${p.dimension} | ${p.operacion} | ${p.descripcion} |\n`;
-  md += '\n| Nivel | Tema | Plantillas usadas | Prueba |\n| --- | --- | --- | --- |\n';
-  def.temas.forEach((t, k) => {
-    md += `| ${k + 1} | ${t.titulo} | ${[...new Set(t.usos.map((u) => u.plantilla.id))].join(', ')} | ${(t.prueba ?? t.usos[0]).plantilla.id} |\n`;
-  });
+  if (def.bloques) {
+    md += '\n| Nivel | Bloque | Tema | Plantillas usadas |\n| --- | --- | --- | --- |\n';
+    def.temas.forEach((t, k) => {
+      md += `| ${etiquetaNivel(pista, k + 1)} | ${unidadDe(pista, k + 1).titulo} | ${t.titulo} | ${[...new Set(t.usos.map((u) => u.plantilla.id))].join(', ')} |\n`;
+    });
+  } else {
+    md += '\n| Nivel | Tema | Plantillas usadas | Prueba |\n| --- | --- | --- | --- |\n';
+    def.temas.forEach((t, k) => {
+      md += `| ${k + 1} | ${t.titulo} | ${[...new Set(t.usos.map((u) => u.plantilla.id))].join(', ')} | ${(t.prueba ?? t.usos[0]).plantilla.id} |\n`;
+    });
+  }
   md += '\n';
 }
 md = md.replace('\n\n', `\n\nTotal: **${ids.size} plantillas distintas** en ${Object.keys(definiciones).length} rutas (algunas se comparten entre grados).\n\n`);

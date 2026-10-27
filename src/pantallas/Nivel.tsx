@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../estado';
 import Ejercicio, { type ResultadoEjercicio } from '../componentes/Ejercicio';
-import { generarNivel, NIVEL_MAXIMO, temaDe } from '../juego/motor';
+import { generarNivel, temaDe } from '../juego/motor';
+import { etiquetaNivel, nivelConTotal, unidadDe } from '../juego/complejidad';
 import { aplicarResultado, type ResultadoNivel } from '../juego/progresion';
 import { bandaDePerfil, guardarProgreso, leerProgreso, leerResumen, pistaDePerfil, registrar, sumarAlResumen } from '../almacenamiento/datos';
 import { sonar } from '../servicios/sonido';
@@ -15,7 +16,7 @@ import { useLecturaAutomatica } from '../servicios/voz';
  * Al empezar cada nivel: de qué se trata y un video de introducción para aprender antes de jugar.
  * El video se carga solo si alguien lo toca; sin internet se puede empezar igual.
  */
-function IntroNivel({ nivel, tema, idea, video, adulto, alEmpezar }: { nivel: number; tema: string; idea: string; video: Video | null; adulto: boolean; alEmpezar: () => void }) {
+function IntroNivel({ nivel, tema, idea, video, adulto, alEmpezar }: { nivel: string; tema: string; idea: string; video: Video | null; adulto: boolean; alEmpezar: () => void }) {
   const texto = adulto
     ? `Nivel ${nivel}: ${tema}. ${idea}${video ? ' Antes de empezar, vea el video de introducción.' : ''}`
     : `Nivel ${nivel}: ${tema}. ${idea}${video ? ' Antes de empezar, mira el video para aprender.' : ''}`;
@@ -94,7 +95,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   // Las 10 preguntas del nivel se generan al entrar a él.
   const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso, banda }), [p.codigo, pista, nivel, intento, repaso, banda]);
   const video = ajustes.videos === false ? null : videoDeLeccion(pista, nivel - 1);
-  const leccion = lecciones[pista][nivel - 1];
+  const leccion = lecciones[pista][unidadDe(pista, nivel).indice];
   const adulto = p.rol === 'familia';
   const tema = temaDe(pista, nivel);
   const [indice, setIndice] = useState(0);
@@ -152,7 +153,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
         </button>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '1.1rem', margin: 0 }}>
-            Nivel {nivel} de {NIVEL_MAXIMO}
+            Nivel {nivelConTotal(pista, nivel)}
           </h1>
           <div className="pequeno suave">
             {repaso ? 'Repaso con pistas · ' : ''}
@@ -168,9 +169,9 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
 
       {intro ? (
         <IntroNivel
-          nivel={nivel}
+          nivel={etiquetaNivel(pista, nivel)}
           tema={tema.titulo}
-          idea={leccion?.idea ?? ''}
+          idea={tema.idea ?? leccion?.idea ?? ''}
           video={video}
           adulto={adulto}
           alEmpezar={() => {

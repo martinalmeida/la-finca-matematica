@@ -84,16 +84,35 @@ const V = {
   porcentaje: v('RE3XoDORMys', 'Cómo calcular un porcentaje', 'Daniel Carreón', '4:20'),
   hectarea: v('ezsJqCZfQAg', 'Hectárea, área y centiárea', 'La BiBlioTHeKa', '2:43'),
   ingresosGastos: v('0PCwt2L4RdU', 'Ingresos, costos y gastos', 'AulaDeEconomia', '5:14'),
+  // Ruta de Inclusión (23 niveles), comprobados el 2026-10-27.
+  clasificar: v('N8PCwLkkepM', 'Clasificar por color, forma y tamaño', 'ElShowDelNerd', '1:51'),
+  altoBajo: v('YIBu6S6zDVY', 'Alto y bajo para niños', 'MunDoPeKes', '4:44'),
+  unoMuchosNinguno: v('8NR0QQF32EU', 'Muchos, pocos, uno, ninguno', 'Moreh Higa', '3:51'),
+  numeros1a3: v('GfvAKWv8qCc', 'Los números 1, 2 y 3 con la canción de los elefantes', 'Cantatoo', '2:57'),
+  tamanos: v('VRPVBZgxh0Q', 'Los tamaños: pequeño, mediano y grande', 'Peques Aprenden Jugando', '5:58'),
+  secuencias: v('Mk6ZR3h8Q-I', 'Secuencias numéricas para niños pequeños', 'DUCASIDAD - Educación Especial Primaria', '3:52'),
+  componer10: v('MCv52Le4bGc', 'Componer números hasta el 10', 'Profesora Constanza Olave', '3:28'),
+  cuentoSuma: v('Jthm7qPtGiU', 'Cuento de la suma', 'Cecilia Silva Sandoval', '2:38'),
+  sumarDedos: v('POEJVNbBegQ', 'Cómo sumar con ayuda de mis dedos', 'Lore Hernández', '1:27'),
 };
 
-/** Un video por tema (el índice es el tema, 0 a 9). Es el video de introducción de cada nivel. */
+/** Un video por nivel (el índice es el nivel − 1). Es el video de introducción de cada nivel. */
 export const videosLecciones: Record<Pista, Video[]> = {
   g1: [V.numeros, V.mayorMenor, V.anteriorPosterior, V.sumar, V.calculoMental9, V.restar, V.faltanPara10, V.decenas, V.sumasSinLlevar, V.problemasSumaResta],
   g2: [V.llevadas, V.multDiv, V.arreglos, V.trucosTablas, V.tablas3y4, V.tablas6a9, V.problemasMultDiv, V.multUnaCifra, V.comoMultiplicar, V.problemasMult],
   g3: [V.trucosTablas, V.repartir, V.division, V.multDiv, V.dividirConCaja, V.dividirUnaCifra, V.divisionesPaso, V.residuo, V.queOperacion, V.problemasMultDiv],
   g4: [V.numerosGrandes, V.multDosCifras, V.dividirUnaCifra, V.divisionesPaso, V.dividirDosCifras, V.pruebaDivision, V.residuo, V.dobleTripleMitad, V.combinadas, V.tablasBarras],
   g5: [V.numerosGrandes, V.multTresCifras, V.dividirDosCifras, V.combinadas, V.decimas, V.compararDecimales, V.sumarDecimales, V.operarDecimales, V.dividirDecimal, V.problemasDecimales],
-  inclusion: [V.numeros, V.numeros, V.escribirHasta5, V.escribirHasta10, V.numeros, V.numeros1a5, V.masMenosIgual, V.sumarObjetos, V.restarQuitando, V.contarEscribir10],
+  // Inclusión: un video por nivel (23), de los 7 bloques en orden.
+  inclusion: [
+    V.clasificar, V.altoBajo, V.unoMuchosNinguno, V.masMenosIgual,
+    V.numeros1a3, V.numeros1a5, V.tamanos,
+    V.contarEscribir10, V.escribirHasta10, V.secuencias, V.mayorMenor,
+    V.numeros, V.anteriorPosterior, V.componer10,
+    V.sumarObjetos, V.restarQuitando, V.cuentoSuma,
+    V.sumar, V.restar, V.sumarDedos, V.problemasSumaResta,
+    V.decenas, V.sumasSinLlevar,
+  ],
   familia: [V.sumarMental, V.vuelto, V.problemasMultUna, V.divisionAgrupar, V.residuo, V.presupuesto, V.porcentajes, V.reglaDeTres, V.unidadesPeso, V.costoVenta],
   'fam-basica': [V.sumarMental, V.vuelto, V.problemasMultUna, V.divisionAgrupar, V.divisionesPaso, V.residuo, V.problemasMultDos, V.presupuesto, V.aproximar, V.presupuesto3],
   'fam-intermedia': [V.sumarMental, V.problemasMultUna, V.problemasMult, V.multDosCifras, V.residuo, V.problemasMultDos, V.presupuesto3, V.porcentajes, V.porcentajes, V.costoVenta],
@@ -110,8 +129,9 @@ export const guiaFamilias: { tema: string; video: Video }[] = [
   { tema: 'La división (3.º a 5.º)', video: v('mQ4wKV9_pZs', 'Divisiones paso a paso', 'Daniel Carreón', '9:36') },
 ];
 
-export function videoDeLeccion(pista: Pista, tema: number): Video | null {
-  return videosLecciones[pista][tema] ?? null;
+/** Video del nivel `indice + 1` (para una lección, el de su primer nivel). */
+export function videoDeLeccion(pista: Pista, indice: number): Video | null {
+  return videosLecciones[pista][indice] ?? null;
 }
 
 /** Todos los videos sin repetir (para pruebas y el catálogo docente). */
