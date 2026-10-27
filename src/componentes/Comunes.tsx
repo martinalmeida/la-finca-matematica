@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useApp } from '../estado';
 import Teclado from './Teclado';
-import { alCambiarInstalable, estaInstalada, instalar, puedeInstalar } from '../pwa/registro';
 import Icono from './Icono';
 import { useVoz } from '../servicios/voz';
 
@@ -83,33 +82,6 @@ export function PinAdulto({ alAprobar, alCancelar, texto }: { alAprobar: () => v
       <button type="button" className="boton secundario" onClick={alCancelar}>
         Cancelar
       </button>
-    </div>
-  );
-}
-
-/** Botón "Instalar en este celular" con instrucciones alternativas. */
-export function BotonInstalar({ adulto = false }: { adulto?: boolean }) {
-  const [puede, setPuede] = useState(puedeInstalar());
-  const [ayuda, setAyuda] = useState(false);
-  useEffect(() => alCambiarInstalable(() => setPuede(puedeInstalar())), []);
-  if (estaInstalada()) return <p className="pequeno suave fila"><Icono nombre="check" tamano={20} /> La aplicación ya está instalada en este celular.</p>;
-  return (
-    <div className="columna">
-      <button type="button" className="boton secundario" onClick={() => (puede ? void instalar() : setAyuda((v) => !v))}>
-        <Icono nombre="celular" tamano={28} /> Instalar en este celular
-      </button>
-      {ayuda && (
-        <div className="tarjeta pequeno">
-          <p>
-            <strong>{adulto ? 'Si no aparece la ventana de instalación:' : 'Si no aparece la ventana de instalación, pide ayuda a un adulto:'}</strong>
-          </p>
-          <ol>
-            <li>Abra el menú del navegador (los tres puntos ⋮ arriba a la derecha).</li>
-            <li>Toque «Agregar a pantalla de inicio» o «Instalar aplicación».</li>
-            <li>Confirme con «Agregar». El ícono de La Finca Matemática aparecerá en la pantalla del celular.</li>
-          </ol>
-        </div>
-      )}
     </div>
   );
 }

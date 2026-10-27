@@ -1,6 +1,7 @@
 import { useApp } from '../estado';
 import { EscenaFinca, Logo } from '../componentes/Ilustraciones';
-import { BotonInstalar, useLargaPulsacion } from '../componentes/Comunes';
+import { useLargaPulsacion } from '../componentes/Comunes';
+import { BotonInstalar } from '../componentes/Instalar';
 import { listarPerfiles } from '../almacenamiento/datos';
 import Icono from '../componentes/Icono';
 
@@ -56,7 +57,7 @@ export default function Bienvenida() {
           Ya tengo perfil en este celular
         </button>
       )}
-      <BotonInstalar adulto />
+      <BotonInstalar />
     </main>
   );
 }

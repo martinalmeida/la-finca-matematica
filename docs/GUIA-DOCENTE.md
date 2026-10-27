@@ -7,6 +7,9 @@ Esta guía explica cómo instalar la aplicación, crear perfiles, usar el panel 
 Hay tres formas (los detalles técnicos están en el README):
 
 - **Con señal de internet** (por ejemplo, en el pueblo): abra en Chrome la dirección donde está publicada la aplicación, espere el aviso **«Lista para usar sin internet»** y toque **«Instalar en este celular»**. Si no aparece la ventana, abra el menú ⋮ de Chrome y elija **«Agregar a pantalla de inicio»** o **«Instalar aplicación»**.
+- **En iPhone o iPad**: abra la dirección en **Safari** (o en Chrome con iOS 16.4 o superior). La app muestra los pasos: botón **Compartir** → **«Agregar a inicio»** → **«Agregar»**. Ojo: lo jugado en Safari no pasa a la app instalada; instálela antes de crear perfiles o use «Exportar copia» / «Importar copia» en Ajustes.
+- **Si el enlace llegó por WhatsApp o Facebook**: ábralo primero en Chrome (Android) o Safari (iPhone). Dentro de esas aplicaciones no se puede instalar; la app lo avisa y ofrece un botón para abrirla en el navegador.
+- Mientras la app no esté instalada, **cada vez que se abra desde el navegador** aparecerá la invitación para instalarla (con «Ahora no» se oculta hasta la próxima vez).
 - **Desde el computador del colegio**, por la red local. Lea en el README la nota sobre HTTPS: sin HTTPS, la app no queda guardada para usarla sin conexión.
 - **Con el archivo APK**: cópielo al celular por cable, memoria o Bluetooth y ábralo. Hay que permitir *Instalar apps de fuentes desconocidas*.
 

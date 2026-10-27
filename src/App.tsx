@@ -18,6 +18,7 @@ import QuienJuega from './pantallas/QuienJuega';
 import Fondo from './componentes/Fondo';
 import Pestanas from './componentes/Pestanas';
 import Icono from './componentes/Icono';
+import { InvitacionInstalar } from './componentes/Instalar';
 
 const CrearPerfil = lazy(() => import('./pantallas/CrearPerfil'));
 const Inicio = lazy(() => import('./pantallas/Inicio'));
@@ -140,6 +141,8 @@ export default function App() {
         </div>
       </Suspense>
       {perfil && esPestana(pantalla) && <Pestanas />}
+      {/* No interrumpe un nivel en curso: se ofrece en las pantallas de entrada y en las pestañas. */}
+      <InvitacionInstalar permitida={!['nivel', 'resultado', 'pareja', 'crear'].includes(pantalla.nombre)} />
       {aviso && (
         <div className="aviso" role="status" aria-live="polite">
           {aviso}

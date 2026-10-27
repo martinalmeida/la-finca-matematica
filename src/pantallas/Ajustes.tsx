@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useApp } from '../estado';
-import { Barra, BotonInstalar, PinAdulto } from '../componentes/Comunes';
+import { Barra, PinAdulto } from '../componentes/Comunes';
+import { BotonInstalar } from '../componentes/Instalar';
 import type { Ajustes as TAjustes } from '../almacenamiento/datos';
 import { crearCopia, descargar, fechaArchivo, restaurarCopia } from '../almacenamiento/copia';
 import { codigoConGrado } from '../juego/perfil';
@@ -163,7 +164,7 @@ export default function Ajustes() {
 
       <section className="tarjeta columna">
         <h2>Aplicación</h2>
-        <BotonInstalar adulto={adulto} />
+        <BotonInstalar />
         <button type="button" className="boton" onClick={() => ir({ nombre: 'quien' })}>
           <Icono nombre="personas" tamano={26} /> Cambiar de jugador
         </button>

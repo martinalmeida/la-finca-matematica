@@ -3,6 +3,7 @@
 import type { ReactElement } from 'react';
 import type { Objeto } from '../juego/tipos';
 import type { EtapaPlanta } from '../almacenamiento/datos';
+import { Degradados, claro, medio, oscuro, useDegradados, type U } from './paleta';
 
 const nombresObjeto: Record<Objeto, string> = {
   huevo: 'huevo',
@@ -21,116 +22,246 @@ const nombresObjeto: Record<Objeto, string> = {
   canasta: 'canasta',
 };
 
-/** Dibujos de 40 × 40. */
-const formas: Record<Objeto, ReactElement> = {
-  huevo: (
+/** Sombra de contacto bajo un objeto: lo asienta sobre el suelo. */
+const piso = (cx = 20, rx = 11) => <ellipse cx={cx} cy="38.2" rx={rx} ry="1.6" fill="#0b1a12" opacity=".14" />;
+
+/** Surcos de la mazorca: curvas que siguen su contorno. */
+const surcoMazorca = (a: number) => `M20 7C${20 + a * 7.5} 7 ${20 + a * 11} 13 ${20 + a * 11} 21.5C${20 + a * 11} 29.5 ${20 + a * 6} 34.5 20 37`;
+const MAZORCA = 'M20 6C27.5 6 31 13 31 21.5C31 29.5 26 35 20 38C14 35 9 29.5 9 21.5C9 13 12.5 6 20 6Z';
+const AGUACATE = 'M20 3.5C24.5 3.5 26.5 7.5 27 12C31.5 17 33.5 22 32.5 28C31.5 34 26.5 37.5 20 37.5C13.5 37.5 8.5 34 7.5 28C6.5 22 8.5 17 13 12C13.5 7.5 15.5 3.5 20 3.5Z';
+const HUEVO = 'M20 4C28 4 33 15 33 24C33 32 27 37 20 37C13 37 7 32 7 24C7 15 12 4 20 4Z';
+const LIMON = 'M4.5 21.5C7 12 13 9 20 9C27 9 33 12 35.5 21.5C33 30.5 27 33.5 20 33.5C13 33.5 7 30.5 4.5 21.5Z';
+const BULTO = 'M10 13C7 22 8 33 12 36.5H28C32 33 33 22 30 13Z';
+const PLATANO = 'M7 9C8 25 17 33 32 31C35 30.5 35 28 33 27.5C20 28 13 21 11 8.5C10.5 6.5 7.5 6.8 7 9Z';
+const CESTA = 'M4.5 18H35.5L31.8 35.6A2 2 0 0 1 29.8 37.2H10.2A2 2 0 0 1 8.2 35.6Z';
+
+/** Dibujos de 40 × 40, con la paleta y la luz de los iconos. */
+const formas: Record<Objeto, (u: U) => ReactElement> = {
+  huevo: (u) => (
     <g>
-      <ellipse cx="20" cy="22" rx="12" ry="15" fill="#fff4dc" stroke="#b08b57" strokeWidth="1.5" />
-      <ellipse cx="15" cy="16" rx="3" ry="5" fill="#fff" opacity=".8" />
+      {piso(20, 10)}
+      <path d={HUEVO} fill={u('c')} stroke="#e3cfa6" strokeWidth=".8" />
+      <path d={HUEVO} fill={u('s')} />
+      <path d={HUEVO} fill={u('e')} />
+      <circle cx="25" cy="27" r=".9" fill="#d6b27c" opacity=".55" />
+      <circle cx="14" cy="29.5" r=".7" fill="#d6b27c" opacity=".55" />
+      <circle cx="26.5" cy="18" r=".6" fill="#d6b27c" opacity=".5" />
     </g>
   ),
-  mazorca: (
+  mazorca: (u) => (
     <g>
-      <path d="M20 3 L20 7" stroke="#5b3a1c" strokeWidth="2.5" strokeLinecap="round" />
-      <ellipse cx="20" cy="22" rx="11" ry="16" fill="#d9822b" stroke="#7a4211" strokeWidth="1.5" />
-      <path d="M14 10 Q12 22 14 34 M20 6 L20 38 M26 10 Q28 22 26 34" stroke="#a65a17" strokeWidth="1.3" fill="none" />
-      <ellipse cx="16" cy="16" rx="2" ry="5" fill="#f2b45c" opacity=".7" />
+      {piso(20, 9)}
+      <g transform="rotate(-14 20 22)">
+        <path d="M20 6.5C19.4 4.5 19.8 2.8 21 1.6" stroke={oscuro('k')} strokeWidth="2.4" strokeLinecap="round" fill="none" />
+        <path d={MAZORCA} fill={u('o')} />
+        {[-0.62, -0.24, 0.24, 0.62].map((a) => (
+          <g key={a}>
+            <path d={surcoMazorca(a)} stroke="#b4400f" strokeOpacity=".5" strokeWidth="1.1" fill="none" />
+            <path d={surcoMazorca(a)} transform="translate(-.9 0)" stroke="#ffe7ad" strokeOpacity=".55" strokeWidth=".6" fill="none" />
+          </g>
+        ))}
+        <path d={MAZORCA} fill={u('s')} />
+        <ellipse cx="15.2" cy="15.5" rx="1.7" ry="5" fill="#fff" opacity=".55" />
+      </g>
     </g>
   ),
-  naranja: (
+  naranja: (u) => (
     <g>
-      <circle cx="20" cy="22" r="14" fill="#f39220" stroke="#b5600c" strokeWidth="1.5" />
-      <path d="M20 8 Q26 2 31 6 Q26 10 20 8Z" fill="#3f8a2e" />
-      <circle cx="15" cy="17" r="3" fill="#ffc06b" opacity=".7" />
+      {piso(20, 11)}
+      <circle cx="20" cy="23" r="14" fill={u('n')} />
+      <circle cx="20" cy="23" r="14" fill={u('s')} />
+      <circle cx="20" cy="23" r="14" fill={u('e')} />
+      {[
+        [26, 18],
+        [27.5, 25],
+        [22, 30],
+        [14, 27],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r=".55" fill="#fff" opacity=".35" />
+      ))}
+      <path d="M20 9.5V7" stroke={oscuro('k')} strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M20.5 8.5C22.5 4 27 3 30.5 5C27.5 9 23.5 9.8 20.5 8.5Z" fill={u('v')} />
+      <path d="M21.5 8C24 6.6 26.5 5.6 29 5.2" stroke={oscuro('v')} strokeOpacity=".5" strokeWidth=".6" fill="none" />
     </g>
   ),
-  mandarina: (
+  mandarina: (u) => (
     <g>
-      <ellipse cx="20" cy="23" rx="14" ry="11" fill="#ef7d1a" stroke="#a9520a" strokeWidth="1.5" />
-      <path d="M20 12 Q25 6 30 9 Q25 13 20 12Z" fill="#3f8a2e" />
-      <path d="M13 23 Q20 28 27 23" stroke="#c9650f" fill="none" />
+      {piso(20, 12)}
+      <ellipse cx="20" cy="24" rx="15" ry="12" fill={u('n')} />
+      <path d="M11 22C14 26 26 26 29 22M13 28C16 31 24 31 27 28" stroke={oscuro('n')} strokeOpacity=".25" strokeWidth="1" fill="none" />
+      <ellipse cx="20" cy="24" rx="15" ry="12" fill={u('s')} />
+      <ellipse cx="20" cy="24" rx="15" ry="12" fill={u('e')} />
+      <path d="M20.5 12.5C22.5 8 27 7 30.5 9C27.5 13 23.5 13.8 20.5 12.5Z" fill={u('v')} />
+      <circle cx="20" cy="12.6" r="1.1" fill={oscuro('k')} />
     </g>
   ),
-  limon: (
+  limon: (u) => (
     <g>
-      <path d="M5 21 Q8 9 20 9 Q32 9 35 21 Q32 33 20 33 Q8 33 5 21Z" fill="#7cbf3a" stroke="#3f7a1b" strokeWidth="1.5" />
-      <ellipse cx="15" cy="17" rx="4" ry="2" fill="#c7ec8b" opacity=".8" />
+      {piso(20, 12)}
+      <path d={LIMON} fill={u('l')} />
+      <path d={LIMON} fill={u('s')} />
+      <path d={LIMON} fill={u('e')} />
+      <circle cx="4.8" cy="21.5" r="1" fill={oscuro('l')} />
+      <ellipse cx="14.5" cy="16.5" rx="4" ry="1.6" fill="#fff" opacity=".55" transform="rotate(-12 14.5 16.5)" />
     </g>
   ),
-  aguacate: (
+  aguacate: (u) => (
     <g>
-      <path d="M20 4 Q28 4 28 14 Q34 22 32 29 Q28 38 20 38 Q12 38 8 29 Q6 22 12 14 Q12 4 20 4Z" fill="#3c6b24" stroke="#22411a" strokeWidth="1.5" />
-      <ellipse cx="16" cy="16" rx="2" ry="4" fill="#6f9c47" opacity=".8" />
+      {piso(20, 10)}
+      <path d={AGUACATE} fill={u('w')} />
+      {[
+        [15, 24],
+        [24, 28],
+        [19, 32],
+        [26, 20],
+        [12, 30],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r=".7" fill="#c5e08f" opacity=".4" />
+      ))}
+      <path d={AGUACATE} fill={u('s')} />
+      <path d={AGUACATE} fill={u('e')} />
+      <rect x="18.8" y="1.6" width="2.4" height="3.4" rx="1.1" fill={oscuro('k')} />
     </g>
   ),
-  gallina: (
+  gallina: (u) => (
     <g>
-      <ellipse cx="19" cy="25" rx="12" ry="10" fill="#c96f2d" stroke="#7a3d12" strokeWidth="1.3" />
-      <circle cx="28" cy="13" r="6" fill="#c96f2d" stroke="#7a3d12" strokeWidth="1.3" />
-      <path d="M26 7 Q27 3 29 6 Q30 3 32 7" fill="#d32f2f" />
-      <path d="M33 13 L38 15 L33 16Z" fill="#f4b400" />
-      <circle cx="29.5" cy="12" r="1.3" fill="#222" />
-      <path d="M8 22 Q3 16 6 26" fill="#8a4316" />
-      <path d="M16 35 L16 39 M22 35 L22 39" stroke="#f4b400" strokeWidth="2" />
+      {piso(19, 11)}
+      <path d="M16 34.5V38.5M22 34.5V38.5M14.5 38.5H17.5M20.5 38.5H23.5" stroke={oscuro('y')} strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M9 25C3.5 20 3.5 12.5 6.5 9.5C8 14.5 10.5 18 13.5 20Z" fill={u('q')} />
+      <path d="M8.6 15.5C9.6 18 11 19.6 12.8 20.6" stroke={oscuro('q')} strokeOpacity=".45" strokeWidth=".8" fill="none" />
+      <ellipse cx="19.5" cy="25" rx="12.5" ry="10" fill={u('q')} />
+      <circle cx="28.5" cy="13.5" r="6.5" fill={u('q')} />
+      <path d="M24 17C25 20 26 22 27.5 23" stroke={medio('q')} strokeWidth="6" strokeLinecap="round" />
+      <ellipse cx="19.5" cy="25" rx="12.5" ry="10" fill={u('s')} />
+      <path d="M12.5 23.5C16.5 19.5 23.5 20.5 25.5 25C22.5 30 16 30.5 12.5 23.5Z" fill={oscuro('q')} opacity=".55" />
+      <path d="M15 24.5C17.5 23.5 20.5 23.8 22.5 25.2M15.8 27C18 26.5 20.5 26.8 22 27.6" stroke="#fde3c4" strokeOpacity=".5" strokeWidth=".7" fill="none" />
+      <path d="M25 8.2C25 5 27.2 4.4 28.2 6.6C28.7 4 31.2 4 31.7 6.6C33.2 5.6 34.8 7.2 33.2 9.4Z" fill={u('r')} />
+      <ellipse cx="33.6" cy="18" rx="1.4" ry="2.2" fill={u('r')} />
+      <path d="M34 12.4L38.6 14.4L34 16.2Z" fill={u('y')} />
+      <circle cx="30.4" cy="12.6" r="1.5" fill="#1f2937" />
+      <circle cx="30.9" cy="12.1" r=".5" fill="#fff" />
+      <ellipse cx="25" cy="10.5" rx="1.5" ry="2.6" fill="#fff" opacity=".35" transform="rotate(-30 25 10.5)" />
     </g>
   ),
-  bulto: (
+  bulto: (u) => (
     <g>
-      <path d="M10 12 Q8 34 12 37 L28 37 Q32 34 30 12Z" fill="#d8c08a" stroke="#8a6d33" strokeWidth="1.5" />
-      <path d="M12 12 Q20 6 28 12" fill="#c7ab6c" stroke="#8a6d33" strokeWidth="1.5" />
-      <path d="M14 10 L26 10" stroke="#5b4a22" strokeWidth="2.5" />
-      <text x="20" y="28" fontSize="8" textAnchor="middle" fill="#6b5424" fontWeight="bold">kg</text>
+      {piso(20, 11)}
+      <path d={BULTO} fill={u('x')} />
+      <path d="M12 15.5L28 15.5M11 33.5H29" stroke={oscuro('x')} strokeOpacity=".5" strokeWidth=".8" strokeDasharray="1.6 1.2" />
+      <path d={BULTO} fill={u('s')} />
+      <path d="M12 13C13.5 8 26.5 8 28 13C24 14.5 16 14.5 12 13Z" fill={u('x')} />
+      <rect x="14" y="10.4" width="12" height="3" rx="1.5" fill={u('k')} />
+      <text x="20" y="27.5" fontSize="7.5" textAnchor="middle" fill="#7a5a22" fontWeight="900" fontFamily="system-ui, sans-serif">
+        kg
+      </text>
+      <path d="M11.5 16C10.5 20 10.5 26 11.5 30" stroke="#fff" strokeOpacity=".5" strokeWidth="1.4" strokeLinecap="round" fill="none" />
     </g>
   ),
-  arbol: (
+  arbol: (u) => (
     <g>
-      <rect x="17" y="22" width="6" height="16" fill="#7a4a21" />
-      <circle cx="20" cy="16" r="12" fill="#3f8a2e" />
-      <circle cx="13" cy="20" r="7" fill="#4f9d3a" />
-      <circle cx="27" cy="20" r="7" fill="#4f9d3a" />
+      {piso(20, 9)}
+      <path d="M17.4 38L18.6 23H21.4L22.6 38Z" fill={u('k')} />
+      <path d="M20 29L24.5 25.5" stroke={medio('k')} strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="12.5" cy="21" r="7.5" fill={u('v')} />
+      <circle cx="27.5" cy="21" r="7.5" fill={u('v')} />
+      <circle cx="20" cy="14.5" r="10.5" fill={u('v')} />
+      <circle cx="12.5" cy="21" r="7.5" fill={u('s')} />
+      <circle cx="27.5" cy="21" r="7.5" fill={u('s')} />
+      <circle cx="20" cy="14.5" r="10.5" fill={u('e')} />
+      <circle cx="13.5" cy="20" r="1.9" fill={u('n')} />
+      <circle cx="25.5" cy="12.5" r="1.9" fill={u('n')} />
+      <circle cx="27.5" cy="23" r="1.9" fill={u('n')} />
     </g>
   ),
-  platano: (
+  platano: (u) => (
     <g>
-      <path d="M6 10 Q8 32 32 32 Q36 30 34 28 Q14 26 12 8 Q9 6 6 10Z" fill="#f5d33b" stroke="#a68a12" strokeWidth="1.5" />
-      <path d="M6 10 L5 7" stroke="#5b4a12" strokeWidth="2.5" strokeLinecap="round" />
+      {piso(21, 12)}
+      <path d={PLATANO} fill={u('y')} />
+      <path d="M9 10.5C10.5 22 18 29.5 31 29.6" stroke={oscuro('y')} strokeOpacity=".45" strokeWidth=".9" fill="none" />
+      <path d={PLATANO} fill={u('s')} />
+      <path d="M8.6 11C9.6 19 13 24.5 18 27.5" stroke="#fff" strokeOpacity=".6" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+      <path d="M7.3 8.6L6 5.4" stroke="#6b4b12" strokeWidth="2.4" strokeLinecap="round" />
+      <circle cx="33.6" cy="29.2" r="1.1" fill="#5b4a12" />
     </g>
   ),
-  arepa: (
+  arepa: (u) => (
     <g>
-      <ellipse cx="20" cy="22" rx="15" ry="12" fill="#f1d9a2" stroke="#b08b57" strokeWidth="1.5" />
-      <circle cx="14" cy="19" r="2" fill="#c99a52" />
-      <circle cx="24" cy="25" r="2.5" fill="#c99a52" />
-      <circle cx="25" cy="17" r="1.5" fill="#c99a52" />
+      {piso(20, 13)}
+      <ellipse cx="20" cy="25" rx="15.5" ry="10.5" fill={oscuro('z')} />
+      <ellipse cx="20" cy="23" rx="15.5" ry="10.5" fill={u('z')} />
+      {[
+        [13, 20, 2.2, 1.4],
+        [24.5, 26.5, 2.6, 1.6],
+        [26, 18.5, 1.7, 1.1],
+        [16, 28, 1.5, 1],
+        [30, 23, 1.2, 0.9],
+      ].map(([x, y, rx, ry]) => (
+        <ellipse key={`${x}-${y}`} cx={x} cy={y} rx={rx} ry={ry} fill="#b5732a" opacity=".55" />
+      ))}
+      <ellipse cx="14" cy="17.5" rx="6" ry="2.2" fill="#fff" opacity=".45" transform="rotate(-10 14 17.5)" />
     </g>
   ),
-  moneda: (
+  moneda: (u) => (
     <g>
-      <circle cx="20" cy="20" r="15" fill="#e6b93a" stroke="#9a7516" strokeWidth="2" />
-      <text x="20" y="26" fontSize="16" textAnchor="middle" fill="#7a5a0c" fontWeight="bold">$</text>
+      {piso(20, 11)}
+      <circle cx="20" cy="21.6" r="15" fill={oscuro('y')} />
+      <circle cx="20" cy="20" r="15" fill={u('y')} />
+      <circle cx="20" cy="20" r="11.5" fill="none" stroke="#fff7d6" strokeOpacity=".75" strokeWidth="1.2" />
+      <circle cx="20" cy="20" r="11.5" fill="none" stroke={oscuro('y')} strokeOpacity=".35" strokeWidth="1.2" transform="translate(.6 .8)" />
+      <text x="20.6" y="26.3" fontSize="16" textAnchor="middle" fill={oscuro('y')} opacity=".5" fontWeight="900" fontFamily="system-ui, sans-serif">
+        $
+      </text>
+      <text x="20" y="25.5" fontSize="16" textAnchor="middle" fill="#9a5a06" fontWeight="900" fontFamily="system-ui, sans-serif">
+        $
+      </text>
+      <circle cx="20" cy="20" r="15" fill={u('e')} />
     </g>
   ),
-  cafe: (
+  cafe: (u) => (
     <g>
-      <path d="M8 12 Q20 2 32 12 Q20 10 8 12Z" fill="#3f8a2e" />
-      <circle cx="14" cy="22" r="7" fill="#b71c1c" stroke="#6d0f0f" strokeWidth="1.3" />
-      <circle cx="26" cy="24" r="7" fill="#c62828" stroke="#6d0f0f" strokeWidth="1.3" />
-      <circle cx="20" cy="32" r="6" fill="#a31515" stroke="#6d0f0f" strokeWidth="1.3" />
+      {piso(20, 11)}
+      <path d="M4.5 14C9 5 19 3.5 24.5 8.5C18 13 11 15 4.5 14Z" fill={u('v')} />
+      <path d="M6.5 13C12 11 17.5 9.5 23 8.6" stroke={oscuro('v')} strokeOpacity=".5" strokeWidth=".7" fill="none" />
+      <path d="M36 12C33 5 25.5 4.5 22 8.5C27 11.5 31.5 13 36 12Z" fill={u('l')} />
+      <path d="M18 10.5L15 17M22 10L26 18M20 11V25" stroke={oscuro('w')} strokeWidth="1.1" strokeLinecap="round" />
+      {[
+        [14, 23, 6.5],
+        [26, 24.5, 6.5],
+        [20, 32, 6],
+      ].map(([x, y, r]) => (
+        <g key={`${x}-${y}`}>
+          <circle cx={x} cy={y} r={r} fill={u('r')} />
+          <circle cx={x} cy={y} r={r} fill={u('s')} />
+          <circle cx={x} cy={y} r={r} fill={u('e')} />
+          <circle cx={x + r * 0.45} cy={y + r * 0.45} r=".8" fill="#7f1d1d" />
+        </g>
+      ))}
     </g>
   ),
-  canasta: (
+  canasta: (u) => (
     <g>
-      <path d="M8 16 Q20 0 32 16" fill="none" stroke="#8a5a26" strokeWidth="2.5" />
-      <path d="M4 16 L36 16 L31 37 L9 37Z" fill="#c8954f" stroke="#7a4f1e" strokeWidth="1.5" />
-      <path d="M7 23 L33 23 M8 30 L32 30 M14 16 L15 37 M20 16 L20 37 M26 16 L25 37" stroke="#9a6a30" strokeWidth="1.2" />
+      {piso(20, 13)}
+      <path d="M9 18C9.5 5 30.5 5 31 18" stroke={medio('k')} strokeWidth="2.6" strokeLinecap="round" fill="none" />
+      <path d="M9.6 16C10.5 8 18 6 22 7" stroke={claro('k')} strokeWidth=".9" strokeLinecap="round" fill="none" />
+      <circle cx="15" cy="16" r="5" fill={u('n')} />
+      <circle cx="15" cy="16" r="5" fill={u('e')} />
+      <circle cx="24.5" cy="15.5" r="4.8" fill={u('l')} />
+      <circle cx="24.5" cy="15.5" r="4.8" fill={u('e')} />
+      <path d={CESTA} fill={u('k')} />
+      <path d="M6.5 25H33.5M7.8 31H32.2M13 19L14 37M20 19V37M27 19L26 37" stroke={oscuro('k')} strokeOpacity=".45" strokeWidth="1" />
+      <path d={CESTA} fill={u('s')} />
+      <rect x="3" y="16.4" width="34" height="4.2" rx="2.1" fill={u('k')} />
+      <rect x="4" y="16.8" width="32" height="1.4" rx=".7" fill="#fff" opacity=".35" />
     </g>
   ),
 };
 
 export function DibujoObjeto({ objeto, tamano = 40, etiqueta }: { objeto: Objeto; tamano?: number; etiqueta?: string }) {
+  const { id, u } = useDegradados();
   return (
     <svg width={tamano} height={tamano} viewBox="0 0 40 40" role="img" aria-label={etiqueta ?? nombresObjeto[objeto]} focusable="false">
-      {formas[objeto]}
+      <Degradados id={id} />
+      {formas[objeto](u)}
     </svg>
   );
 }
@@ -398,17 +529,9 @@ export function EscenaFinca({ alto = 180 }: { alto?: number }) {
 
 // --- Logo ---
 
+/** El mismo ícono de la app (public/favicon.svg, generado por scripts/generar-iconos.mjs). */
 export function Logo({ tamano = 72 }: { tamano?: number }) {
-  return (
-    <svg width={tamano} height={tamano} viewBox="0 0 64 64" role="img" aria-label="La Finca Matemática">
-      <circle cx="32" cy="32" r="30" fill="#4a6b2f" />
-      <circle cx="32" cy="32" r="25" fill="#fbf5e6" />
-      <path d="M32 9 L32 14" stroke="#5b3a1c" strokeWidth="3" strokeLinecap="round" />
-      <ellipse cx="32" cy="33" rx="13" ry="19" fill="#d9822b" stroke="#7a4211" strokeWidth="2" />
-      <path d="M25 19 Q22 33 25 47 M32 14 L32 52 M39 19 Q42 33 39 47" stroke="#a65a17" strokeWidth="1.6" fill="none" />
-      <text x="32" y="38" fontSize="14" fontWeight="bold" textAnchor="middle" fill="#fff" stroke="#5b3a1c" strokeWidth=".6">+</text>
-    </svg>
-  );
+  return <img src="./favicon.svg" width={tamano} height={tamano} alt="La Finca Matemática" className="logo-marca" draggable={false} />;
 }
 
 export function Tienda({ tamano = 80 }: { tamano?: number }) {

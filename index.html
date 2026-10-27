@@ -6,7 +6,22 @@
     <meta name="theme-color" content="#4a6b2f" />
     <meta name="description" content="Juego por niveles para practicar suma, resta, multiplicación y división en la vida del campo de San Vicente de Chucurí." />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./iconos/icono-192.png" />
+    <link rel="icon" href="./iconos/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./iconos/icono-apple-180.png" />
+    <!-- iPhone/iPad: abrir a pantalla completa desde la pantalla de inicio. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Finca Mate" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="application-name" content="Finca Mate" />
+    <meta name="format-detection" content="telephone=no" />
+    <script>
+      // Guarda la ventana de instalación de Android si llega antes de que cargue la app.
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__eventoInstalar = e;
+      });
+    </script>
     <title>La Finca Matemática</title>
   </head>
   <body>
