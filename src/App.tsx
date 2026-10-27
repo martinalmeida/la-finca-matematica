@@ -21,6 +21,7 @@ import Fondo from './componentes/Fondo';
 import Pestanas from './componentes/Pestanas';
 import Icono from './componentes/Icono';
 import { InvitacionInstalar } from './componentes/Instalar';
+import { DERECHOS, PROGRAMA } from './contenido/autoria';
 
 // Pantallas en archivos aparte. Se precargan en segundo plano después de abrir la app,
 // así cambiar de pantalla no espera la descarga (ni muestra «Cargando…»).
@@ -172,6 +173,12 @@ export default function App() {
         {/* La clave cambia con cada pantalla: dispara la animación de entrada. */}
         <div key={`${pila.length}-${pantalla.nombre}-${pantalla.nombre === 'nivel' ? pantalla.clave : ''}`} className={`escenario ${esPestana(pantalla) ? 'con-pestanas' : ''}`}>
           <Contenido pantalla={pantalla} perfil={perfil} />
+          {/* Autoría: siempre al pie de cada pantalla. */}
+          <footer className="pie-autor">
+            {DERECHOS}
+            <br />
+            {PROGRAMA} · UDI, Santander, Colombia
+          </footer>
         </div>
       </Suspense>
       {perfil && esPestana(pantalla) && <Pestanas />}

@@ -307,6 +307,15 @@ button {
   animation: entrar 0.26s var(--suave-salida) backwards;
 }
 
+/* Pie con la autoría: al final de cada pantalla, sobre la barra de pestañas. */
+.pie-autor {
+  padding: 4px 16px 14px;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--tinta-suave);
+}
+
 .escenario.con-pestanas {
   padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }

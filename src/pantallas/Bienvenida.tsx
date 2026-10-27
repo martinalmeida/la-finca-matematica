@@ -4,7 +4,6 @@ import { useLargaPulsacion } from '../componentes/Comunes';
 import { BotonInstalar } from '../componentes/Instalar';
 import { listarPerfiles } from '../almacenamiento/datos';
 import Icono from '../componentes/Icono';
-import { DERECHOS } from '../contenido/autoria';
 
 export function LogoConPanel({ tamano = 64 }: { tamano?: number }) {
   const { ir } = useApp();
@@ -59,9 +58,6 @@ export default function Bienvenida() {
         </button>
       )}
       <BotonInstalar />
-      <p className="pequeno suave centro" style={{ margin: 0 }}>
-        {DERECHOS}
-      </p>
     </main>
   );
 }
