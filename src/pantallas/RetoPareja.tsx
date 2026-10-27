@@ -9,6 +9,7 @@ import { generarReto, gradosCercanos } from '../juego/pareja';
 import { num } from '../contenido/contexto';
 import type { Grado } from '../juego/tipos';
 import { sonar, vibrar } from '../servicios/sonido';
+import Icono from '../componentes/Icono';
 
 function premiar(p: Perfil) {
   const pista = pistaDePerfil(p);
@@ -36,7 +37,7 @@ export default function RetoPareja() {
     [jugando],
   );
 
-  const volver = () => (perfil ? ir({ nombre: 'mapa' }) : ir({ nombre: 'quien' }));
+  const volver = () => (perfil ? ir({ nombre: 'inicio' }) : ir({ nombre: 'quien' }));
 
   if (!jugando) {
     const g0 = elegidos[0]?.grado as Grado | undefined;
@@ -66,7 +67,7 @@ export default function RetoPareja() {
           })}
         </div>
         <button type="button" className="boton principal" disabled={elegidos.length !== 2} onClick={() => setJugando(true)}>
-          🤝 ¡Empezar el reto!
+          <Icono nombre="pareja" tamano={30} /> ¡Empezar el reto!
         </button>
       </main>
     );

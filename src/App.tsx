@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ContextoApp, type EstadoApp, type Pantalla } from './estado';
+import { ContextoApp, esPestana, type EstadoApp, type Pantalla } from './estado';
 import {
   fijarPerfilActivo,
   guardarAjustes,
@@ -15,9 +15,14 @@ import { alCambiarDisponibilidad, almacenamientoDisponible } from './almacenamie
 import { alListoSinInternet } from './pwa/registro';
 import Bienvenida from './pantallas/Bienvenida';
 import QuienJuega from './pantallas/QuienJuega';
+import Fondo from './componentes/Fondo';
+import Pestanas from './componentes/Pestanas';
+import Icono from './componentes/Icono';
 
 const CrearPerfil = lazy(() => import('./pantallas/CrearPerfil'));
+const Inicio = lazy(() => import('./pantallas/Inicio'));
 const Mapa = lazy(() => import('./pantallas/Mapa'));
+const Aprender = lazy(() => import('./pantallas/Aprender'));
 const Nivel = lazy(() => import('./pantallas/Nivel'));
 const Resultado = lazy(() => import('./pantallas/Resultado'));
 const MiFinca = lazy(() => import('./pantallas/MiFinca'));
@@ -35,10 +40,12 @@ function aplicarTamanoLetra(perfil: Perfil | null, ajustes: Ajustes, pantalla: P
   const base = perfil?.grado && perfil.grado <= 2 ? 20 : 18;
   const extra = ajustes.tamanoLetra === 'grande' ? 2 : ajustes.tamanoLetra === 'muy-grande' ? 4 : 0;
   document.documentElement.style.setProperty('--fs-base', `${base + extra}px`);
-  // Estética de "cuaderno de la finca" solo en las pantallas de la sección de familias.
+  // Paleta propia (azul) en las pantallas de la sección de familias.
   const general = ['bienvenida', 'quien', 'docente', 'pareja'].includes(pantalla.nombre);
   const rol = pantalla.nombre === 'crear' ? pantalla.rol : general ? 'estudiante' : (perfil?.rol ?? 'estudiante');
   document.documentElement.dataset.rol = rol;
+  document.documentElement.dataset.efectos = ajustes.efectos;
+  document.documentElement.dataset.grado = perfil?.grado && !general ? String(perfil.grado) : '';
 }
 
 export default function App() {
@@ -78,8 +85,8 @@ export default function App() {
     const p: Pantalla = destino.nombre === 'nivel' ? { ...destino, clave: destino.clave ?? Date.now() } : destino;
     setPila((pilaActual) => {
       if (opciones?.reemplazar) return [...pilaActual.slice(0, -1), p];
-      // Pantallas raíz: reinician la pila.
-      if (p.nombre === 'mapa' || p.nombre === 'quien' || p.nombre === 'bienvenida') return [p];
+      // Pantallas raíz (pestañas, ¿quién juega?, bienvenida): reinician la pila.
+      if (esPestana(p) || p.nombre === 'quien' || p.nombre === 'bienvenida') return [p];
       try {
         history.pushState({ finca: true }, '');
       } catch {
@@ -122,12 +129,17 @@ export default function App() {
     <ContextoApp.Provider value={valor}>
       {sinAlmacen && (
         <div className="aviso-memoria" role="status">
-          ⚠️ Este celular no deja guardar datos. Puedes jugar, pero el avance se borrará al cerrar la aplicación.
+          <Icono nombre="aviso" tamano={22} /> Este celular no deja guardar datos. Puedes jugar, pero el avance se borrará al cerrar la aplicación.
         </div>
       )}
+      <Fondo />
       <Suspense fallback={<div className="cargando" aria-live="polite">Cargando…</div>}>
-        <Contenido pantalla={pantalla} perfil={perfil} />
+        {/* La clave cambia con cada pantalla: dispara la animación de entrada. */}
+        <div key={`${pila.length}-${pantalla.nombre}-${pantalla.nombre === 'nivel' ? pantalla.clave : ''}`} className={`escenario ${esPestana(pantalla) ? 'con-pestanas' : ''}`}>
+          <Contenido pantalla={pantalla} perfil={perfil} />
+        </div>
       </Suspense>
+      {perfil && esPestana(pantalla) && <Pestanas />}
       {aviso && (
         <div className="aviso" role="status" aria-live="polite">
           {aviso}
@@ -148,8 +160,12 @@ function Contenido({ pantalla, perfil }: { pantalla: Pantalla; perfil: Perfil | 
       return <QuienJuega />;
     case 'crear':
       return <CrearPerfil rol={pantalla.rol} />;
+    case 'inicio':
+      return <Inicio key={perfil!.id} />;
     case 'mapa':
       return <Mapa key={perfil!.id} />;
+    case 'aprender':
+      return <Aprender />;
     case 'nivel':
       return <Nivel key={pantalla.clave} nivel={pantalla.nivel} repaso={!!pantalla.repaso} />;
     case 'resultado':

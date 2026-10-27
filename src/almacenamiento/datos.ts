@@ -45,6 +45,8 @@ export type Ajustes = {
   sonido: boolean;
   vibracion: boolean;
   audioEnunciados: boolean;
+  /** Efectos de vidrio y movimiento; «ligeros» para celulares lentos o movimiento reducido. */
+  efectos: 'completos' | 'ligeros';
 };
 
 /** Resumen agregado por perfil (sin detalle por ejercicio): alimenta el panel docente
@@ -68,6 +70,8 @@ const K = {
   registro: (id: string) => `${PREFIJO_V1}registro:${id}`,
   resumen: (id: string) => `${PREFIJO_V1}resumen:${id}`,
   tutorial: (id: string) => `${PREFIJO_V1}tutorialVisto:${id}`,
+  historias: (id: string) => `${PREFIJO_V1}historiasVistas:${id}`,
+  reacciones: (id: string) => `${PREFIJO_V1}reacciones:${id}`,
 };
 
 export const MAX_REGISTRO = 3000;
@@ -188,11 +192,20 @@ export function sumarRetoPareja(id: string): void {
 
 // --- Ajustes ---
 
-export const ajustesPorDefecto: Ajustes = { tamanoLetra: 'normal', sonido: true, vibracion: true, audioEnunciados: true };
+function movimientoReducido(): boolean {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
+
+export const ajustesPorDefecto: Ajustes = { tamanoLetra: 'normal', sonido: true, vibracion: true, audioEnunciados: true, efectos: 'completos' };
 
 export function leerAjustes(): Ajustes {
-  return { ...ajustesPorDefecto, ...leer<Partial<Ajustes>>(K.ajustes, {}) };
+  return { ...ajustesPorDefecto, ...(movimientoReducido() ? { efectos: 'ligeros' as const } : {}), ...leer<Partial<Ajustes>>(K.ajustes, {}) };
 }
+
 
 export function guardarAjustes(a: Ajustes): void {
   escribir(K.ajustes, a);
@@ -224,4 +237,27 @@ export function tutorialVisto(id: string): boolean {
 
 export function marcarTutorialVisto(id: string): void {
   escribir(K.tutorial(id), true);
+}
+
+// --- Red de la finca: historias (lecciones) vistas y reacciones a publicaciones ---
+
+export function historiasVistas(id: string): string[] {
+  const v = leer<string[]>(K.historias(id), []);
+  return Array.isArray(v) ? v : [];
+}
+
+export function marcarHistoriaVista(id: string, clave: string): void {
+  const v = historiasVistas(id);
+  if (!v.includes(clave)) escribir(K.historias(id), [...v, clave]);
+}
+
+export function leerReacciones(id: string): Record<string, boolean> {
+  return leer<Record<string, boolean>>(K.reacciones(id), {});
+}
+
+export function alternarReaccion(id: string, publicacion: string): boolean {
+  const r = leerReacciones(id);
+  r[publicacion] = !r[publicacion];
+  escribir(K.reacciones(id), r);
+  return r[publicacion];
 }

@@ -11,7 +11,9 @@ import { DibujoObjeto } from './Ilustraciones';
 import { textoOpcion } from './interacciones/Opciones';
 import { useApp } from '../estado';
 import { sonar, vibrar } from '../servicios/sonido';
-import { useVoz } from '../servicios/voz';
+import { useLecturaAutomatica, useVoz } from '../servicios/voz';
+import Icono from './Icono';
+import { BotonEscuchar } from './Comunes';
 import { hashTexto } from '../juego/rng';
 
 export type ResultadoEjercicio = {
@@ -27,6 +29,15 @@ const MAX_ERRORES = 3;
 
 const elogiosNinos = ['¡Así se hace!', '¡Muy bien, cosecha asegurada!', '¡Excelente trabajo!', '¡Lo lograste!', '¡Bien pensado!', '¡Eso es! Como buen campesino.', '¡Correcto! Sigue así.'];
 const elogiosAdultos = ['¡Muy bien!', 'Correcto. Buen cálculo.', 'Exacto. Cuentas claras.', '¡Así es!', 'Correcto, bien razonado.'];
+
+/** Lo que se lee en voz alta al aparecer el ejercicio: enunciado, instrucción y, si son palabras, las opciones. */
+export function textoLectura(ej: TEjercicio): string {
+  let t = ej.enunciado;
+  if (ej.instruccion) t += ` ${ej.instruccion}.`;
+  const i = ej.interaccion;
+  if (i.tipo === 'opciones' && i.opciones.some((o) => typeof o === 'string')) t += ` Las opciones son: ${i.opciones.map(textoOpcion).join('; ')}.`;
+  return t;
+}
 
 function textoRespuesta(r: Respuesta): string {
   if (typeof r === 'string' && /^(si|no):/.test(r)) {
@@ -63,12 +74,21 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
   }, [ej.id, adulto]);
 
   const pistasMostradas = Math.max(pistas, pistaVisible ? 1 : 0);
+  const lectura = textoLectura(ej);
+  const puedeHablar = voz.disponible && ajustes.audioEnunciados;
+  // Para quienes aún no leen: el enunciado se lee solo al aparecer.
+  useLecturaAutomatica(ej.id, lectura);
+  const decir = (texto: string) => {
+    if (puedeHablar) voz.leer(texto, `${ej.id}-retro`);
+  };
 
   const responder = (r: Respuesta) => {
     if (estado !== 'jugando') return;
     if (ej.validar(r)) {
       setEstado('bien');
-      setMensaje(errores > 0 && pistas > 0 ? `${elogio} ${adulto ? 'Corrigió su respuesta: una semilla extra.' : 'Corregiste con ayuda de la pista: ¡semilla extra!'}` : elogio);
+      const m = errores > 0 && pistas > 0 ? `${elogio} ${adulto ? 'Corrigió su respuesta: una semilla extra.' : 'Corregiste con ayuda de la pista: ¡semilla extra!'}` : elogio;
+      setMensaje(m);
+      decir(m);
       sonar('acierto', ajustes.sonido);
       vibrar(40, ajustes.vibracion);
       return;
@@ -81,17 +101,27 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
     sonar('intento', ajustes.sonido);
     if (n >= MAX_ERRORES) {
       setEstado('solucion');
-      setMensaje(adulto ? 'Veamos juntos cómo se resuelve.' : 'No pasa nada: así se aprende. Mira cómo se resuelve.');
+      const m = adulto ? 'Veamos juntos cómo se resuelve.' : 'No pasa nada: así se aprende. Mira cómo se resuelve.';
+      setMensaje(m);
+      decir(`${m} ${ej.explicacion}`);
     } else {
-      setMensaje(mensajeError(tipo, ej));
+      const m = mensajeError(tipo, ej);
+      setMensaje(m);
+      decir(m);
     }
   };
 
   const pedirPista = () => {
-    if (pistas < 3) setPistas((p) => (p + 1) as 1 | 2 | 3);
-    else {
+    if (pistas < 3) {
+      const n = Math.max(pistas, pistaVisible ? 1 : 0) + 1;
+      setPistas((p) => (p + 1) as 1 | 2 | 3);
+      const v = ej.pistas[1];
+      decir(n === 1 ? ej.pistas[0] : n === 2 ? (v.tipo === 'texto' ? v.texto : adulto ? 'Mire el dibujo de la pista.' : 'Mira el dibujo de la pista.') : ej.pistas[2]);
+    } else {
       setEstado('solucion');
-      setMensaje(adulto ? 'Esta es la solución explicada.' : 'Esta es la solución. Después puedes practicar uno parecido.');
+      const m = adulto ? 'Esta es la solución explicada.' : 'Esta es la solución. Después puedes practicar uno parecido.';
+      setMensaje(m);
+      decir(`${m} ${ej.explicacion}`);
     }
   };
 
@@ -110,7 +140,9 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
   if (parecido) {
     return (
       <div className="columna">
-        <p className="instruccion">🔁 Práctica (no cuenta para el nivel)</p>
+        <p className="instruccion">
+          <Icono nombre="repetir" tamano={20} /> Práctica (no cuenta para el nivel)
+        </p>
         <Ejercicio key={parecido.id} ej={parecido} practica pistaVisible onTerminar={() => setParecido(null)} />
       </div>
     );
@@ -118,37 +150,41 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
 
   return (
     <section className="columna" aria-live="polite">
-      <div className="fila" style={{ alignItems: 'flex-start', flexWrap: 'nowrap' }}>
-        {ej.ilustracion && (
-          <span aria-hidden="true" style={{ flexShrink: 0 }}>
-            <DibujoObjeto objeto={ej.ilustracion} tamano={52} />
-          </span>
-        )}
-        <div className="columna" style={{ flex: 1, gap: 6 }}>
-          {ej.instruccion && <span className="instruccion" style={{ alignSelf: 'flex-start' }}>👉 {ej.instruccion}</span>}
-          <p className="enunciado">{ej.enunciado}</p>
+      <div className="columna vidrio tarjeta-enunciado">
+        <div className="fila" style={{ alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+          {ej.ilustracion && (
+            <span aria-hidden="true" className="ilustracion-enunciado">
+              <DibujoObjeto objeto={ej.ilustracion} tamano={52} />
+            </span>
+          )}
+          <div className="columna" style={{ flex: 1, gap: 6 }}>
+            {ej.instruccion && (
+              <span className="instruccion" style={{ alignSelf: 'flex-start' }}>
+                <Icono nombre="siguiente" tamano={16} /> {ej.instruccion}
+              </span>
+            )}
+            <p className="enunciado">{ej.enunciado}</p>
+          </div>
         </div>
-        {voz.disponible && ajustes.audioEnunciados && (
-          <button type="button" className="boton icono" onClick={() => voz.leer(ej.enunciado)} aria-label={adulto ? 'Escuchar el enunciado' : 'Escuchar'}>
-            🔊
-          </button>
-        )}
+        <BotonEscuchar texto={lectura} clave={ej.id} etiqueta={adulto ? 'Escuchar de nuevo' : 'Escuchar otra vez'} />
       </div>
 
       {pistasMostradas > 0 && (
         <div className="pista-caja columna" role="note" aria-label="Pistas">
           <p style={{ margin: 0 }}>
-            <strong>💡 Pista 1:</strong> {ej.pistas[0]}
+            <Icono nombre="bombillo" tamano={22} /> <strong>Pista 1:</strong> {ej.pistas[0]}
           </p>
           {pistasMostradas >= 2 && (
             <div className="columna">
-              <strong>💡 Pista 2:</strong>
+              <strong>
+                <Icono nombre="bombillo" tamano={22} /> Pista 2:
+              </strong>
               <VisualPista visual={ej.pistas[1]} />
             </div>
           )}
           {pistasMostradas >= 3 && (
             <p style={{ margin: 0 }}>
-              <strong>💡 Pista 3:</strong> {ej.pistas[2]}
+              <Icono nombre="bombillo" tamano={22} /> <strong>Pista 3:</strong> {ej.pistas[2]}
             </p>
           )}
         </div>
@@ -157,7 +193,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
       {mensaje && (
         <div className={`retro ${estado === 'bien' ? 'bien' : 'casi'}`} role="status">
           <span className="icono-retro" aria-hidden="true">
-            {estado === 'bien' ? '✔' : estado === 'solucion' ? '📘' : '🤔'}
+            <Icono nombre={estado === 'bien' ? 'check' : estado === 'solucion' ? 'solucion' : 'pensar'} tamano={28} />
           </span>
           <span>{mensaje}</span>
         </div>
@@ -185,7 +221,8 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
 
       {estado === 'jugando' && (
         <button type="button" className="boton secundario" onClick={pedirPista}>
-          {pistas < 3 ? `💡 ${adulto ? 'Ver una pista' : 'Pedir una pista'} (${pistas}/3)` : `📘 ${adulto ? 'Ver la solución' : 'Ver la solución'}`}
+          <Icono nombre={pistas < 3 ? 'bombillo' : 'solucion'} tamano={28} />
+          {pistas < 3 ? `${adulto ? 'Ver una pista' : 'Pedir una pista'} (${pistas}/3)` : 'Ver la solución'}
         </button>
       )}
 
@@ -193,11 +230,11 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
         <div className="columna">
           {estado === 'solucion' && !practica && (
             <button type="button" className="boton secundario" onClick={() => setParecido(generarParecido(ej, hashTexto(ej.id + Date.now())))}>
-              🔁 {adulto ? 'Practicar uno parecido' : 'Practicar uno parecido'}
+              <Icono nombre="repetir" tamano={26} /> Practicar uno parecido
             </button>
           )}
           <button type="button" className="boton principal" onClick={terminar}>
-            {practica ? 'Volver al nivel' : 'Siguiente ➜'}
+            {practica ? 'Volver al nivel' : 'Siguiente'} <Icono nombre="siguiente" tamano={24} />
           </button>
         </div>
       )}

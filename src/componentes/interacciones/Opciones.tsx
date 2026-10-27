@@ -1,5 +1,6 @@
 import { num } from '../../contenido/contexto';
 import type { Respuesta } from '../../juego/tipos';
+import Icono from '../Icono';
 
 type Props = {
   opciones: Respuesta[];
@@ -30,7 +31,7 @@ export default function Opciones({ opciones, bloqueado, fallidas, correcta, onEl
             onClick={() => onElegir(o)}
             aria-label={`${textoOpcion(o)}${fallo ? ', ya lo intentaste' : ''}${ok ? ', correcta' : ''}`}
           >
-            {ok ? '✔ ' : fallo ? '✗ ' : ''}
+            {ok ? <Icono nombre="check" tamano={26} /> : fallo ? <Icono nombre="equis" tamano={22} anim="no" /> : null}
             {textoOpcion(o)}
           </button>
         );

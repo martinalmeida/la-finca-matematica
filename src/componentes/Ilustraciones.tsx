@@ -356,7 +356,7 @@ export function Planta({ etapa, tamano = 160 }: { etapa: EtapaPlanta; tamano?: n
           <ellipse cx="60" cy="86" rx="5" ry="8" fill={i === 5 ? '#c96f1d' : '#9cbf3a'} />
         </g>
       )}
-      {i === 5 && <text x="96" y="22" fontSize="18" aria-hidden="true">✨</text>}
+      {i === 5 && <path d="M104 6c1.5 6 3.5 8 9.5 9.5-6 1.5-8 3.5-9.5 9.5-1.5-6-3.5-8-9.5-9.5 6-1.5 8-3.5 9.5-9.5Z" fill="#fbbf24" aria-hidden="true" />}
     </svg>
   );
 }

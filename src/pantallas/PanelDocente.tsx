@@ -9,6 +9,7 @@ import { hashTexto } from '../juego/rng';
 import { csvRegistro, csvResumen, informeTodos, jsonInvestigacion, nombresOperacion } from '../juego/informes';
 import { descargar, fechaArchivo } from '../almacenamiento/copia';
 import type { Operacion } from '../juego/tipos';
+import Icono from '../componentes/Icono';
 
 const hashPin = (pin: string) => String(hashTexto('finca-docente|' + pin));
 
@@ -93,7 +94,7 @@ export default function PanelDocente() {
           <input type="checkbox" checked={docente.modoInvestigacion} onChange={(e) => cambiarInvestigacion(e.target.checked)} />
         </label>
         <p className="pequeno" style={{ margin: 0 }}>
-          Estado: <strong>{docente.modoInvestigacion ? '🟢 Activado' : '⚪ Desactivado'}</strong>
+          Estado: <strong>{docente.modoInvestigacion ? 'Activado' : 'Desactivado'}</strong>
         </p>
       </section>
 
@@ -101,13 +102,13 @@ export default function PanelDocente() {
         <h2>Exportar datos (solo códigos)</h2>
         <div className="fila">
           <button type="button" className="boton" onClick={() => descargar(`finca-resumen-${fechaArchivo()}.csv`, csvResumen(), 'text/csv')}>
-            📄 Resumen CSV
+            <Icono nombre="grafico" tamano={24} /> Resumen CSV
           </button>
           <button type="button" className="boton" onClick={() => descargar(`finca-registro-${fechaArchivo()}.csv`, csvRegistro(), 'text/csv')}>
-            📄 Registro CSV
+            <Icono nombre="cuaderno" tamano={24} /> Registro CSV
           </button>
           <button type="button" className="boton" onClick={() => descargar(`finca-investigacion-${fechaArchivo()}.json`, jsonInvestigacion())}>
-            🗂️ JSON
+            <Icono nombre="carpeta" tamano={24} /> JSON
           </button>
         </div>
       </section>

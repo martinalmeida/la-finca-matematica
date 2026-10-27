@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Opciones from './Opciones';
 import type { PropsInteraccion } from './tipos';
 import { num } from '../../contenido/contexto';
+import Icono from '../Icono';
 
 /** ¿Es razonable? Elegir sí o no, y la mejor estimación. */
 export default function Razonable({ ej, bloqueado, onResponder, correcta }: PropsInteraccion) {
@@ -24,7 +25,7 @@ export default function Razonable({ ej, bloqueado, onResponder, correcta }: Prop
             disabled={bloqueado}
             aria-pressed={sino === v}
           >
-            {v === 'si' ? '👍 Sí' : '👎 No'}
+            {v === 'si' ? <><Icono nombre="check" tamano={26} /> Sí</> : <><Icono nombre="equis" tamano={26} /> No</>}
           </button>
         ))}
       </div>
@@ -39,7 +40,7 @@ export default function Razonable({ ej, bloqueado, onResponder, correcta }: Prop
       />
       {est !== null && !bloqueado && <p className="centro" style={{ margin: 0 }}>Elegiste: <strong>{num(est)}</strong></p>}
       <button type="button" className="boton principal" disabled={bloqueado || !sino || est === null} onClick={() => onResponder(`${sino}:${est}`)}>
-        ✔ Listo
+        <Icono nombre="check" tamano={24} /> Listo
       </button>
     </div>
   );

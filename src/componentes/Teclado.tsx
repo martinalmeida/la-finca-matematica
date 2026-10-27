@@ -1,6 +1,7 @@
 // Teclado numérico propio (nunca el teclado del sistema para respuestas numéricas).
 
 import { num } from '../contenido/contexto';
+import Icono from './Icono';
 
 type Props = {
   valor: string;
@@ -42,7 +43,7 @@ export default function Teclado({ valor, onCambio, onListo, deshabilitado, unida
           0
         </button>
         <button type="button" className="tecla listo" onClick={onListo} disabled={deshabilitado || !valor}>
-          ✔ {textoListo}
+          <Icono nombre="check" tamano={24} /> {textoListo}
         </button>
       </div>
     </div>

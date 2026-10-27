@@ -8,7 +8,9 @@ export type Pantalla =
   | { nombre: 'bienvenida' }
   | { nombre: 'quien' }
   | { nombre: 'crear'; rol: Rol }
+  | { nombre: 'inicio' }
   | { nombre: 'mapa' }
+  | { nombre: 'aprender' }
   | { nombre: 'nivel'; nivel: number; repaso?: boolean; clave?: number }
   | { nombre: 'resultado'; resultado: ResultadoNivel; efecto: Efecto }
   | { nombre: 'mifinca' }
@@ -35,4 +37,11 @@ export function useApp(): EstadoApp {
   const c = useContext(ContextoApp);
   if (!c) throw new Error('useApp fuera del proveedor');
   return c;
+}
+
+/** Pantallas de las pestañas inferiores: reinician la pila al entrar. */
+export const PESTANAS: Pantalla['nombre'][] = ['inicio', 'mapa', 'aprender', 'mifinca'];
+
+export function esPestana(p: Pantalla): boolean {
+  return PESTANAS.includes(p.nombre) || (p.nombre === 'familias' && (p.seccion ?? 'menu') === 'menu');
 }

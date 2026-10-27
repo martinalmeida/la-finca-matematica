@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { num } from '../../contenido/contexto';
 import type { PropsInteraccion } from './tipos';
+import Icono from '../Icono';
 
 const ANCHO = 52;
 
@@ -78,7 +79,7 @@ export default function Recta({ ej, bloqueado, onResponder, correcta }: PropsInt
         Toca un número de la recta. Si no se ve completa, deslízala con el dedo.
       </p>
       <button type="button" className="boton principal" disabled={bloqueado || elegido === null} onClick={() => elegido !== null && onResponder(elegido)}>
-        ✔ Listo{elegido !== null ? `: ${num(elegido)}` : ''}
+        <Icono nombre="check" tamano={24} /> Listo{elegido !== null ? `: ${num(elegido)}` : ''}
       </button>
     </div>
   );

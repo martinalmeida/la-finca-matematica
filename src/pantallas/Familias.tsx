@@ -3,17 +3,10 @@ import { Barra } from '../componentes/Comunes';
 import { Avatar } from '../componentes/Ilustraciones';
 import { informePerfil, nombresOperacion } from '../juego/informes';
 import { listarPerfiles } from '../almacenamiento/datos';
+import { consejosFamilia as consejos } from '../contenido/red';
+import { CabeceraVidrio } from '../componentes/Red';
+import Icono from '../componentes/Icono';
 
-const consejos = [
-  { t: 'Acompañe, no haga la tarea', d: 'Siéntese a su lado y déjelo pensar. Si usted resuelve por él o ella, se pierde la oportunidad de aprender.' },
-  { t: 'Pregunte cómo lo pensó', d: '«¿Cómo lo hiciste?» vale más que «¿cuánto te dio?». Escuche su explicación aunque la respuesta no sea correcta.' },
-  { t: 'Use lo que pasa en la finca', d: 'Invente problemas con lo de todos los días: cuántas mazorcas cortaron, cuántos huevos pusieron las gallinas, cuánto cuesta el mercado.' },
-  { t: 'Cuenten juntos en la tienda', d: 'Pídale que calcule el total de una compra pequeña o los vueltos. El dinero es una gran forma de practicar.' },
-  { t: 'Celebre el esfuerzo', d: 'Felicite cuando insiste y cuando corrige un error. Equivocarse es parte de aprender, no un motivo de regaño.' },
-  { t: 'Diez minutos al día', d: 'Es mejor practicar un poco todos los días que mucho de vez en cuando. Busque un momento tranquilo, sin afán.' },
-  { t: 'Use objetos', d: 'Granos de cacao, piedritas o tapas sirven para contar, juntar, quitar y repartir. Ver y tocar ayuda a entender.' },
-  { t: 'No compare con otros', d: 'Cada niño y niña tiene su ritmo. Compárelo solo con lo que él o ella sabía antes y note cuánto ha avanzado.' },
-];
 
 export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 'avance' }) {
   const { ir } = useApp();
@@ -57,7 +50,7 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
                 </div>
               </div>
               <p style={{ margin: 0 }}>
-                Va en el <strong>nivel {f.nivelMaximo} de 100</strong> · ⭐ {f.estrellas} estrellas · 🌱 {f.semillas} semillas
+                Va en el <strong>nivel {f.nivelMaximo} de 100</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
               </p>
               <p style={{ margin: 0 }}>
                 {f.masCuesta.length
@@ -72,17 +65,22 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
   }
 
   return (
+    <>
+    <CabeceraVidrio titulo="Cuaderno de la finca" subtitulo="Para mamás, papás y cuidadores" />
     <main className="pantalla">
-      <Barra titulo={<span className="cuaderno-titulo">Cuaderno de la finca</span>} />
-      <button type="button" className="boton principal" onClick={() => ir({ nombre: 'mapa' })}>
-        ▶ Problemas de la finca y el hogar
+      <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'mapa' })}>
+        <Icono nombre="jugar-simple" tamano={24} /> Problemas de la finca y el hogar
       </button>
       <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'familias', seccion: 'acompanar' })}>
-        💬 Acompañar a mi hijo o hija
+        <Icono nombre="personas" tamano={30} /> Acompañar a mi hijo o hija
       </button>
       <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'familias', seccion: 'avance' })}>
-        📈 Ver el avance de los niños de este celular
+        <Icono nombre="grafico" tamano={30} /> Ver el avance de los niños de este celular
+      </button>
+      <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'ajustes' })}>
+        <Icono nombre="engrane" tamano={30} /> Ajustes
       </button>
     </main>
+    </>
   );
 }

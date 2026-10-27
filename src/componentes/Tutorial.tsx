@@ -5,6 +5,7 @@ import { DibujoObjeto } from './Ilustraciones';
 import Teclado from './Teclado';
 import { sonar } from '../servicios/sonido';
 import { useApp } from '../estado';
+import Icono from './Icono';
 
 export default function Tutorial({ alTerminar, adulto }: { alTerminar: () => void; adulto: boolean }) {
   const { ajustes } = useApp();
@@ -132,9 +133,11 @@ export default function Tutorial({ alTerminar, adulto }: { alTerminar: () => voi
       {p.contenido}
       {p.listo && (
         <>
-          <div className="retro bien">✔ {t('¡Muy bien!', '¡Muy bien!')}</div>
+          <div className="retro bien">
+            <Icono nombre="check" tamano={26} /> ¡Muy bien!
+          </div>
           <button type="button" className="boton principal" onClick={() => setPaso(paso + 1)}>
-            Siguiente ➜
+            Siguiente <Icono nombre="siguiente" tamano={24} />
           </button>
         </>
       )}

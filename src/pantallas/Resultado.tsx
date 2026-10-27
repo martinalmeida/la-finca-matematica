@@ -4,6 +4,7 @@ import { Planta } from '../componentes/Ilustraciones';
 import type { Efecto, ResultadoNivel } from '../juego/progresion';
 import { insignia } from '../juego/progresion';
 import { NIVEL_MAXIMO, aciertosParaAprobar } from '../juego/motor';
+import Icono, { IconoEmoji } from '../componentes/Icono';
 
 const nombresEtapa = { semilla: 'semilla', brote: 'brote', planta: 'planta', flor: 'flor', fruto: 'fruto', cosecha: 'cosecha' };
 
@@ -17,7 +18,8 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
 
   return (
     <main className="pantalla centro">
-      <h1>{e.aprobado ? (adulto ? '¡Nivel superado!' : '¡Nivel superado! 🎉') : adulto ? 'Casi lo logra' : '¡Buen intento!'}</h1>
+      <section className="vidrio tarjeta-resultado">
+      <h1 className="titulo-degradado">{e.aprobado ? (adulto ? '¡Nivel superado!' : '¡Nivel superado!') : adulto ? 'Casi lo logra' : '¡Buen intento!'}</h1>
       <p style={{ margin: 0 }}>Nivel {r.nivel} de 100</p>
       <Estrellas n={e.estrellas} />
       <p>
@@ -25,17 +27,19 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
         {!e.aprobado && ` ${adulto ? 'Necesita' : 'Necesitas'} ${aciertosParaAprobar(r.pista)} para pasar.`}
       </p>
       {!e.aprobado && (
-        <p className="tarjeta" style={{ margin: 0 }}>
+        <p style={{ margin: 0 }}>
           {adulto
             ? 'No se pierde nada de lo avanzado. Puede intentarlo otra vez con ejercicios nuevos.'
             : 'No pierdes nada de lo que has ganado. Cada intento te hace más fuerte. ¡Inténtalo otra vez con ejercicios nuevos!'}
         </p>
       )}
       <div className="semillas" style={{ fontSize: '1.2rem' }}>
-        🌱 +{e.semillasGanadas} {e.semillasGanadas === 1 ? 'semilla' : 'semillas'}
+        <Icono nombre="brote" tamano={26} /> +{e.semillasGanadas} {e.semillasGanadas === 1 ? 'semilla' : 'semillas'}
       </div>
       <Planta etapa={e.progreso.etapaPlanta} tamano={130} />
-      {crecio && <p className="retro bien">🌿 ¡{adulto ? 'Su' : 'Tu'} planta creció! Ahora es {nombresEtapa[e.progreso.etapaPlanta]}.</p>}
+      </section>
+      {crecio && <p className="retro bien">
+          <Icono nombre="brote" tamano={26} /> ¡{adulto ? 'Su' : 'Tu'} planta creció! Ahora es {nombresEtapa[e.progreso.etapaPlanta]}.</p>}
       {e.insigniasNuevas.length > 0 && (
         <div className="tarjeta columna" style={{ width: '100%' }}>
           <strong>{adulto ? 'Insignia nueva' : '¡Ganaste una insignia!'}</strong>
@@ -44,9 +48,7 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
               const i = insignia(id);
               return (
                 <div key={id} className="insignia">
-                  <span className="icono-insignia" aria-hidden="true">
-                    {i?.icono}
-                  </span>
+                  <span className="icono-insignia">{i && <IconoEmoji emoji={i.icono} tamano={40} anim="siempre" />}</span>
                   {i?.nombre}
                 </div>
               );
@@ -56,20 +58,20 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
       )}
       <div className="columna" style={{ width: '100%' }}>
         {e.aprobado && r.nivel < NIVEL_MAXIMO && (
-          <button type="button" className="boton principal" onClick={() => ir({ nombre: 'nivel', nivel: r.nivel + 1 }, { reemplazar: true })}>
-            Siguiente nivel ➜
+          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: r.nivel + 1 }, { reemplazar: true })}>
+            Siguiente nivel <Icono nombre="siguiente" tamano={24} />
           </button>
         )}
         {ofrecerRepaso && (
           <button type="button" className="boton principal naranja" onClick={() => ir({ nombre: 'nivel', nivel: r.nivel, repaso: true }, { reemplazar: true })}>
-            📗 {adulto ? 'Hacer un repaso con pistas' : 'Hacer un repaso con pistas'}
+            <Icono nombre="libro" tamano={28} /> Hacer un repaso con pistas
           </button>
         )}
         <button type="button" className={`boton ${e.aprobado ? 'secundario' : 'principal'}`} onClick={() => ir({ nombre: 'nivel', nivel: r.nivel }, { reemplazar: true })}>
-          🔁 Repetir
+          <Icono nombre="repetir" tamano={26} /> Repetir
         </button>
         <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'mapa' })}>
-          🗺️ Volver al mapa
+          <Icono nombre="mapa" tamano={26} /> Volver a la ruta
         </button>
       </div>
     </main>

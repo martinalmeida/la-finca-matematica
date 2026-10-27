@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Numerica from './Numerica';
 import type { PropsInteraccion } from './tipos';
+import Icono from '../Icono';
 
 /** Dibujo de bloques: canastas de 100, cajas de 10 y unidades. */
 export function BloquesDibujo({ c, d, u }: { c: number; d: number; u: number }) {
@@ -76,7 +77,7 @@ export default function Bloques(props: PropsInteraccion) {
         disabled={props.bloqueado || cant.c + cant.d + cant.u === 0}
         onClick={() => props.onResponder(cant.c * 100 + cant.d * 10 + cant.u)}
       >
-        ✔ Listo
+        <Icono nombre="check" tamano={24} /> Listo
       </button>
     </div>
   );

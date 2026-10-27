@@ -107,7 +107,7 @@ export default function Arrastrar(props: PropsInteraccion) {
     );
   };
 
-  const rotuloDestino = modo === 'juntar' ? '🧺 Canasta grande' : modo === 'quitar' ? '➡️ Lo que se llevan' : '';
+  const rotuloDestino = modo === 'juntar' ? 'Canasta grande' : modo === 'quitar' ? 'Lo que se llevan' : '';
 
   return (
     <div className="columna">
@@ -121,7 +121,7 @@ export default function Arrastrar(props: PropsInteraccion) {
         {modo !== 'juntar' && deposito('origen', modo === 'quitar' ? 'Lo que había' : 'Para repartir')}
         {modo === 'repartir' ? (
           <div className="canastas" style={{ gridTemplateColumns: `repeat(${b}, 1fr)` }}>
-            {destinos.map((z, k) => deposito(z, `🧺 ${k + 1}`, 'destino'))}
+            {destinos.map((z, k) => deposito(z, `Canasta ${k + 1}`, 'destino'))}
           </div>
         ) : (
           deposito('destino', rotuloDestino, 'destino')

@@ -2,6 +2,7 @@ import { useApp } from '../estado';
 import { EscenaFinca, Logo } from '../componentes/Ilustraciones';
 import { BotonInstalar, useLargaPulsacion } from '../componentes/Comunes';
 import { listarPerfiles } from '../almacenamiento/datos';
+import Icono from '../componentes/Icono';
 
 export function LogoConPanel({ tamano = 64 }: { tamano?: number }) {
   const { ir } = useApp();
@@ -21,19 +22,34 @@ export default function Bienvenida() {
     <main className="pantalla">
       <div className="logo-titulo">
         <LogoConPanel />
-        <h1>La Finca Matemática</h1>
+        <h1 className="titulo-degradado">La Finca Matemática</h1>
       </div>
-      <div className="escena">
-        <EscenaFinca />
-      </div>
-      <p className="centro" style={{ fontSize: '1.15rem' }}>
-        ¡Bienvenidos a la finca! Aquí aprendemos a sumar, restar, multiplicar y dividir con lo que pasa en la vereda.
-      </p>
-      <button type="button" className="boton principal" onClick={() => ir({ nombre: 'crear', rol: 'estudiante' })}>
-        🎒 Soy estudiante
+      <section className="vidrio tarjeta columna revelar">
+        <div className="escena">
+          <EscenaFinca />
+        </div>
+        <p className="centro" style={{ fontSize: '1.12rem', margin: 0 }}>
+          ¡Bienvenidos a la finca! Aquí aprendemos a sumar, restar, multiplicar y dividir con lo que pasa en la vereda.
+        </p>
+        <p className="centro pequeno suave" style={{ margin: 0 }}>
+          <span className="fila" style={{ justifyContent: 'center', gap: 14 }}>
+            <span className="fila" style={{ gap: 4 }}>
+              <Icono nombre="libro" tamano={22} /> Lecciones
+            </span>
+            <span className="fila" style={{ gap: 4 }}>
+              <Icono nombre="diana" tamano={22} /> Retos
+            </span>
+            <span className="fila" style={{ gap: 4 }}>
+              <Icono nombre="altavoz" tamano={22} /> Con voz
+            </span>
+          </span>
+        </p>
+      </section>
+      <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'crear', rol: 'estudiante' })}>
+        <Icono nombre="mochila" tamano={30} /> Soy estudiante
       </button>
       <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'crear', rol: 'familia' })}>
-        🏡 Soy papá, mamá o cuidador
+        <Icono nombre="casa" tamano={30} /> Soy papá, mamá o cuidador
       </button>
       {hayPerfiles && (
         <button type="button" className="boton" onClick={() => ir({ nombre: 'quien' })}>

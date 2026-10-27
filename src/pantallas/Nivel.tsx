@@ -15,6 +15,7 @@ import {
   tutorialVisto,
 } from '../almacenamiento/datos';
 import { sonar } from '../servicios/sonido';
+import Icono from '../componentes/Icono';
 
 export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolean }) {
   const { perfil, ir, ajustes } = useApp();
@@ -72,11 +73,11 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
     <main className="pantalla">
       <header className="barra">
         <button type="button" className="boton icono" onClick={() => ir({ nombre: 'mapa' })} aria-label="Salir al mapa">
-          ✕
+          <Icono nombre="cerrar" tamano={24} />
         </button>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '1.1rem', margin: 0 }}>
-            Nivel {nivel} de 100 {esCosecha(nivel) ? '🧺' : ''}
+            Nivel {nivel} de 100 {esCosecha(nivel) && <Icono nombre="canasta" tamano={26} etiqueta="Nivel de cosecha" />}
           </h1>
           <div className="pequeno suave">
             {repaso ? 'Repaso con pistas · ' : ''}

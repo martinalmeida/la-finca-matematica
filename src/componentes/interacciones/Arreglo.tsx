@@ -35,7 +35,7 @@ export default function Arreglo(props: PropsInteraccion) {
       </div>
       <p className="centro" style={{ margin: 0, fontWeight: 700 }} aria-live="polite">
         {sel ? `${sel.f} ${sel.f === 1 ? 'fila' : 'filas'} de ${sel.c}` : 'Toca una celda para formar el arreglo'}
-        {listo ? ' ✔ ¡Ese es el arreglo!' : ''}
+        {listo ? ' ¡Ese es el arreglo!' : ''}
       </p>
       <Numerica {...props} />
     </div>

@@ -4,8 +4,11 @@ import { Barra, BotonInstalar, PinAdulto } from '../componentes/Comunes';
 import type { Ajustes as TAjustes } from '../almacenamiento/datos';
 import { crearCopia, descargar, fechaArchivo, restaurarCopia } from '../almacenamiento/copia';
 import { codigoConGrado } from '../juego/perfil';
-import type { Grado } from '../juego/tipos';
+import type { Grado, Pista } from '../juego/tipos';
+import { Medidor } from '../componentes/Historia';
+import { RESUMEN_GRADO } from '../juego/complejidad';
 import { useVoz } from '../servicios/voz';
+import Icono from '../componentes/Icono';
 
 export default function Ajustes() {
   const { ajustes, cambiarAjustes, perfil, actualizarPerfil, ir, avisar } = useApp();
@@ -36,7 +39,7 @@ export default function Ajustes() {
     return (
       <main className="pantalla">
         <Barra titulo="Cambiar de grado" alVolver={() => setEligiendoGrado(false)} />
-        <p>El progreso de cada grado se guarda por separado. Al volver a un grado, el avance sigue ahí.</p>
+        <p>Cada grado tiene su propia ruta y su propia complejidad. El progreso de cada grado se guarda por separado: al volver a un grado, el avance sigue ahí.</p>
         {([1, 2, 3, 4, 5] as Grado[]).map((g) => (
           <button
             key={g}
@@ -49,7 +52,14 @@ export default function Ajustes() {
               avisar(`Grado cambiado a ${g}.º`);
             }}
           >
-            <span className="grado-numero">{g}</span> {g}.º grado
+            <span className="grado-numero">{g}</span>
+            <span className="columna" style={{ flex: 1, textAlign: 'left', gap: 2 }}>
+              <span>{g}.º grado</span>
+              <span className="pequeno suave" style={{ fontWeight: 500 }}>
+                {RESUMEN_GRADO[`g${g}` as Pista].foco}
+              </span>
+            </span>
+            <Medidor barras={g} />
           </button>
         ))}
       </main>
@@ -74,17 +84,35 @@ export default function Ajustes() {
             </button>
           ))}
         </div>
+        <h2>Efectos visuales</h2>
+        <div className="segmentado" role="radiogroup" aria-label="Efectos visuales">
+          {(
+            [
+              ['completos', 'Vidrio y movimiento', 'chispas'],
+              ['ligeros', 'Ligeros', 'bateria'],
+            ] as const
+          ).map(([v, t, i]) => (
+            <button key={v} type="button" role="radio" aria-checked={ajustes.efectos === v} className={`boton ${ajustes.efectos === v ? 'seleccionado' : ''}`} onClick={() => cambiar('efectos', v)}>
+              <Icono nombre={i} tamano={24} /> {t}
+            </button>
+          ))}
+        </div>
+        <p className="pequeno suave" style={{ margin: 0 }}>
+          Si el celular se pone lento, elija «Ligeros»: quita las transparencias y las animaciones del fondo.
+        </p>
         <label className="interruptor">
-          <span>🔔 Sonido</span>
+          <span className="fila"><Icono nombre="campana" tamano={28} /> Sonido</span>
           <input type="checkbox" checked={ajustes.sonido} onChange={(e) => cambiar('sonido', e.target.checked)} />
         </label>
         <label className="interruptor">
-          <span>📳 Vibración</span>
+          <span className="fila"><Icono nombre="vibrar" tamano={28} /> Vibración</span>
           <input type="checkbox" checked={ajustes.vibracion} onChange={(e) => cambiar('vibracion', e.target.checked)} />
         </label>
         <label className="interruptor">
           <span>
-            🔊 Leer enunciados en voz alta
+            <span className="fila" style={{ flexWrap: 'nowrap' }}>
+              <Icono nombre="altavoz" tamano={28} /> Leer las preguntas en voz alta automáticamente
+            </span>
             {!voz.disponible && <span className="pequeno suave"> (este celular no tiene voz en español sin internet)</span>}
           </span>
           <input type="checkbox" checked={ajustes.audioEnunciados} disabled={!voz.disponible} onChange={(e) => cambiar('audioEnunciados', e.target.checked)} />
@@ -98,7 +126,7 @@ export default function Ajustes() {
             Ahora: <strong>{perfil.grado}.º grado</strong> · Código {perfil.codigo}
           </p>
           <button type="button" className="boton" onClick={() => setPin('grado')}>
-            🔐 Cambiar grado (adulto)
+            <Icono nombre="candado" tamano={26} /> Cambiar grado (adulto)
           </button>
         </section>
       )}
@@ -109,10 +137,10 @@ export default function Ajustes() {
           Guarda todos los perfiles y avances de este celular en un archivo. No se envía nada por internet.
         </p>
         <button type="button" className="boton" onClick={() => descargar(`finca-matematica-copia-${fechaArchivo()}.json`, JSON.stringify(crearCopia()))}>
-          💾 Exportar copia
+          <Icono nombre="guardar" tamano={26} /> Exportar copia
         </button>
         <button type="button" className="boton" onClick={() => setPin('importar')}>
-          📂 Importar copia (adulto)
+          <Icono nombre="carpeta" tamano={26} /> Importar copia (adulto)
         </button>
         <input
           ref={archivo}
@@ -137,7 +165,7 @@ export default function Ajustes() {
         <h2>Aplicación</h2>
         <BotonInstalar adulto={adulto} />
         <button type="button" className="boton" onClick={() => ir({ nombre: 'quien' })}>
-          👥 Cambiar de jugador
+          <Icono nombre="personas" tamano={26} /> Cambiar de jugador
         </button>
       </section>
     </main>
