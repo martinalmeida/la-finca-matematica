@@ -2,8 +2,8 @@
 // reagrupación, problemas de cambio, combinación y comparación, dinero,
 // grupos iguales (×2, ×5, ×10) y reparto equitativo.
 
-import type { ContextoGeneracion, DefinicionPista, EjercicioBase, Plantilla, Uso, Visual } from '../../juego/tipos';
-import { adulto, cuantos, frutas, mayus, nombreCant, nombresFincas, persona, pesos, productos, type Genero, type Persona } from '../contexto';
+import type { ContextoGeneracion, DefinicionPista, EjercicioBase, Objeto, Plantilla, Recipiente, Uso, Visual } from '../../juego/tipos';
+import { adulto, arbolDe, cuantos, frutas, mayus, nombreCant, nombresFincas, persona, pesos, productos, type Genero, type Persona } from '../contexto';
 import { plantillasG3 } from './g3';
 import { distractores, dif, lerp, mezclarOpciones, modoRespuesta, parResta, parSuma, pb, pn, pt } from './util';
 
@@ -118,10 +118,10 @@ const bloques: Plantilla = {
         datos: { n, centenas: c, decenas: de10, unidades: un },
         respuesta: n,
         distractores: [],
-        interaccion: { tipo: 'bloques', modo: 'construir', valor: n },
+        interaccion: { tipo: 'bloques', modo: 'construir', valor: n, unidad: 'limon', decena: 'caja', centena: 'canasta' },
         pistas: [
           `¿Cuántas canastas de 100 caben en ${n}? ¿Y cuántas cajas de 10 sobran?`,
-          { tipo: 'bloques', valor: n },
+          { tipo: 'bloques', valor: n, unidad: 'limon', decena: 'caja', centena: 'canasta' },
           `${n} = ${c} de 100, ${de10} de 10 y ${un} sueltos.`,
         ],
         explicacion: `${n} tiene ${c} centenas, ${de10} decenas y ${un} unidades.`,
@@ -144,7 +144,7 @@ const bloques: Plantilla = {
       unidad: 'limones',
       ...modo,
       calculo: calc,
-      pistas: ['Cuenta primero las canastas de 100, después las cajas de 10 y al final los sueltos.', { tipo: 'bloques', valor: n }, `${c * 100} + ${de10 * 10} + ${un}.`],
+      pistas: ['Cuenta primero las canastas de 100, después las cajas de 10 y al final los sueltos.', { tipo: 'bloques', valor: n, unidad: 'limon', decena: 'caja', centena: 'canasta' }, `${c * 100} + ${de10 * 10} + ${un}.`],
       explicacion: `${c * 100} + ${de10 * 10} + ${un} = ${n}.`,
     };
   },
@@ -335,14 +335,23 @@ const calculo: Plantilla = {
     const resta = op === 'resta' || (op === 'mixta' && rng.azar(0.5));
     const [a, b] = resta ? parRestaG2(ctx, max) : parSumaG2(ctx, max);
     const respuesta = resta ? a - b : a + b;
-    const contexto = resta
-      ? rng.elegir([`En la tienda de la vereda había ${a} huevos y se vendieron ${b}.`, `La chiva lleva ${a} bultos y deja ${b} en el pueblo.`, `De ${a} mazorcas de cacao, ${b} ya se abrieron.`])
-      : rng.elegir([`En la finca hay ${a} árboles de cacao y ${b} de café.`, `La tienda recibió ${a} panelas y luego ${b} más.`, `En la vereda hay ${a} árboles de naranja y ${b} de mandarina.`]);
+    const [contexto, dibujo] = resta
+      ? rng.elegir<[string, Objeto]>([
+          [`En la tienda de la vereda había ${a} huevos y se vendieron ${b}.`, 'huevo'],
+          [`La chiva lleva ${a} bultos y deja ${b} en el pueblo.`, 'bulto'],
+          [`De ${a} mazorcas de cacao, ${b} ya se abrieron.`, 'mazorca'],
+        ])
+      : rng.elegir<[string, Objeto | undefined]>([
+          [`En la finca hay ${a} árboles de cacao y ${b} de café.`, 'arbol'],
+          [`La tienda recibió ${a} panelas y luego ${b} más.`, undefined],
+          [`En la vereda hay ${a} árboles de naranja y ${b} de mandarina.`, 'arbol'],
+        ]);
     const calc = { op: resta ? ('resta' as const) : ('suma' as const), a, b };
     const modo = modoRespuesta(ctx, respuesta, calc, { abiertaMin: 0.3, abiertaMax: 0.9 });
     return {
       enunciado: `${contexto} Resuelve: ${a} ${resta ? '−' : '+'} ${b} = ?`,
       instruccion: resta ? 'Resta' : 'Suma',
+      ilustracion: dibujo,
       datos: { a, b },
       respuesta,
       ...modo,
@@ -373,6 +382,7 @@ const sumaProblema: Plantilla = {
     const tipo = pb(ctx, 'incognita') && dif(ctx) > 0.5 ? rng.elegir(['cambio', 'inicio']) : 'resultado';
     const cu = cuantos(p.genero);
     let enunciado: string;
+    let dibujo: Objeto = p.objeto;
     let respuesta: number;
     let calc: { op: 'suma' | 'resta'; a: number; b: number };
     if (tipo === 'cambio') {
@@ -384,10 +394,11 @@ const sumaProblema: Plantilla = {
       respuesta = a;
       calc = { op: 'resta', a: c, b };
     } else {
-      enunciado = rng.elegir([
-        `${quien.nombre} ${p.verbo} ${a} ${nombreCant(p, a)} el sábado y ${b} el domingo. ¿${cu} ${p.plural} ${p.verbo} en total?`,
-        `En la finca ${rng.elegir(nombresFincas)} hay ${a} árboles de cacao y ${b} de aguacate. ¿Cuántos árboles hay en total?`,
-        `${mayus(ad.nombre)} tenía ${a} ${nombreCant(p, a)} en la bodega y le llegaron ${b} más. ¿${cu} tiene ahora?`,
+      // Cada redacción lleva el dibujo de lo que cuenta.
+      [enunciado, dibujo] = rng.elegir<[string, Objeto]>([
+        [`${quien.nombre} ${p.verbo} ${a} ${nombreCant(p, a)} el sábado y ${b} el domingo. ¿${cu} ${p.plural} ${p.verbo} en total?`, p.objeto],
+        [`En la finca ${rng.elegir(nombresFincas)} hay ${a} árboles de cacao y ${b} de aguacate. ¿Cuántos árboles hay en total?`, 'arbol'],
+        [`${mayus(ad.nombre)} tenía ${a} ${nombreCant(p, a)} en la bodega y le llegaron ${b} más. ¿${cu} tiene ahora?`, p.objeto],
       ]);
       respuesta = c;
       calc = { op: 'suma', a, b };
@@ -396,7 +407,7 @@ const sumaProblema: Plantilla = {
     return {
       enunciado,
       instruccion: tipo === 'resultado' ? 'Junta' : 'Busca lo que falta',
-      ilustracion: p.objeto,
+      ilustracion: dibujo,
       datos: { a, b, c },
       respuesta,
       ...modo,
@@ -426,6 +437,7 @@ const restaProblema: Plantilla = {
     const tipo = pb(ctx, 'incognita') && dif(ctx) > 0.5 ? rng.elegir(['cambio', 'inicio']) : 'resultado';
     const cu = cuantos(p.genero);
     let enunciado: string;
+    let dibujo: Objeto = p.objeto;
     let respuesta: number;
     let calc: { op: 'suma' | 'resta'; a: number; b: number };
     if (tipo === 'cambio') {
@@ -437,10 +449,10 @@ const restaProblema: Plantilla = {
       respuesta = a;
       calc = { op: 'suma', a: b, b: r };
     } else {
-      enunciado = rng.elegir([
-        `${mayus(ad.nombre)} llevó ${a} ${nombreCant(p, a)} al mercado del pueblo y vendió ${b}. ¿${cu} le quedaron?`,
-        `En la cooperativa había ${a} bultos de cacao y salieron ${b} en el carro de la cooperativa. ¿Cuántos bultos quedan?`,
-        `${persona(rng).nombre} tenía ${a} ${nombreCant(p, a)} y regaló ${b} a sus vecinos de la vereda. ¿${cu} le quedan?`,
+      [enunciado, dibujo] = rng.elegir<[string, Objeto]>([
+        [`${mayus(ad.nombre)} llevó ${a} ${nombreCant(p, a)} al mercado del pueblo y vendió ${b}. ¿${cu} le quedaron?`, p.objeto],
+        [`En la cooperativa había ${a} bultos de cacao y salieron ${b} en el carro de la cooperativa. ¿Cuántos bultos quedan?`, 'bulto'],
+        [`${persona(rng).nombre} tenía ${a} ${nombreCant(p, a)} y regaló ${b} a sus vecinos de la vereda. ¿${cu} le quedan?`, p.objeto],
       ]);
       respuesta = r;
       calc = { op: 'resta', a, b };
@@ -449,7 +461,7 @@ const restaProblema: Plantilla = {
     return {
       enunciado,
       instruccion: tipo === 'resultado' ? 'Quita' : 'Busca lo que falta',
-      ilustracion: p.objeto,
+      ilustracion: dibujo,
       datos: { a, b, r },
       respuesta,
       ...modo,
@@ -551,7 +563,7 @@ const empaque: Plantilla = {
       calculo: calc,
       pistas: [
         reagrupar ? `¡Ojo! ${de10} bolsas de 10 son más de 100. ¿Cuántas canastas de 100 podrías formar con ellas?` : 'Cada canasta vale 100 y cada bolsa vale 10.',
-        { tipo: 'bloques', valor: n },
+        { tipo: 'bloques', valor: n, unidad: p.objeto, decena: 'bolsa', centena: 'canasta' },
         `${c * 100} + ${de10 * 10} + ${u}.`,
       ],
       explicacion: `${c * 100} + ${de10 * 10} + ${u} = ${n}.`,
@@ -603,7 +615,7 @@ const dinero: Plantilla = {
         ...resp,
         pistas: [
           'Empieza por las monedas de más valor y sigue contando.',
-          { tipo: 'texto', texto: unir(partes) },
+          { tipo: 'dinero', valores: [...Array(n500).fill(500), ...Array(n200).fill(200), ...Array(n100).fill(100)] },
           `${n500 ? '500 + ' : ''}${n200 ? `${n200 * 200} + ` : ''}${n100 * 100}.`,
         ],
         explicacion: `En total tiene ${pesos(total)}.`,
@@ -644,7 +656,8 @@ const vueltas: Plantilla = {
     return {
       enunciado: `${quien.nombre} compró ${listaCompra(cosas)} en la tienda de la vereda y pagó con ${pago === 1000 ? `un billete de ${pesos(1000)}` : `una moneda de ${pesos(500)}`}. ¿Cuánto le dieron de vueltas?`,
       instruccion: 'Calcula las vueltas',
-      ilustracion: 'moneda',
+      // Se dibuja con lo que pagó: billete o moneda.
+      ilustracion: pago === 1000 ? 'billete' : 'moneda',
       datos: { total, pago },
       respuesta,
       unidad: 'pesos',
@@ -676,14 +689,14 @@ const arreglo: Plantilla = {
     return {
       enunciado: `${quien.nombre} sembró ${f} surcos de ${cultivo} con ${k} árboles en cada surco. Toca la cuadrícula para formar los surcos. ¿Cuántos árboles sembró?`,
       instruccion: 'Forma los surcos',
-      ilustracion: 'arbol',
+      ilustracion: arbolDe(cultivo),
       datos: { f, k },
       respuesta,
       unidad: 'árboles',
       distractores: distractores(rng, respuesta, [f * (k + 1), f * (k - 1), f + k, (f + 1) * k], 3, dif(ctx)),
-      interaccion: { tipo: 'arreglo', filas: f, columnas: k, objeto: 'arbol' },
+      interaccion: { tipo: 'arreglo', filas: f, columnas: k, objeto: arbolDe(cultivo) },
       calculo: calc,
-      pistas: [`¿Cuántos surcos hay y cuántos árboles tiene cada uno?`, { tipo: 'arreglo', filas: f, columnas: k, objeto: 'arbol' }, `Cuenta de ${k} en ${k}, ${f} veces.`],
+      pistas: [`¿Cuántos surcos hay y cuántos árboles tiene cada uno?`, { tipo: 'arreglo', filas: f, columnas: k, objeto: arbolDe(cultivo) }, `Cuenta de ${k} en ${k}, ${f} veces.`],
       explicacion: `${f} surcos de ${k} árboles: ${Array(f).fill(k).join(' + ')} = ${f} × ${k} = ${respuesta}.`,
     };
   },
@@ -701,31 +714,32 @@ const sumaRepetida: Plantilla = {
     const respuesta = f * k;
     const repetida = Array(f).fill(k).join(' + ');
     const p = rng.elegir([
-      { cosa: 'huevos', recipiente: 'cubetas', cada: 'cada una', obj: 'huevo' as const },
-      { cosa: 'aguacates', recipiente: 'bolsas', cada: 'cada una', obj: 'aguacate' as const },
-      { cosa: 'mazorcas', recipiente: 'canastos', cada: 'cada uno', obj: 'mazorca' as const },
+      { cosa: 'huevos', genero: 'm' as Genero, recipiente: 'cubetas', cada: 'cada una', obj: 'huevo' as const, dibujoRecipiente: 'cubeta' as const, nombreRecipiente: 'Cubeta' },
+      { cosa: 'aguacates', genero: 'm' as Genero, recipiente: 'bolsas', cada: 'cada una', obj: 'aguacate' as const, dibujoRecipiente: 'bolsa' as const, nombreRecipiente: 'Bolsa' },
+      { cosa: 'mazorcas', genero: 'f' as Genero, recipiente: 'canastos', cada: 'cada uno', obj: 'mazorca' as const, dibujoRecipiente: 'canasta' as const, nombreRecipiente: 'Canasto' },
     ]);
+    const grupo = { nombre: p.nombreRecipiente, dibujo: p.dibujoRecipiente };
     const ad = adulto(rng);
     const base = `${mayus(ad.nombre)} puso ${k} ${p.cosa} en ${p.cada} de sus ${f} ${p.recipiente}.`;
     if (rng.azar(0.5)) {
       const correcta = `${f} × ${k}`;
       const opciones = rng.barajar([correcta, `${f} + ${k}`, `${f} × ${k + 1}`]);
       return {
-        enunciado: `${base} ¿Qué operación dice cuántos ${p.cosa} hay?`,
+        enunciado: `${base} ¿Qué operación dice ${cuantos(p.genero, false)} ${p.cosa} hay?`,
         instruccion: 'Elige la operación',
         ilustracion: p.obj,
         datos: { f, k },
         respuesta: correcta,
         distractores: opciones.filter((o) => o !== correcta),
         interaccion: { tipo: 'opciones', opciones },
-        pistas: ['¿Cuántos grupos hay y cuántos hay en cada grupo?', { tipo: 'objetos', objeto: p.obj, grupos: Array(f).fill(k) }, `${repetida}: el ${k} se repite ${f} veces.`],
+        pistas: ['¿Cuántos grupos hay y cuántos hay en cada grupo?', { tipo: 'objetos', objeto: p.obj, grupos: Array(f).fill(k), grupo }, `${repetida}: el ${k} se repite ${f} veces.`],
         explicacion: `${repetida} es lo mismo que ${f} × ${k} = ${respuesta}.`,
       };
     }
     const calc = { op: 'multiplicacion' as const, a: f, b: k };
     const modo = modoRespuesta(ctx, respuesta, calc);
     return {
-      enunciado: `${base} ${repetida} = ? ¿Cuántos ${p.cosa} hay?`,
+      enunciado: `${base} ${repetida} = ? ¿${cuantos(p.genero)} ${p.cosa} hay?`,
       instruccion: 'Suma grupos iguales',
       ilustracion: p.obj,
       datos: { f, k },
@@ -733,7 +747,7 @@ const sumaRepetida: Plantilla = {
       unidad: p.cosa,
       ...modo,
       calculo: calc,
-      pistas: [`Cuenta de ${k} en ${k}.`, { tipo: 'objetos', objeto: p.obj, grupos: Array(f).fill(k) }, `${repetida} = ${f} × ${k}.`],
+      pistas: [`Cuenta de ${k} en ${k}.`, { tipo: 'objetos', objeto: p.obj, grupos: Array(f).fill(k), grupo }, `${repetida} = ${f} × ${k}.`],
       explicacion: `${repetida} = ${respuesta}.`,
     };
   },
@@ -765,17 +779,18 @@ const grupos: Plantilla = {
         ...modo,
         calculo: calc,
         operacion: 'division',
-        pistas: [`¿Cuántas veces cabe el ${k} en ${total}?`, { tipo: 'reparto', total, grupos: f, objeto: p.objeto }, `Cuenta de ${k} en ${k} hasta llegar a ${total}.`],
+        pistas: [`¿Cuántas veces cabe el ${k} en ${total}?`, { tipo: 'reparto', total, grupos: f, objeto: p.objeto, grupo: { nombre: 'Bolsa', dibujo: 'bolsa' } }, `Cuenta de ${k} en ${k} hasta llegar a ${total}.`],
         explicacion: `${f} bolsas de ${k} son ${total}: llena ${f} bolsas.`,
       };
     }
     const calc = { op: 'multiplicacion' as const, a: f, b: k };
     const modo = modoRespuesta(ctx, total, calc);
+    const [enunciado, grupo] = rng.elegir<[string, Recipiente]>([
+      [`${quien.nombre} llenó ${f} bolsas con ${k} ${p.plural} cada una para la feria del pueblo. ¿${cuantos(p.genero)} ${p.plural} empacó?`, { nombre: 'Bolsa', dibujo: 'bolsa' }],
+      [`En el refrigerio escolar repartieron ${k} ${p.plural} en cada una de las ${f} mesas. ¿${cuantos(p.genero)} ${p.plural} repartieron?`, { nombre: 'Mesa', dibujo: 'mesa' }],
+    ]);
     return {
-      enunciado: rng.elegir([
-        `${quien.nombre} llenó ${f} bolsas con ${k} ${p.plural} cada una para la feria del pueblo. ¿${cuantos(p.genero)} ${p.plural} empacó?`,
-        `En el refrigerio escolar repartieron ${k} ${p.plural} en cada una de las ${f} mesas. ¿${cuantos(p.genero)} ${p.plural} repartieron?`,
-      ]),
+      enunciado,
       instruccion: 'Grupos iguales',
       ilustracion: p.objeto,
       datos: { f, k },
@@ -783,7 +798,7 @@ const grupos: Plantilla = {
       unidad: p.plural,
       ...modo,
       calculo: calc,
-      pistas: ['¿Cuántos grupos hay y cuántas frutas en cada grupo?', { tipo: 'objetos', objeto: p.objeto, grupos: Array(Math.min(f, 10)).fill(k) }, `${f} × ${k}: cuenta de ${k} en ${k}, ${f} veces.`],
+      pistas: ['¿Cuántos grupos hay y cuántas frutas en cada grupo?', { tipo: 'objetos', objeto: p.objeto, grupos: Array(f).fill(k), grupo }, `${f} × ${k}: cuenta de ${k} en ${k}, ${f} veces.`],
       explicacion: `${f} × ${k} = ${total}.`,
     };
   },
@@ -803,7 +818,8 @@ const reparto: Plantilla = {
     const cada = manipular ? rng.entero(2, Math.floor(20 / k)) : rng.entero(3, lerp(6, 10, dif(ctx)));
     const n = cada * k;
     const calc = { op: 'division' as const, a: n, b: k };
-    const enunciado = `${quien.nombre} reparte ${n} ${p.plural} entre ${k} compañeros de la escuela, la misma cantidad a cada uno.${manipular ? ' Arrastra las frutas a las canastas.' : ''} ¿${cuantos(p.genero)} recibe cada uno?`;
+    const enunciado = `${quien.nombre} reparte ${n} ${p.plural} entre ${k} compañeros de la escuela, la misma cantidad a cada uno.${manipular ? ' Arrastra las frutas a sus compañeros.' : ''} ¿${cuantos(p.genero)} recibe cada uno?`;
+    const companero: Recipiente = { nombre: 'Compañero', dibujo: 'nino' };
     const base = {
       enunciado,
       instruccion: 'Reparte igual',
@@ -814,7 +830,7 @@ const reparto: Plantilla = {
       calculo: calc,
       pistas: [
         'Da una a cada uno, por turnos, hasta que no quede ninguna.',
-        { tipo: 'reparto', total: n, grupos: k, objeto: p.objeto },
+        { tipo: 'reparto', total: n, grupos: k, objeto: p.objeto, grupo: companero },
         `Busca el número que, repetido ${k} veces, da ${n}.`,
       ] as [string, Visual, string],
       explicacion: `${n} ÷ ${k} = ${cada}, porque ${k} × ${cada} = ${n}.`,
@@ -823,7 +839,7 @@ const reparto: Plantilla = {
       return {
         ...base,
         distractores: distractores(rng, cada, [cada + 1, cada - 1, n - k], 3, dif(ctx)),
-        interaccion: { tipo: 'arrastrar', objeto: p.objeto, modo: 'repartir', a: n, b: k },
+        interaccion: { tipo: 'arrastrar', objeto: p.objeto, modo: 'repartir', a: n, b: k, destino: companero },
       };
     }
     return { ...base, ...modoRespuesta(ctx, cada, calc, { extras: [n - k, cada + 1, cada - 1] }) };
@@ -885,9 +901,9 @@ const tabla: Plantilla = {
     const filas = dias.map((dia, i) => [dia, vals[i]]);
     const quien = persona(rng);
     const cosa = rng.elegir([
-      { encabezado: 'Kilos de café', texto: 'los kilos de café que recogió su familia', unidad: 'kilos', genero: 'm' as Genero },
-      { encabezado: 'Mazorcas', texto: 'las mazorcas de cacao que cortaron en la finca', unidad: 'mazorcas', genero: 'f' as Genero },
-      { encabezado: 'Naranjas', texto: 'las naranjas que vendieron en el mercado', unidad: 'naranjas', genero: 'f' as Genero },
+      { encabezado: 'Kilos de café', texto: 'los kilos de café que recogió su familia', unidad: 'kilos', genero: 'm' as Genero, dibujo: 'cafe' as const },
+      { encabezado: 'Mazorcas', texto: 'las mazorcas de cacao que cortaron en la finca', unidad: 'mazorcas', genero: 'f' as Genero, dibujo: 'mazorca' as const },
+      { encabezado: 'Naranjas', texto: 'las naranjas que vendieron en el mercado', unidad: 'naranjas', genero: 'f' as Genero, dibujo: 'naranja' as const },
     ]);
     const titulo = `${quien.nombre} anotó en una tabla ${cosa.texto}.`;
     const encabezados = ['Día', cosa.encabezado];
@@ -898,6 +914,7 @@ const tabla: Plantilla = {
       return {
         enunciado: `${titulo} ¿Qué día hubo más?`,
         instruccion: 'Lee la tabla',
+        ilustracion: cosa.dibujo,
         datos: { a: vals[0], b: vals[1], c: vals[2] },
         respuesta: resp,
         distractores: dias.filter((d) => d !== resp),
@@ -916,6 +933,7 @@ const tabla: Plantilla = {
       return {
         enunciado: `${titulo} ¿${cuantos(cosa.genero)} ${cosa.unidad} más hubo el ${dias[iMax]} que el ${dias[iMin]}?`,
         instruccion: 'Lee la tabla',
+        ilustracion: cosa.dibujo,
         datos: { a: vals[0], b: vals[1], c: vals[2] },
         respuesta: resp,
         unidad: cosa.unidad,
@@ -933,6 +951,7 @@ const tabla: Plantilla = {
     return {
       enunciado: `${titulo} ¿${cuantos(cosa.genero)} ${cosa.unidad} hubo en los tres días?`,
       instruccion: 'Lee la tabla',
+      ilustracion: cosa.dibujo,
       datos: { a: vals[0], b: vals[1], c: vals[2] },
       respuesta: total,
       unidad: cosa.unidad,

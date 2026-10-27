@@ -2,9 +2,9 @@
 // multiplicación por 1 y 2 cifras, división con residuo (divisor de 1 cifra),
 // interpretación del residuo, doble/triple/cuádruple y problemas con dinero.
 
-import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Plantilla, Uso, Visual } from '../../juego/tipos';
+import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Objeto, Plantilla, Uso, Visual } from '../../juego/tipos';
 import { divDos, divProblema, residuoContexto } from './g5';
-import { adulto, articulosTienda, cuantos, dosPersonas, mayus, nombresFincas, num, persona, pesos } from '../contexto';
+import { adulto, arbolDe, articulosTienda, cuantos, dosPersonas, mayus, nombresFincas, num, persona, pesos } from '../contexto';
 import {
   conCifras,
   contarLlevadas,
@@ -21,6 +21,7 @@ import {
 } from './util';
 
 const POSICIONES = ['unidades', 'decenas', 'centenas', 'unidades de mil', 'decenas de mil', 'centenas de mil'];
+const POSICIONES_UNA = ['unidad', 'decena', 'centena', 'unidad de mil', 'decena de mil', 'centena de mil'];
 
 /** Desde 3.º, con d alto, se agrega un dato que sobra. */
 function datoQueSobra(ctx: ContextoGeneracion): { texto: string; valor: number } | null {
@@ -66,7 +67,8 @@ function desglose(n: number): string {
   const partes: string[] = [];
   cifras.forEach((c, i) => {
     const pos = cifras.length - 1 - i;
-    if (c > 0) partes.push(`${c} ${POSICIONES[pos]}`);
+    // «1 unidad de mil», «3 unidades de mil».
+    if (c > 0) partes.push(`${c} ${c === 1 ? POSICIONES_UNA[pos] : POSICIONES[pos]}`);
   });
   return partes.join(' + ');
 }
@@ -167,10 +169,10 @@ const redondeo: Plantilla = {
     const respuesta = Math.round(n / unidad) * unidad;
     const paso = unidad / 10;
     const inicio = Math.round(n / paso) * paso;
-    const nombre = unidad === 100 ? 'a la centena' : 'al mil';
+    const nombre = unidad === 100 ? 'a la centena más cercana' : 'al mil más cercano';
     const quien = adulto(rng);
     return {
-      enunciado: `${mayus(quien.nombre)} pesó ${num(n)} kilos de cacao en la cooperativa. Para contarlo rápido, redondea ${nombre} más cercano. Tócalo en la recta.`,
+      enunciado: `${mayus(quien.nombre)} pesó ${num(n)} kilos de cacao en la cooperativa. Para contarlo rápido, redondea ${nombre}. Tócalo en la recta.`,
       instruccion: 'Redondea',
       datos: { n, unidad },
       respuesta,
@@ -343,6 +345,8 @@ const problemaSumaResta: Plantilla = {
     let pregunta: string;
     let visual: Visual;
     let paso: string;
+    // Kilos de cacao o de café: se dibuja el bulto (dice «kg»); los aguacates, como aguacates.
+    let dibujo: Objeto = 'bulto';
     if (tipo === 'juntar') {
       const [a, b] = parSuma(rng, cifras, lerp(0, 2, dif(ctx)), 1000000);
       respuesta = a + b;
@@ -367,6 +371,7 @@ const problemaSumaResta: Plantilla = {
       respuesta = a - b;
       calc = { op: 'resta', a, b };
       enunciado = `La finca ${x} produjo ${num(a)} kilos de aguacate y la finca ${y} produjo ${num(b)} kilos.`;
+      dibujo = 'aguacate';
       pregunta = `¿Cuántos kilos más produjo la finca ${x}?`;
       visual = { tipo: 'texto', texto: `${num(a)} − ${num(b)}` };
       paso = `La diferencia se halla restando: ${num(a)} − ${num(b)}.`;
@@ -391,7 +396,7 @@ const problemaSumaResta: Plantilla = {
     return {
       enunciado: `${enunciado}${sobra ? sobra.texto : ''} ${pregunta}`,
       instruccion: 'Resuelve el problema',
-      ilustracion: 'bulto',
+      ilustracion: dibujo,
       datos: { a: calc.a, b: calc.b, extra: sobra?.valor ?? 0 },
       respuesta,
       unidad: 'kilos',
@@ -492,14 +497,15 @@ const surcos: Plantilla = {
     const cultivo = rng.elegir(['cacao', 'café', 'aguacate', 'plátano']);
     const division = pt(ctx, 'op', 'multiplicacion') === 'mixta' && rng.azar(0.5);
     const sobra = datoQueSobra(ctx);
-    const visual: Visual = f <= 10 && c <= 10 ? { tipo: 'arreglo', filas: f, columnas: c, objeto: 'arbol' } : { tipo: 'texto', texto: `${f} surcos × ${c} árboles` };
+    const arbol = arbolDe(cultivo);
+    const visual: Visual = f <= 10 && c <= 10 ? { tipo: 'arreglo', filas: f, columnas: c, objeto: arbol } : { tipo: 'texto', texto: `${f} surcos × ${c} árboles` };
     if (division) {
       const calc: Calculo = { op: 'division', a: total, b: f };
       const modo = modoRespuesta(ctx, c, calc);
       return {
         enunciado: `${quien.nombre} sembró ${num(total)} árboles de ${cultivo} en ${f} surcos con la misma cantidad cada uno.${sobra ? sobra.texto : ''} ¿Cuántos árboles hay en cada surco?`,
         instruccion: 'Reparte en surcos',
-        ilustracion: 'arbol',
+        ilustracion: arbol,
         datos: { total, f, extra: sobra?.valor ?? 0 },
         respuesta: c,
         unidad: 'árboles',
@@ -522,7 +528,7 @@ const surcos: Plantilla = {
         `En la finca ${deQuien(adulto(rng).nombre)} hay ${f} hileras de ${cultivo} y cada hilera tiene ${c} árboles.`,
       ]) + `${sobra ? sobra.texto : ''} ¿Cuántos árboles hay en total?`,
       instruccion: 'Multiplica',
-      ilustracion: 'arbol',
+      ilustracion: arbol,
       datos: { f, c, extra: sobra?.valor ?? 0 },
       respuesta: total,
       unidad: 'árboles',
@@ -633,7 +639,7 @@ const comprobarDivision: Plantilla = {
     return {
       enunciado:
         r > 0
-          ? `${quien.nombre} repartió mandarinas entre ${k} amigos de la escuela: le dio ${q} a cada uno y le sobraron ${r}. ¿Cuántas mandarinas tenía?`
+          ? `${quien.nombre} repartió mandarinas entre ${k} amigos de la escuela: le dio ${q} a cada uno y ${r === 1 ? 'le sobró 1' : `le sobraron ${r}`}. ¿Cuántas mandarinas tenía?`
           : `${quien.nombre} repartió mandarinas entre ${k} amigos de la escuela: le dio ${q} a cada uno y no le sobró ninguna. ¿Cuántas mandarinas tenía?`,
       instruccion: 'Arma la cantidad',
       ilustracion: 'mandarina',
@@ -665,17 +671,18 @@ const viajes: Plantilla = {
     const n = k * q + r;
     const respuesta = q + 1;
     const sobra = datoQueSobra(ctx);
-    const variantes = [
-      `La mula carga ${k} bultos por viaje. ¿Cuántos viajes necesita para llevar ${num(n)} bultos de cacao hasta la carretera?`,
-      `En la chiva caben ${k} canastos más en el techo por cada viaje. ¿Cuántos viajes se necesitan para bajar ${num(n)} canastos de naranja al mercado del pueblo?`,
-      `En cada caja caben ${k} kilos de cacao. ¿Cuántas cajas se necesitan para guardar ${num(n)} kilos sin dejar nada por fuera?`,
+    const variantes: [string, Objeto][] = [
+      [`La mula carga ${k} bultos por viaje. ¿Cuántos viajes necesita para llevar ${num(n)} bultos de cacao hasta la carretera?`, 'bulto'],
+      [`En la chiva caben ${k} canastos más en el techo por cada viaje. ¿Cuántos viajes se necesitan para bajar ${num(n)} canastos de naranja al mercado del pueblo?`, 'canasta'],
+      [`En cada caja caben ${k} kilos de cacao. ¿Cuántas cajas se necesitan para guardar ${num(n)} kilos sin dejar nada por fuera?`, 'caja'],
     ];
+    const [texto, dibujo] = rng.elegir(variantes);
     const calc: Calculo = { op: 'division', a: n, b: k, redondearArriba: true };
     const modo = modoRespuesta(ctx, respuesta, calc, { extras: [q, r] });
     return {
-      enunciado: (sobra ? sobra.texto.trim() + ' ' : '') + rng.elegir(variantes),
+      enunciado: (sobra ? sobra.texto.trim() + ' ' : '') + texto,
       instruccion: '¿Y lo que sobra?',
-      ilustracion: 'bulto',
+      ilustracion: dibujo,
       datos: { n, k, extra: sobra?.valor ?? 0 },
       respuesta,
       ...modo,
@@ -905,7 +912,7 @@ const dinero: Plantilla = {
       const calc: Calculo = { op: 'division', a: total, b: cant };
       const m = modoRespuesta(ctx, art.precio, calc, { extras: [art.precio + 500, Math.max(0, art.precio - 500), total - cant] });
       return {
-        enunciado: `${quien.nombre} pagó ${pesos(total)} por ${cant} × ${art.nombre}, todos del mismo precio, en la tienda de la vereda ${aviso}. ¿Cuánto costó cada ${art.genero === 'f' ? 'una' : 'uno'}?`,
+        enunciado: `${quien.nombre} pagó ${pesos(total)} por ${cant} × ${art.nombre}, ${art.genero === 'f' ? 'todas' : 'todos'} del mismo precio, en la tienda de la vereda ${aviso}. ¿Cuánto costó cada ${art.genero === 'f' ? 'una' : 'uno'}?`,
         instruccion: 'Precio de cada uno',
         ilustracion: 'moneda',
         datos: { total, cant },
@@ -948,7 +955,7 @@ const dinero: Plantilla = {
       return {
         enunciado: `${compra} Pagó con un billete de ${pesos(billete)}. ¿Cuánto le devolvieron?`,
         instruccion: 'Calcula los vueltos',
-        ilustracion: 'moneda',
+        ilustracion: 'billete',
         datos: { px: x.precio, cx, py: y.precio, cy, billete },
         respuesta: vueltos,
         unidad: 'pesos',

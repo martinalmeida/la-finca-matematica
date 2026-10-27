@@ -120,7 +120,7 @@ const distributiva: Plantilla = {
       return {
         enunciado: `${contexto} Para calcular ${a} × ${b}, ${quien.nombre} piensa: ${a} × ${parteGrande} + ${a} × ☐. ¿Qué número va en el cuadro?`,
         instruccion: 'Completa la descomposición',
-        ilustracion: 'arbol',
+        ilustracion: 'arbol-cacao',
         datos: { a, b, parteGrande },
         respuesta: resto,
         ...modo(ctx, resto, calc, [b, parteGrande, resto + 10]),
@@ -138,7 +138,7 @@ const distributiva: Plantilla = {
     return {
       enunciado: `${contexto} ${quien.nombre} calcula cuántos árboles hay así: ${a} × ${parteGrande} + ${a} × ${resto}. ¿Cuántos árboles hay?`,
       instruccion: 'Descompón y suma',
-      ilustracion: 'arbol',
+      ilustracion: 'arbol-cacao',
       datos: { a, b },
       respuesta,
       ...modo(ctx, respuesta, calc, [a * parteGrande + resto, a * parteGrande]),
@@ -179,14 +179,15 @@ const fraccionReparto: Plantilla = {
     const parte = m === 1 ? ordinales[k][0] : `las ${numerales[m]} ${ordinales[k][1]}`;
     const fr = `${m}/${k}`;
     const v = rng.elegir([
-      { t: `${mayus(adulto(rng).nombre)} cosechó ${n} mazorcas de cacao y le regala ${parte} a su vecina. ¿Cuántas mazorcas le regala?`, u: 'mazorcas' },
-      { t: `En la huerta escolar hay ${n} matas. ${mayus(parte)} son de yuca. ¿Cuántas matas de yuca hay?`, u: 'matas' },
-      { t: `La cooperativa tiene ${n} bultos de cacao y ya vendió ${parte}. ¿Cuántos bultos vendió?`, u: 'bultos' },
+      { t: `${mayus(adulto(rng).nombre)} cosechó ${n} mazorcas de cacao y le regala ${parte} a su vecina. ¿Cuántas mazorcas le regala?`, u: 'mazorcas', obj: 'mazorca' as const },
+      { t: `En la huerta escolar hay ${n} matas. ${mayus(parte)} son de yuca. ¿Cuántas matas de yuca hay?`, u: 'matas', obj: 'mata' as const },
+      { t: `La cooperativa tiene ${n} bultos de cacao y ya vendió ${parte}. ¿Cuántos bultos vendió?`, u: 'bultos', obj: 'bulto' as const },
     ]);
     const calc: Calculo = { op: 'division', a: n, b: k };
     return {
       enunciado: v.t,
       instruccion: `Calcula ${fr} de ${n}`,
+      ilustracion: v.obj,
       datos: { n, k, m },
       respuesta,
       unidad: v.u,
@@ -194,7 +195,7 @@ const fraccionReparto: Plantilla = {
       calculo: calc,
       pistas: [
         `Primero reparte ${n} en ${k} partes iguales. ¿Cuánto hay en cada parte?`,
-        n <= 40 ? { tipo: 'reparto', total: n, grupos: k } : { tipo: 'texto', texto: `${n} ÷ ${k} = ? (una parte)\nluego × ${m}` },
+        n <= 40 ? { tipo: 'reparto', total: n, grupos: k, objeto: v.obj } : { tipo: 'texto', texto: `${n} ÷ ${k} = ? (una parte)\nluego × ${m}` },
         `${n} ÷ ${k} = ${q}${m > 1 ? `; y ${m} partes son ${q} × ${m}` : ''}.`,
       ],
       explicacion: `${fr} de ${n}: ${n} ÷ ${k} = ${q}${m > 1 ? ` y ${q} × ${m} = ${respuesta}` : ''}. Son ${respuesta} ${v.u}.`,
@@ -455,7 +456,7 @@ const multProblema: Plantilla = {
     } else if (variante === 1) {
       a = rng.entero(lerp(40, 300, dif(ctx)), 999);
       b = rng.entero(15, 60);
-      enunciado = `En el lote de ${adulto(rng).nombre} hay ${a} árboles de cacao y cada uno dio ${b} mazorcas.${sobra} ¿Cuántas mazorcas dieron en total?`;
+      enunciado = `En el lote ${adulto(rng).nombre.replace(/^el /, 'del ').replace(/^(?!del )/, 'de ')} hay ${a} árboles de cacao y cada uno dio ${b} mazorcas.${sobra} ¿Cuántas mazorcas dieron en total?`;
       unidad = 'mazorcas';
     } else {
       a = rng.entero(lerp(12, 80, dif(ctx)), 250);
@@ -468,7 +469,8 @@ const multProblema: Plantilla = {
     return {
       enunciado,
       instruccion: 'Grupos iguales: multiplica',
-      ilustracion: variante === 2 ? 'bulto' : 'mazorca',
+      // Kilos de cacao seco y bultos: bulto; mazorcas de los árboles: mazorca.
+      ilustracion: variante === 1 ? 'mazorca' : 'bulto',
       datos: { a, b },
       respuesta,
       unidad,
@@ -518,7 +520,8 @@ const divProblema: Plantilla = {
     return {
       enunciado,
       instruccion: 'Reparte en partes iguales',
-      ilustracion: 'bulto',
+      // Pesos entre trabajadores: billetes; kilos de cacao o de café: bulto.
+      ilustracion: variante === 1 ? 'billete' : 'bulto',
       datos: { a, b },
       respuesta: q,
       unidad,

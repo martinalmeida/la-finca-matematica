@@ -16,7 +16,8 @@ export function textoOpcion(o: Respuesta): string {
 }
 
 export default function Opciones({ opciones, bloqueado, fallidas, correcta, onElegir, etiqueta = 'Elige una respuesta' }: Props) {
-  const esTexto = opciones.some((o) => typeof o === 'string' && o.length > 6);
+  // Textos o cifras largas ($1.020.000) van en una sola columna: en dos no caben con letra grande.
+  const esTexto = opciones.some((o) => (typeof o === 'string' && o.length > 6) || textoOpcion(o).length > 7);
   return (
     <div className="opciones" role="group" aria-label={etiqueta} style={esTexto ? { gridTemplateColumns: '1fr' } : undefined}>
       {opciones.map((o) => {

@@ -50,7 +50,7 @@ export default function Algoritmo({ ej, bloqueado, onResponder, correcta }: Prop
 
   return (
     <div className="columna">
-      <div className="algoritmo" style={{ gridTemplateColumns: `44px repeat(${ancho}, 44px)` }} role="group" aria-label={`${i.a} ${signo} ${i.b}`}>
+      <div className="algoritmo" style={{ gridTemplateColumns: `repeat(${ancho + 1}, minmax(0, 44px))` }} role="group" aria-label={`${i.a} ${signo} ${i.b}`}>
         {/* Fila de llevadas */}
         <div className="celda-alg pequeno" style={{ fontSize: '0.6rem', fontWeight: 600 }} aria-hidden="true">
           {i.operacion === 'resta' ? 'presto' : 'llevo'}

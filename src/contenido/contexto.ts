@@ -58,20 +58,22 @@ export type Producto = {
   plural: string;
   genero: Genero;
   objeto: Objeto;
-  /** Dónde se recoge o se guarda. */
+  /** Dónde se recoge o se guarda, con su artículo («el canasto», «la cubeta»). */
   recipiente: string;
+  /** Dibujo del recipiente. */
+  dibujoRecipiente: Objeto;
   /** Verbo de cosecha en pasado. */
   verbo: string;
 };
 
 export const productos: Producto[] = [
-  { singular: 'mazorca de cacao', plural: 'mazorcas de cacao', genero: 'f', objeto: 'mazorca', recipiente: 'canasto', verbo: 'cortó' },
-  { singular: 'huevo', plural: 'huevos', genero: 'm', objeto: 'huevo', recipiente: 'cubeta', verbo: 'recogió' },
-  { singular: 'naranja', plural: 'naranjas', genero: 'f', objeto: 'naranja', recipiente: 'canasta', verbo: 'cogió' },
-  { singular: 'aguacate', plural: 'aguacates', genero: 'm', objeto: 'aguacate', recipiente: 'canasta', verbo: 'cogió' },
-  { singular: 'mandarina', plural: 'mandarinas', genero: 'f', objeto: 'mandarina', recipiente: 'canasta', verbo: 'cogió' },
-  { singular: 'limón', plural: 'limones', genero: 'm', objeto: 'limon', recipiente: 'bolsa', verbo: 'cogió' },
-  { singular: 'plátano', plural: 'plátanos', genero: 'm', objeto: 'platano', recipiente: 'racimo', verbo: 'cortó' },
+  { singular: 'mazorca de cacao', plural: 'mazorcas de cacao', genero: 'f', objeto: 'mazorca', recipiente: 'el canasto', dibujoRecipiente: 'canasta', verbo: 'cortó' },
+  { singular: 'huevo', plural: 'huevos', genero: 'm', objeto: 'huevo', recipiente: 'la cubeta', dibujoRecipiente: 'cubeta', verbo: 'recogió' },
+  { singular: 'naranja', plural: 'naranjas', genero: 'f', objeto: 'naranja', recipiente: 'la canasta', dibujoRecipiente: 'canasta', verbo: 'cogió' },
+  { singular: 'aguacate', plural: 'aguacates', genero: 'm', objeto: 'aguacate', recipiente: 'la canasta', dibujoRecipiente: 'canasta', verbo: 'cogió' },
+  { singular: 'mandarina', plural: 'mandarinas', genero: 'f', objeto: 'mandarina', recipiente: 'la canasta', dibujoRecipiente: 'canasta', verbo: 'cogió' },
+  { singular: 'limón', plural: 'limones', genero: 'm', objeto: 'limon', recipiente: 'la bolsa', dibujoRecipiente: 'bolsa', verbo: 'cogió' },
+  { singular: 'plátano', plural: 'plátanos', genero: 'm', objeto: 'platano', recipiente: 'el racimo', dibujoRecipiente: 'platano', verbo: 'cortó' },
 ];
 
 export const frutas = productos.filter((p) => ['naranja', 'aguacate', 'mandarina', 'limon'].includes(p.objeto));
@@ -161,4 +163,29 @@ export function num(n: number): string {
 /** Pesos: $1.500 */
 export function pesos(n: number): string {
   return '$' + num(n);
+}
+
+// --- Dibujo que corresponde a lo que nombra el enunciado ---
+
+/** Árbol (o mata) de un cultivo: «árboles de cacao» se dibujan con mazorcas, los de café con cerezas… */
+export function arbolDe(cultivo: string): Objeto {
+  const mapa: Record<string, Objeto> = {
+    cacao: 'arbol-cacao',
+    café: 'arbol-cafe',
+    aguacate: 'arbol-aguacate',
+    naranja: 'arbol-naranja',
+    mandarina: 'arbol-mandarina',
+    limón: 'arbol-limon',
+    plátano: 'platanera',
+  };
+  return mapa[cultivo] ?? 'arbol';
+}
+
+/**
+ * Dibujo para «kilos de …»: la fruta si se cuenta por frutas; el bulto (que dice «kg») para lo que se
+ * vende seco o por peso (cacao, café, abono…).
+ */
+export function dibujoKilosDe(cultivo: string): Objeto {
+  const mapa: Record<string, Objeto> = { aguacate: 'aguacate', naranja: 'naranja', mandarina: 'mandarina', limón: 'limon', plátano: 'platano', maíz: 'semilla' };
+  return mapa[cultivo] ?? 'bulto';
 }

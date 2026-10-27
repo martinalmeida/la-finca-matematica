@@ -28,9 +28,75 @@ function direccionReproductor(id: string) {
   return `https://www.youtube-nocookie.com/embed/${id}?${p}`;
 }
 
+/** El reproductor en sí (o el aviso de que falta internet). Se crea ya reproduciendo. */
+function MarcoVideo({ video, adulto, enLinea }: { video: Video; adulto: boolean; enLinea: boolean }) {
+  const [cargado, setCargado] = useState(false);
+  return (
+    <div className="marco-video">
+      {enLinea ? (
+        <>
+          {!cargado && (
+            <p className="marco-video-aviso" aria-live="polite">
+              Cargando el video…
+            </p>
+          )}
+          <iframe
+            src={direccionReproductor(video.id)}
+            title={video.titulo}
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+            onLoad={() => setCargado(true)}
+          />
+        </>
+      ) : (
+        <p className="marco-video-aviso">
+          <Icono nombre="aviso" tamano={28} />
+          <span>
+            {adulto ? 'Este video necesita internet. Conéctese y vuelva a abrirlo.' : 'Este video necesita internet. Cuando haya señal, vuelve a abrirlo.'}
+            <br />
+            {adulto ? 'Lo demás de la aplicación funciona sin conexión.' : 'Mientras tanto, puedes seguir jugando sin internet.'}
+          </span>
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Video dentro de la página (introducción de cada nivel). Hasta que alguien toca «play» solo se
+ * dibuja un marco propio: no se pide nada a YouTube, ni siquiera la miniatura.
+ */
+export function VideoEnPagina({ video, adulto }: { video: Video; adulto: boolean }) {
+  const enLinea = useEnLinea();
+  const [activo, setActivo] = useState(false);
+  if (activo) return <MarcoVideo video={video} adulto={adulto} enLinea={enLinea} />;
+  return (
+    <button
+      type="button"
+      className="marco-video marco-video-portada"
+      onClick={() => {
+        detenerVoz();
+        setActivo(true);
+      }}
+      aria-label={`Ver el video: ${video.titulo}`}
+    >
+      <span className="marco-video-play" aria-hidden="true">
+        <Icono nombre="jugar" tamano={44} anim="no" />
+      </span>
+      <span className="marco-video-titulo">
+        <strong>{video.titulo}</strong>
+        <span className="pequeno">
+          {video.canal} · {video.duracion} min
+          {!enLinea && ' · necesita internet'}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 export function HojaVideo({ video, adulto, alCerrar }: { video: Video; adulto: boolean; alCerrar: () => void }) {
   const enLinea = useEnLinea();
-  const [cargado, setCargado] = useState(false);
 
   useEffect(() => {
     detenerVoz();
@@ -55,34 +121,7 @@ export function HojaVideo({ video, adulto, alCerrar }: { video: Video; adulto: b
             <Icono nombre="cerrar" tamano={24} />
           </button>
         </header>
-        <div className="marco-video">
-          {enLinea ? (
-            <>
-              {!cargado && (
-                <p className="marco-video-aviso" aria-live="polite">
-                  Cargando el video…
-                </p>
-              )}
-              <iframe
-                src={direccionReproductor(video.id)}
-                title={video.titulo}
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-                onLoad={() => setCargado(true)}
-              />
-            </>
-          ) : (
-            <p className="marco-video-aviso">
-              <Icono nombre="aviso" tamano={28} />
-              <span>
-                {adulto ? 'Este video necesita internet. Conéctese y vuelva a abrirlo.' : 'Este video necesita internet. Cuando haya señal, vuelve a abrirlo.'}
-                <br />
-                {adulto ? 'Lo demás de la aplicación funciona sin conexión.' : 'Mientras tanto, puedes seguir jugando sin internet.'}
-              </span>
-            </p>
-          )}
-        </div>
+        <MarcoVideo video={video} adulto={adulto} enLinea={enLinea} />
         <p className="pequeno suave" style={{ margin: 0 }}>
           Video externo de YouTube, del canal {video.canal}.
         </p>

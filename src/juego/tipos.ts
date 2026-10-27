@@ -23,17 +23,37 @@ export type Objeto =
   | 'arepa'
   | 'moneda'
   | 'cafe'
-  | 'canasta';
+  | 'canasta'
+  | 'semilla'
+  | 'pan'
+  | 'mata'
+  | 'bolsa'
+  | 'caja'
+  | 'cubeta'
+  | 'billete'
+  | 'mesa'
+  | 'arbol-cacao'
+  | 'arbol-cafe'
+  | 'arbol-aguacate'
+  | 'arbol-naranja'
+  | 'arbol-mandarina'
+  | 'arbol-limon'
+  | 'platanera';
 
 export type Respuesta = number | string;
 
+/** Dónde están o a dónde van los objetos al arrastrar o repartir: el nombre que dice el enunciado y su dibujo. */
+export type Recipiente = { nombre: string; dibujo?: Objeto | 'nino' | 'adulto' | 'mula' };
+
 /** Ayuda visual de la pista 2. */
 export type Visual =
-  | { tipo: 'objetos'; objeto: Objeto; grupos: number[]; tachados?: number }
+  | { tipo: 'objetos'; objeto: Objeto; grupos: number[]; tachados?: number; /** Espacios vacíos (lo que falta para completar). */ vacios?: number; /** Recipiente de cada grupo (cubeta, bolsa…). */ grupo?: Recipiente }
   | { tipo: 'arreglo'; filas: number; columnas: number; objeto?: Objeto }
   | { tipo: 'recta'; min: number; max: number; desde: number; saltos: number[] }
-  | { tipo: 'bloques'; valor: number }
-  | { tipo: 'reparto'; total: number; grupos: number; objeto?: Objeto }
+  | { tipo: 'bloques'; valor: number; unidad?: Objeto; decena?: Objeto; centena?: Objeto }
+  | { tipo: 'reparto'; total: number; grupos: number; objeto?: Objeto; grupo?: Recipiente }
+  /** Monedas y billetes, cada uno con su valor en pesos. */
+  | { tipo: 'dinero'; valores: number[] }
   | { tipo: 'texto'; texto: string };
 
 /** Forma de responder: cada variante es un componente táctil. */
@@ -41,10 +61,21 @@ export type Interaccion =
   | { tipo: 'opciones'; opciones: Respuesta[] }
   | { tipo: 'numerica' }
   | { tipo: 'contar'; objeto: Objeto; cantidad: number; opciones: number[]; /** Responder escribiendo el número con el dedo. */ escribir?: boolean }
-  | { tipo: 'arrastrar'; objeto: Objeto; modo: 'juntar' | 'quitar' | 'repartir'; a: number; b: number }
+  | {
+      tipo: 'arrastrar';
+      objeto: Objeto;
+      modo: 'juntar' | 'quitar' | 'repartir';
+      a: number;
+      b: number;
+      /** Rótulos y dibujos de los depósitos según el enunciado (por defecto, canastas). */
+      origen?: Recipiente;
+      origen2?: Recipiente;
+      /** Al repartir, el nombre en singular de cada grupo («Mesa» → Mesa 1, Mesa 2…). */
+      destino?: Recipiente;
+    }
   | { tipo: 'arreglo'; filas: number; columnas: number; objeto: Objeto }
   | { tipo: 'recta'; min: number; max: number; paso: number; inicio: number }
-  | { tipo: 'bloques'; modo: 'leer' | 'construir'; valor: number }
+  | { tipo: 'bloques'; modo: 'leer' | 'construir'; valor: number; unidad?: Objeto; decena?: Objeto; centena?: Objeto }
   | { tipo: 'algoritmo'; operacion: 'suma' | 'resta' | 'multiplicacion'; a: number; b: number }
   | { tipo: 'razonable'; propuesto: number; esRazonable: boolean; opciones: number[] }
   | { tipo: 'tabla'; encabezados: string[]; filas: (string | number)[][]; opciones?: Respuesta[] }

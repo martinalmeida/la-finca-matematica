@@ -184,7 +184,7 @@ const sumaCambio: Plantilla = {
     const inicial = pb(ctx, 'incognita') && dif(ctx) > 0.5 && rng.azar(0.5);
     const redacciones = [
       `${quien.nombre} ${p.verbo} ${a} ${nombreCant(p, a)} y después encontró ${b} más. ¿${cuantos(p.genero)} ${p.plural} tiene ahora?`,
-      `En el ${p.recipiente} había ${a} ${nombreCant(p, a)}. ${quien.nombre} puso ${b} más. ¿${cuantos(p.genero)} hay ahora en el ${p.recipiente}?`,
+      `En ${p.recipiente} había ${a} ${nombreCant(p, a)}. ${quien.nombre} puso ${b} más. ¿${cuantos(p.genero)} hay ahora en ${p.recipiente}?`,
       `Por la mañana ${quien.nombre} ${p.verbo} ${a} ${nombreCant(p, a)} y por la tarde ${b}. ¿${cuantos(p.genero)} ${p.plural} ${p.verbo} en todo el día?`,
     ];
     const enunciado = inicial
@@ -292,9 +292,24 @@ const restaQuitar: Plantilla = {
     const [a, b] = parRestaHasta(ctx, max, false);
     const respuesta = a - b;
     const variantes = [
-      { p: productos[0], texto: `En el canasto hay ${a} mazorcas de cacao. La mula se llevó ${b} para el secadero. Arrástralas a la mula. ¿Cuántas mazorcas quedan en el canasto?` },
-      { p: productos[1], texto: `En la cubeta había ${a} huevos. ${persona(rng).nombre} usó ${b} para las arepas del desayuno. Arrastra los que usó. ¿Cuántos huevos quedan?` },
-      { p: productos[2], texto: `${mayus(persona(rng).nombre)} llevó ${a} naranjas a la escuela y regaló ${b} en el refrigerio. Arrastra las que regaló. ¿Cuántas naranjas le quedan?` },
+      {
+        p: productos[0],
+        texto: `En el canasto hay ${a} mazorcas de cacao. La mula se llevó ${b} para el secadero. Arrástralas a la mula. ¿Cuántas mazorcas quedan en el canasto?`,
+        origen: { nombre: 'Canasto', dibujo: 'canasta' as const },
+        destino: { nombre: 'La mula', dibujo: 'mula' as const },
+      },
+      {
+        p: productos[1],
+        texto: `En la cubeta había ${a} huevos. ${persona(rng).nombre} usó ${b} para las arepas del desayuno. Arrastra los que usó. ¿Cuántos huevos quedan?`,
+        origen: { nombre: 'Cubeta', dibujo: 'cubeta' as const },
+        destino: { nombre: 'Para las arepas', dibujo: 'arepa' as const },
+      },
+      {
+        p: productos[2],
+        texto: `${mayus(persona(rng).nombre)} llevó ${a} naranjas a la escuela y regaló ${b} en el refrigerio. Arrastra las que regaló. ¿Cuántas naranjas le quedan?`,
+        origen: { nombre: 'Las que llevó', dibujo: 'nino' as const },
+        destino: { nombre: 'Las que regaló' },
+      },
     ];
     const v = rng.elegir(variantes);
     const distr = distractores(rng, respuesta, [a + b, respuesta + 1, respuesta - 1], 3, dif(ctx));
@@ -306,7 +321,7 @@ const restaQuitar: Plantilla = {
       respuesta,
       unidad: v.p.plural,
       distractores: distr,
-      interaccion: { tipo: 'arrastrar', objeto: v.p.objeto, modo: 'quitar', a, b },
+      interaccion: { tipo: 'arrastrar', objeto: v.p.objeto, modo: 'quitar', a, b, origen: v.origen, destino: v.destino },
       calculo: { op: 'resta', a, b },
       pistas: [
         'Si se llevan algunos, ¿quedan más o menos?',
@@ -347,7 +362,7 @@ const completar: Plantilla = {
       calculo: calc,
       pistas: [
         `¿Cuántos espacios vacíos quedan en el recipiente?`,
-        { tipo: 'objetos', objeto: v.obj, grupos: [a, respuesta] },
+        { tipo: 'objetos', objeto: v.obj, grupos: [a], vacios: respuesta },
         `Cuenta desde ${a} hasta ${total}: ¿cuántos números dijiste?`,
       ],
       explicacion: `${a} + ${respuesta} = ${total}. Faltan ${respuesta}.`,
@@ -376,10 +391,10 @@ const decenas: Plantilla = {
         datos: { n, decenas: de, unidades: un },
         respuesta: n,
         distractores: [],
-        interaccion: { tipo: 'bloques', modo: 'construir', valor: n },
+        interaccion: { tipo: 'bloques', modo: 'construir', valor: n, unidad: 'naranja', decena: 'caja' },
         pistas: [
           `¿Cuántos grupos de 10 caben en ${n}?`,
-          { tipo: 'bloques', valor: n },
+          { tipo: 'bloques', valor: n, unidad: 'naranja', decena: 'caja' },
           `${n} = ${de} cajas de 10 y ${un} sueltas.`,
         ],
         explicacion: `${n} tiene ${de} decenas y ${un} unidades: ${de} cajas y ${un} naranjas sueltas.`,
@@ -398,7 +413,7 @@ const decenas: Plantilla = {
       calculo: calc,
       pistas: [
         'Cuenta las cajas de 10 en 10 y luego suma las sueltas.',
-        { tipo: 'bloques', valor: n },
+        { tipo: 'bloques', valor: n, unidad: 'naranja', decena: 'caja' },
         `${de} cajas son ${de * 10}; más ${un} sueltas.`,
       ],
       explicacion: `${de * 10} + ${un} = ${n}.`,
@@ -457,20 +472,21 @@ const reparto: Plantilla = {
     const p = rng.elegir(frutas);
     const quien = persona(rng);
     const para = k === 2 ? 'sus 2 hermanos' : 'sus 3 primos';
+    const quienRecibe = { nombre: k === 2 ? 'Hermano' : 'Primo', dibujo: 'nino' as const };
     const distr = distractores(rng, cada, [cada + 1, cada - 1, n - k], 3, dif(ctx));
     return {
-      enunciado: `${quien.nombre} reparte ${n} ${p.plural} entre ${para}, la misma cantidad a cada uno. Arrastra las frutas a las canastas. ¿${cuantos(p.genero)} recibe cada uno?`,
+      enunciado: `${quien.nombre} reparte ${n} ${p.plural} entre ${para}, la misma cantidad a cada uno. Arrastra las frutas a sus ${k === 2 ? 'hermanos' : 'primos'}. ¿${cuantos(p.genero)} recibe cada uno?`,
       instruccion: 'Reparte igual',
       ilustracion: p.objeto,
       datos: { n, k },
       respuesta: cada,
       unidad: p.plural,
       distractores: distr,
-      interaccion: { tipo: 'arrastrar', objeto: p.objeto, modo: 'repartir', a: n, b: k },
+      interaccion: { tipo: 'arrastrar', objeto: p.objeto, modo: 'repartir', a: n, b: k, destino: quienRecibe },
       calculo: { op: 'division', a: n, b: k },
       pistas: [
-        'Da una fruta a cada canasta, por turnos, hasta que no quede ninguna.',
-        { tipo: 'reparto', total: n, grupos: k, objeto: p.objeto },
+        'Da una fruta a cada uno, por turnos, hasta que no quede ninguna.',
+        { tipo: 'reparto', total: n, grupos: k, objeto: p.objeto, grupo: quienRecibe },
         `Si cada uno recibe ${cada}, entre los ${k} son ${cada * k}.`,
       ],
       explicacion: `${n} repartidas en ${k} partes iguales son ${cada} para cada uno.`,
@@ -577,7 +593,7 @@ const razonable: Plantilla = {
       interaccion: { tipo: 'razonable', propuesto, esRazonable: esRaz, opciones: rng.barajar([estimacion, ...distr]) },
       pistas: [
         'Piensa en decenas: ¿cuánto es más o menos cada número?',
-        { tipo: 'bloques', valor: real },
+        { tipo: 'recta', min: 0, max: 100, desde: a, saltos: [b] },
         `${a} es cerca de ${Math.round(a / 10) * 10} y ${b} es cerca de ${Math.round(b / 10) * 10}.`,
       ],
       explicacion: `${a} + ${b} = ${real}, que es cerca de ${estimacion}. ${esRaz ? `Decir ${propuesto} es razonable.` : `${propuesto} está muy lejos: no es razonable.`}`,

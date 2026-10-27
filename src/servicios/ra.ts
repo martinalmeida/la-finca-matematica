@@ -69,6 +69,8 @@ function texturaObjeto(o: Objeto): Promise<THREE.Texture> {
     let svg = renderToStaticMarkup(createElement(DibujoObjeto, { objeto: o, tamano: 256, etiqueta: '' }));
     // La canasta del dibujo trae frutas pintadas: en la escena va vacía para no confundir al contar.
     if (o === 'canasta') svg = svg.replace(/<circle[^>]*\/>/g, '');
+    // La cubeta del dibujo trae huevos: en la escena va vacía por la misma razón.
+    if (o === 'cubeta') svg = svg.replace(/<ellipse[^>]*\/>/g, '');
     t = texturaDeSvg(svg);
     texturas.set(o, t);
   }
@@ -349,7 +351,7 @@ export class MotorRA {
     if (!this.vivo) return;
     const centro = this.rumbo();
     if (config.modo === 'canasta') {
-      const tCanasta = await texturaObjeto('canasta');
+      const tCanasta = await texturaObjeto(config.recipiente.dibujo);
       if (!this.vivo) return;
       this.canasta = this.nuevoSprite(tCanasta, 0.9);
       this.anclar(this.canasta, centro, 2.25, -0.95);

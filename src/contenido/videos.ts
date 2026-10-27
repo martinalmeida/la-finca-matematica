@@ -59,20 +59,45 @@ const V = {
   operarDecimales: v('-Q8LHMgeYgU', 'Operaciones con números decimales', 'Aula chachi', '9:08'),
   dividirDecimal: v('ZRP6sGnbqxw', 'Dividir con cociente decimal', 'Chris ValanMi', '2:29'),
   problemasDecimales: v('DcIOkncWpFw', 'Problema con números decimales', 'Profesor CocoLoco', '9:37'),
+  // Videos de introducción para completar los 10 niveles de cada ruta, comprobados el 2026-10-27.
+  anteriorPosterior: v('__zZXFW0bBc', 'Número anterior y posterior', 'Peques Aprenden Jugando', '6:04'),
+  faltanPara10: v('PPK1XQRpud4', '¿Cuántos faltan para llegar a 10?', 'Escuela de Aprendices', '3:45'),
+  sumasSinLlevar: v('-UTpOFdGPkc', 'Sumas de 2 cifras sin llevar', 'La BiBlioTHeKa', '2:48'),
+  arreglos: v('Upk4uPmG35U', '¿Qué son los arreglos rectangulares?', 'Aula365', '5:08'),
+  tablas3y4: v('xYfqctQbwf4', 'Canción de las tablas del 3 y del 4', 'Canti Rondas', '3:18'),
+  tablas6a9: v('CS_OwinLvyg', 'Truco con las manos para las tablas del 6 al 9', 'guiainfantil', '4:25'),
+  dividirConCaja: v('Kb8hz4BPi5M', 'Dividir con caja', 'Smile and Learn', '4:44'),
+  dobleTripleMitad: v('5RFDuFPQUAw', 'Mitades, dobles y triples', 'Isela López', '6:31'),
+  escribirHasta5: v('-bgsBMUyzwA', 'Aprender a escribir los números hasta el 5', 'Peques Aprenden Jugando', '2:29'),
+  escribirHasta10: v('wd8h8fAUsJA', 'Aprender a escribir los números hasta el 10', 'Peques Aprenden Jugando', '5:18'),
+  numeros1a5: v('FkBEPfM4PcQ', 'Los números del 1 al 5', 'Babyradio', '4:32'),
+  masMenosIgual: v('XARHIfXjk-o', 'Más, menos e igual', 'Plaza Sésamo', '1:40'),
+  sumarObjetos: v('FY5oSo9bFwM', 'Sumar juntando objetos', 'Peques Aprenden Jugando', '2:54'),
+  restarQuitando: v('_-qI2BK-18U', 'Restar quitando hasta 10', 'ElShowDelNerd', '1:52'),
+  contarEscribir10: v('qHkEDhTaPnk', 'Escribir y contar los números del 1 al 10', 'Smile and Learn', '5:22'),
+  vuelto: v('gKVGyH1lXuk', 'Cómo calcular el vuelto', 'Learn with Socrates', '3:51'),
+  problemasMultUna: v('M8LekjX2usM', 'Problemas con multiplicaciones de una cifra', 'Daniel Carreón', '3:15'),
+  divisionAgrupar: v('fAC4lyYKa9w', 'La división como agrupamiento', 'Daniel Carreón', '5:25'),
+  problemasMultDos: v('WoJ6b8_KBRc', 'Problemas de multiplicar con 2 cifras', 'Daniel Carreón', '3:44'),
+  aproximar: v('g1zUhnc9Pn0', 'Aproximaciones: calcular más o menos', 'Clases Particulares en Ávila', '6:17'),
+  costoVenta: v('9WQUHX8G-I0', 'Precio de costo, precio de venta y pérdida', 'Academia Internet', '3:22'),
+  porcentaje: v('RE3XoDORMys', 'Cómo calcular un porcentaje', 'Daniel Carreón', '4:20'),
+  hectarea: v('ezsJqCZfQAg', 'Hectárea, área y centiárea', 'La BiBlioTHeKa', '2:43'),
+  ingresosGastos: v('0PCwt2L4RdU', 'Ingresos, costos y gastos', 'AulaDeEconomia', '5:14'),
 };
 
-/** Un video por tema (el índice es el tema, 0 a 9). null: aún no hay un video comprobado que encaje. */
-export const videosLecciones: Record<Pista, (Video | null)[]> = {
-  g1: [V.numeros, V.mayorMenor, null, V.sumar, V.calculoMental9, V.restar, null, V.decenas, null, V.problemasSumaResta],
-  g2: [V.llevadas, V.multDiv, null, V.trucosTablas, null, null, V.problemasMultDiv, V.multUnaCifra, V.comoMultiplicar, V.problemasMult],
-  g3: [V.trucosTablas, V.repartir, V.division, V.multDiv, null, V.dividirUnaCifra, V.divisionesPaso, V.residuo, V.queOperacion, V.problemasMultDiv],
-  g4: [V.numerosGrandes, V.multDosCifras, V.dividirUnaCifra, V.divisionesPaso, V.dividirDosCifras, V.pruebaDivision, V.residuo, null, V.combinadas, V.tablasBarras],
+/** Un video por tema (el índice es el tema, 0 a 9). Es el video de introducción de cada nivel. */
+export const videosLecciones: Record<Pista, Video[]> = {
+  g1: [V.numeros, V.mayorMenor, V.anteriorPosterior, V.sumar, V.calculoMental9, V.restar, V.faltanPara10, V.decenas, V.sumasSinLlevar, V.problemasSumaResta],
+  g2: [V.llevadas, V.multDiv, V.arreglos, V.trucosTablas, V.tablas3y4, V.tablas6a9, V.problemasMultDiv, V.multUnaCifra, V.comoMultiplicar, V.problemasMult],
+  g3: [V.trucosTablas, V.repartir, V.division, V.multDiv, V.dividirConCaja, V.dividirUnaCifra, V.divisionesPaso, V.residuo, V.queOperacion, V.problemasMultDiv],
+  g4: [V.numerosGrandes, V.multDosCifras, V.dividirUnaCifra, V.divisionesPaso, V.dividirDosCifras, V.pruebaDivision, V.residuo, V.dobleTripleMitad, V.combinadas, V.tablasBarras],
   g5: [V.numerosGrandes, V.multTresCifras, V.dividirDosCifras, V.combinadas, V.decimas, V.compararDecimales, V.sumarDecimales, V.operarDecimales, V.dividirDecimal, V.problemasDecimales],
-  inclusion: [V.numeros, V.numeros, null, null, V.numeros, null, null, null, null, null],
-  familia: [V.sumarMental, null, null, null, null, V.presupuesto, V.porcentajes, V.reglaDeTres, V.unidadesPeso, null],
-  'fam-basica': [V.sumarMental, null, null, null, null, null, null, V.presupuesto, null, V.presupuesto3],
-  'fam-intermedia': [V.sumarMental, null, null, null, null, null, V.presupuesto3, V.porcentajes, V.porcentajes, null],
-  'fam-avanzada': [V.porcentajes, V.porcentajes, null, V.unidadesPeso, V.unidadesPeso, null, V.proporcionalidad, V.unidadesPeso, null, V.reglaDeTres],
+  inclusion: [V.numeros, V.numeros, V.escribirHasta5, V.escribirHasta10, V.numeros, V.numeros1a5, V.masMenosIgual, V.sumarObjetos, V.restarQuitando, V.contarEscribir10],
+  familia: [V.sumarMental, V.vuelto, V.problemasMultUna, V.divisionAgrupar, V.residuo, V.presupuesto, V.porcentajes, V.reglaDeTres, V.unidadesPeso, V.costoVenta],
+  'fam-basica': [V.sumarMental, V.vuelto, V.problemasMultUna, V.divisionAgrupar, V.divisionesPaso, V.residuo, V.problemasMultDos, V.presupuesto, V.aproximar, V.presupuesto3],
+  'fam-intermedia': [V.sumarMental, V.problemasMultUna, V.problemasMult, V.multDosCifras, V.residuo, V.problemasMultDos, V.presupuesto3, V.porcentajes, V.porcentajes, V.costoVenta],
+  'fam-avanzada': [V.porcentajes, V.porcentajes, V.porcentaje, V.unidadesPeso, V.unidadesPeso, V.hectarea, V.proporcionalidad, V.unidadesPeso, V.ingresosGastos, V.reglaDeTres],
 };
 
 /** Guía para mamás, papás y cuidadores: cómo acompañar las matemáticas en casa. */

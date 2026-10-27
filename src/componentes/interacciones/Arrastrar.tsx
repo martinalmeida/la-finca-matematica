@@ -2,7 +2,8 @@
 // También se puede tocar una ficha para moverla (más fácil para manos pequeñas).
 
 import { useEffect, useRef, useState } from 'react';
-import { DibujoObjeto, nombreObjeto } from '../Ilustraciones';
+import { DibujoObjeto, DibujoRecipiente, esFemenino, nombreObjeto } from '../Ilustraciones';
+import type { Recipiente } from '../../juego/tipos';
 import Numerica from './Numerica';
 import type { PropsInteraccion } from './tipos';
 import { sonar } from '../../servicios/sonido';
@@ -95,39 +96,48 @@ export default function Arrastrar(props: PropsInteraccion) {
     </button>
   );
 
-  const deposito = (zona: Zona, rotulo: string, clase = '') => {
+  const deposito = (zona: Zona, rec: Recipiente, clase = '', indice = 0) => {
     const fichas = zonas.map((z, k) => (z === zona ? k : -1)).filter((k) => k >= 0);
     return (
-      <div key={zona} data-zona={zona} className={`deposito ${clase} ${sobre === zona ? 'activo' : ''}`} aria-label={`${rotulo}: ${fichas.length}`}>
+      <div key={zona} data-zona={zona} className={`deposito ${clase} ${sobre === zona ? 'activo' : ''}`} aria-label={`${rec.nombre}: ${fichas.length}`}>
         <div className="rotulo">
-          <span>{rotulo}</span>
+          <span className="rotulo-nombre">
+            <DibujoRecipiente dibujo={rec.dibujo} indice={indice} tamano={26} />
+            <span className="rotulo-texto">{rec.nombre}</span>
+          </span>
         </div>
         {fichas.map(ficha)}
       </div>
     );
   };
 
-  const rotuloDestino = modo === 'juntar' ? 'Canasta grande' : modo === 'quitar' ? 'Lo que se llevan' : '';
+  // Rótulos por defecto: canastas (lo que dicen los enunciados de juntar y repartir de 1.º).
+  const canasta = (nombre: string): Recipiente => ({ nombre, dibujo: 'canasta' });
+  const origen = i.origen ?? (modo === 'juntar' ? canasta('Canasta 1') : { nombre: modo === 'quitar' ? 'Lo que había' : 'Para repartir' });
+  const origen2 = i.origen2 ?? canasta('Canasta 2');
+  const destino: Recipiente = i.destino ?? (modo === 'juntar' ? canasta('Canasta grande') : modo === 'quitar' ? { nombre: 'Lo que se llevan' } : canasta('Canasta'));
+  // Repartir: nunca más de 3 depósitos por fila, y 2 si el nombre es largo («Compañero 5» no cabe en un tercio de 320 px).
+  const columnas = b <= 2 ? b : b === 4 || destino.nombre.length > 6 ? 2 : 3;
 
   return (
     <div className="columna">
       <div className="arrastre" role="group" aria-label="Zona para arrastrar">
         {modo === 'juntar' && (
           <div className="fila" style={{ alignItems: 'stretch' }}>
-            <div style={{ flex: 1 }}>{deposito('origen', 'Canasta 1')}</div>
-            <div style={{ flex: 1 }}>{deposito('origen2', 'Canasta 2')}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>{deposito('origen', origen)}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>{deposito('origen2', origen2, '', 1)}</div>
           </div>
         )}
-        {modo !== 'juntar' && deposito('origen', modo === 'quitar' ? 'Lo que había' : 'Para repartir')}
+        {modo !== 'juntar' && deposito('origen', origen)}
         {modo === 'repartir' ? (
-          <div className="canastas" style={{ gridTemplateColumns: `repeat(${b}, 1fr)` }}>
-            {destinos.map((z, k) => deposito(z, `Canasta ${k + 1}`, 'destino'))}
+          <div className="canastas" style={{ gridTemplateColumns: `repeat(${columnas}, minmax(0, 1fr))` }}>
+            {destinos.map((z, k) => deposito(z, { ...destino, nombre: `${destino.nombre} ${k + 1}` }, 'destino', k))}
           </div>
         ) : (
-          deposito('destino', rotuloDestino, 'destino')
+          deposito('destino', destino, 'destino')
         )}
         <p className="pequeno suave" style={{ margin: 0 }}>
-          Arrastra con el dedo o toca cada {nombreObjeto(i.objeto)} para moverlo.
+          Arrastra con el dedo o toca cada {nombreObjeto(i.objeto)} para {esFemenino(i.objeto) ? 'moverla' : 'moverlo'}.
         </p>
       </div>
       {arrastre && (

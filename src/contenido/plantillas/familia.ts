@@ -526,6 +526,7 @@ const bultos: Plantilla = {
       return {
         enunciado: `La mula ${de(minus(q))} carga ${k} bultos por viaje. ¿Cuántos viajes necesita para llevar ${n} bultos de cacao hasta la carretera?`,
         instruccion: 'Cuente los viajes',
+        ilustracion: 'bulto',
         datos: { n, k },
         respuesta: r,
         unidad: 'viajes',
@@ -533,7 +534,8 @@ const bultos: Plantilla = {
         calculo: { op: 'division', a: n, b: k, redondearArriba: true },
         pistas: [
           'Si sobran bultos al final, ¿se quedan en la finca o necesitan otro viaje?',
-          { tipo: 'reparto', total: n, grupos: k, objeto: 'bulto' },
+          // Un grupo por viaje de la mula: los llenos con k bultos y el último con los que sobran.
+          { tipo: 'objetos', objeto: 'bulto', grupos: [...Array(Math.floor(n / k)).fill(k), ...(n % k ? [n % k] : [])], grupo: { nombre: 'Viaje', dibujo: 'mula' } },
           `${n} ÷ ${k} = ${Math.floor(n / k)}, y sobran ${n % k}.`,
         ],
         explicacion: n % k === 0 ? `${n} ÷ ${k} = ${r} viajes.` : `${n} ÷ ${k} = ${Math.floor(n / k)} y sobran ${n % k}; esos también necesitan un viaje: ${r} viajes.`,

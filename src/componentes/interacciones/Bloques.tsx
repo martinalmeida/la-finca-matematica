@@ -2,22 +2,58 @@ import { useState } from 'react';
 import Numerica from './Numerica';
 import type { PropsInteraccion } from './tipos';
 import Icono from '../Icono';
+import { DibujoObjeto, esFemenino, pluralObjeto } from '../Ilustraciones';
+import type { Objeto } from '../../juego/tipos';
 
-/** Dibujo de bloques: canastas de 100, cajas de 10 y unidades. */
-export function BloquesDibujo({ c, d, u }: { c: number; d: number; u: number }) {
+type Dibujos = { unidad?: Objeto; decena?: Objeto; centena?: Objeto };
+
+const mayus = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
+/** Rótulos de las tres columnas según lo que dice el enunciado («Cajas de 10», «Limones sueltos»). */
+export function rotulosBloques({ unidad, decena, centena }: Dibujos) {
+  return {
+    // Sin objetos (kilos, metros, pesos…) los bloques son abstractos: centenas, decenas y unidades.
+    c: unidad ? `${mayus(pluralObjeto(centena ?? 'canasta'))} de 100` : 'Centenas',
+    d: unidad ? `${mayus(pluralObjeto(decena ?? 'caja'))} de 10` : 'Decenas',
+    u: unidad ? `${mayus(pluralObjeto(unidad).split(' de ')[0])} ${esFemenino(unidad) ? 'sueltas' : 'sueltos'}` : 'Unidades',
+  };
+}
+
+/** Un grupo dibujado (canasta, caja) con la cantidad que lleva. */
+function Grupo({ objeto, cuanto }: { objeto: Objeto; cuanto: number }) {
   return (
-    <div className="bloques" aria-hidden="true">
+    <span className="bloque-dibujo">
+      <DibujoObjeto objeto={objeto} tamano={30} etiqueta="" />
+      <span className="bloque-cuanto">{cuanto}</span>
+    </span>
+  );
+}
+
+/** Dibujo de bloques: canastas de 100, cajas de 10 y unidades (con el dibujo de lo que se cuenta). */
+export function BloquesDibujo({ c, d, u, unidad, decena, centena, conCientos = c > 0 }: { c: number; d: number; u: number; conCientos?: boolean } & Dibujos) {
+  const r = rotulosBloques({ unidad, decena, centena });
+  // Sin centenas no se muestra la columna: en números menores que 100 el enunciado no habla de canastas.
+  return (
+    <div className={`bloques ${conCientos ? '' : 'sin-cientos'}`} aria-hidden="true">
+      {conCientos && (
+        <div className="bloque-columna">
+          <h4>{r.c}</h4>
+          <div className="bloque-items">
+            {Array.from({ length: c }, (_, k) => (unidad ? <Grupo key={k} objeto={centena ?? 'canasta'} cuanto={100} /> : <span key={k} className="bloque-cien">100</span>))}
+          </div>
+        </div>
+      )}
       <div className="bloque-columna">
-        <h4>Canastas de 100</h4>
-        <div className="bloque-items">{Array.from({ length: c }, (_, k) => <span key={k} className="bloque-cien">100</span>)}</div>
+        <h4>{r.d}</h4>
+        <div className="bloque-items">
+          {Array.from({ length: d }, (_, k) => (unidad ? <Grupo key={k} objeto={decena ?? 'caja'} cuanto={10} /> : <span key={k} className="bloque-diez" />))}
+        </div>
       </div>
       <div className="bloque-columna">
-        <h4>Cajas de 10</h4>
-        <div className="bloque-items">{Array.from({ length: d }, (_, k) => <span key={k} className="bloque-diez" />)}</div>
-      </div>
-      <div className="bloque-columna">
-        <h4>Sueltas</h4>
-        <div className="bloque-items">{Array.from({ length: u }, (_, k) => <span key={k} className="bloque-uno" />)}</div>
+        <h4>{r.u}</h4>
+        <div className="bloque-items">
+          {Array.from({ length: u }, (_, k) => (unidad ? <DibujoObjeto key={k} objeto={unidad} tamano={24} etiqueta="" /> : <span key={k} className="bloque-uno" />))}
+        </div>
       </div>
     </div>
   );
@@ -31,14 +67,15 @@ export default function Bloques(props: PropsInteraccion) {
   const i = props.ej.interaccion;
   const [cant, setCant] = useState({ c: 0, d: 0, u: 0 });
   if (i.tipo !== 'bloques') return null;
+  const r = rotulosBloques(i);
 
   if (i.modo === 'leer') {
     const { c, d, u } = descomponer(i.valor);
     return (
       <div className="columna">
-        <BloquesDibujo c={c} d={d} u={u} />
+        <BloquesDibujo c={c} d={d} u={u} unidad={i.unidad} decena={i.decena} centena={i.centena} />
         <p className="oculto-visual">
-          {c} canastas de 100, {d} cajas de 10 y {u} sueltas.
+          {c} {r.c.toLowerCase()}, {d} {r.d.toLowerCase()} y {u} {r.u.toLowerCase()}.
         </p>
         <Numerica {...props} />
       </div>
@@ -65,11 +102,11 @@ export default function Bloques(props: PropsInteraccion) {
   );
   return (
     <div className="columna">
-      <BloquesDibujo c={cant.c} d={cant.d} u={cant.u} />
-      <div className="bloques">
-        {usaCientos ? control('c', 'Canastas de 100') : <div />}
-        {control('d', 'Cajas de 10')}
-        {control('u', 'Sueltas')}
+      <BloquesDibujo c={cant.c} d={cant.d} u={cant.u} unidad={i.unidad} decena={i.decena} centena={i.centena} conCientos={usaCientos} />
+      <div className={`bloques ${usaCientos ? '' : 'sin-cientos'}`}>
+        {usaCientos && control('c', r.c)}
+        {control('d', r.d)}
+        {control('u', r.u)}
       </div>
       <button
         type="button"

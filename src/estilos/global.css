@@ -2058,7 +2058,27 @@ button {
   color: var(--tinta-suave);
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 4px;
 }
+
+.rotulo-nombre {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+  min-width: 0;
+}
+
+/* «Mesa 3» no se parte: si no cabe junto al dibujo, pasa completo al renglón de abajo. */
+.rotulo-texto {
+  white-space: nowrap;
+}
+
+.rotulo-nombre svg {
+  flex-shrink: 0;
+}
+
 
 .canastas {
   display: grid;
@@ -2183,8 +2203,12 @@ button {
 /* Bloques de valor posicional */
 .bloques {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+}
+
+.bloques.sin-cientos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .bloque-columna {
@@ -2202,7 +2226,8 @@ button {
 
 .bloque-columna h4 {
   margin: 0;
-  font-size: 0.8rem;
+  /* «Centenas» cabe entera en un tercio de 320 px aunque la letra esté en «muy grande». */
+  font-size: min(0.8rem, 4vw);
 }
 
 .bloque-items {
@@ -2256,7 +2281,9 @@ button {
 }
 
 .algoritmo .celda-alg {
-  width: 44px;
+  /* Las columnas se encogen con 5 o 6 cifras para caber en 320 px (máximo 44 px). */
+  width: 100%;
+  min-width: 0;
   height: 48px;
   display: grid;
   place-items: center;
@@ -2303,8 +2330,14 @@ button {
 .tabla-datos td {
   border-bottom: 1px solid rgba(16, 32, 24, 0.1);
   border-right: 1px solid rgba(16, 32, 24, 0.06);
-  padding: 8px;
+  padding: 8px 4px;
   text-align: center;
+}
+
+/* En celulares angostos con letra grande la tabla se achica un poco: así cabe sin partir palabras
+   («La Esperanza», «Kilos por árbol»). Con letra normal o en pantallas anchas no cambia. */
+.tabla-datos {
+  font-size: min(1rem, 4.6vw);
 }
 
 .tabla-datos th {
@@ -3776,4 +3809,123 @@ button.frase:active {
   .pausa-circulo {
     animation: none;
   }
+}
+
+/* ---------- Introducción de cada nivel (video) ---------- */
+
+.intro-nivel {
+  padding: 18px 16px;
+  border-radius: var(--radio-grande);
+  gap: 14px;
+}
+
+.intro-nivel h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.intro-nivel-idea {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radio);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.marco-video-portada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border: 0;
+  cursor: pointer;
+  color: #fff;
+  font: inherit;
+  text-align: center;
+  background: radial-gradient(circle at 50% 40%, #2f6b45 0%, #0b1a12 75%);
+}
+
+.marco-video-portada:focus-visible {
+  outline: 4px solid var(--azul);
+  outline-offset: 3px;
+}
+
+.marco-video-play {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.marco-video-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 100%;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Bloques con dibujos (canastas, cajas y sueltas) ---------- */
+
+.bloque-dibujo {
+  position: relative;
+  display: inline-flex;
+}
+
+.bloque-cuanto {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+  min-width: 16px;
+  padding: 0 2px;
+  border-radius: 7px;
+  background: #fff;
+  border: 1px solid rgba(16, 32, 24, 0.2);
+  /* Tamaño fijo: con letra grande taparía el dibujo. */
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 12px;
+  text-align: center;
+  color: var(--tinta);
+}
+
+.visual-grupo-dueno {
+  display: inline-flex;
+  margin-right: 2px;
+  padding-right: 4px;
+  border-right: 1px dashed rgba(59, 130, 246, 0.4);
+}
+
+.visual-sobran {
+  align-items: center;
+  border-style: dashed;
+  gap: 4px;
+}
+
+/* Espacio vacío: lo que falta para completar */
+.hueco {
+  display: inline-block;
+  border: 2px dashed rgba(16, 32, 24, 0.35);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.visual-dinero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pieza-dinero {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 800;
 }

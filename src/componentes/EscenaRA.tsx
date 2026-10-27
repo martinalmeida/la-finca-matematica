@@ -81,7 +81,7 @@ export default function EscenaRA({ config, titulo, instruccion, mensaje, alCerra
 
   const textoContador =
     config.modo === 'canasta'
-      ? `En la canasta: ${num(conteo.enCanasta)}`
+      ? `En ${config.recipiente.nombre}: ${num(conteo.enCanasta)}`
       : config.modo === 'real'
         ? tu(`Contaste: ${num(conteo.total)}`, `Contó: ${num(conteo.total)}`)
         : config.modo === 'contar'

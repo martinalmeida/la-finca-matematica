@@ -6,8 +6,41 @@ import { aplicarResultado, type ResultadoNivel } from '../juego/progresion';
 import { bandaDePerfil, guardarProgreso, leerProgreso, leerResumen, pistaDePerfil, registrar, sumarAlResumen } from '../almacenamiento/datos';
 import { sonar } from '../servicios/sonido';
 import Icono from '../componentes/Icono';
-import { videoDeLeccion } from '../contenido/videos';
+import { videoDeLeccion, type Video } from '../contenido/videos';
+import { lecciones } from '../contenido/lecciones';
+import { VideoEnPagina } from '../componentes/Video';
 import { useLecturaAutomatica } from '../servicios/voz';
+
+/**
+ * Al empezar cada nivel: de qué se trata y un video de introducción para aprender antes de jugar.
+ * El video se carga solo si alguien lo toca; sin internet se puede empezar igual.
+ */
+function IntroNivel({ nivel, tema, idea, video, adulto, alEmpezar }: { nivel: number; tema: string; idea: string; video: Video | null; adulto: boolean; alEmpezar: () => void }) {
+  const texto = adulto
+    ? `Nivel ${nivel}: ${tema}. ${idea}${video ? ' Antes de empezar, vea el video de introducción.' : ''}`
+    : `Nivel ${nivel}: ${tema}. ${idea}${video ? ' Antes de empezar, mira el video para aprender.' : ''}`;
+  useLecturaAutomatica(`intro-${nivel}-${tema}`, texto);
+  return (
+    <section className="vidrio tarjeta columna intro-nivel" aria-label="Introducción del nivel">
+      <span className="agenda-etiqueta">
+        <Icono nombre="video" tamano={22} anim="no" /> Antes de empezar
+      </span>
+      <h2>{tema}</h2>
+      {idea && <p className="intro-nivel-idea">{idea}</p>}
+      {video && (
+        <>
+          <VideoEnPagina video={video} adulto={adulto} />
+          <p className="pequeno suave" style={{ margin: 0 }}>
+            {adulto ? 'Toque el video para verlo. Necesita internet; si no hay señal, puede empezar igual.' : 'Toca el video para verlo. Si no hay internet, puedes empezar igual.'}
+          </p>
+        </>
+      )}
+      <button type="button" className="boton principal" onClick={alEmpezar}>
+        {adulto ? 'Empezar el nivel' : '¡Empezar el nivel!'} <Icono nombre="siguiente" tamano={24} />
+      </button>
+    </section>
+  );
+}
 
 /** Inclusión: antes de empezar se muestra qué va a pasar (rutina predecible). */
 function Agenda({ tema, alEmpezar }: { tema: string; alEmpezar: () => void }) {
@@ -60,10 +93,13 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const intento = (progreso.niveles[nivel]?.intentos ?? 0) + 1;
   // Las 10 preguntas del nivel se generan al entrar a él.
   const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso, banda }), [p.codigo, pista, nivel, intento, repaso, banda]);
-  const video = videoDeLeccion(pista, nivel - 1);
+  const video = ajustes.videos === false ? null : videoDeLeccion(pista, nivel - 1);
+  const leccion = lecciones[pista][nivel - 1];
+  const adulto = p.rol === 'familia';
   const tema = temaDe(pista, nivel);
   const [indice, setIndice] = useState(0);
   const [resultados, setResultados] = useState<ResultadoEjercicio[]>([]);
+  const [intro, setIntro] = useState(true);
   const [agenda, setAgenda] = useState(inclusion);
   const [pausa, setPausa] = useState(false);
 
@@ -123,14 +159,26 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
             {tema.titulo}
           </div>
         </div>
-        {inclusion && !agenda && (
+        {inclusion && !agenda && !intro && (
           <button type="button" className="boton icono" onClick={() => setPausa(true)} aria-label="Pausa">
             <Icono nombre="pausa" tamano={24} anim="no" />
           </button>
         )}
       </header>
 
-      {agenda ? (
+      {intro ? (
+        <IntroNivel
+          nivel={nivel}
+          tema={tema.titulo}
+          idea={leccion?.idea ?? ''}
+          video={video}
+          adulto={adulto}
+          alEmpezar={() => {
+            setIntro(false);
+            window.scrollTo(0, 0);
+          }}
+        />
+      ) : agenda ? (
         <Agenda tema={tema.titulo} alEmpezar={() => setAgenda(false)} />
       ) : (
         <>

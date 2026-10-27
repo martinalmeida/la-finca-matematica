@@ -20,6 +20,21 @@ const nombresObjeto: Record<Objeto, string> = {
   moneda: 'moneda',
   cafe: 'granos de café',
   canasta: 'canasta',
+  semilla: 'semilla de maíz',
+  pan: 'pan',
+  mata: 'mata',
+  bolsa: 'bolsa',
+  caja: 'caja',
+  cubeta: 'cubeta de huevos',
+  billete: 'billete',
+  mesa: 'mesa',
+  'arbol-cacao': 'árbol de cacao',
+  'arbol-cafe': 'mata de café',
+  'arbol-aguacate': 'árbol de aguacate',
+  'arbol-naranja': 'árbol de naranja',
+  'arbol-mandarina': 'árbol de mandarina',
+  'arbol-limon': 'árbol de limón',
+  platanera: 'mata de plátano',
 };
 
 /** Sombra de contacto bajo un objeto: lo asienta sobre el suelo. */
@@ -34,6 +49,53 @@ const LIMON = 'M4.5 21.5C7 12 13 9 20 9C27 9 33 12 35.5 21.5C33 30.5 27 33.5 20 
 const BULTO = 'M10 13C7 22 8 33 12 36.5H28C32 33 33 22 30 13Z';
 const PLATANO = 'M7 9C8 25 17 33 32 31C35 30.5 35 28 33 27.5C20 28 13 21 11 8.5C10.5 6.5 7.5 6.8 7 9Z';
 const CESTA = 'M4.5 18H35.5L31.8 35.6A2 2 0 0 1 29.8 37.2H10.2A2 2 0 0 1 8.2 35.6Z';
+
+/** Copa redonda de árbol con su tronco; los frutos se dibujan encima. */
+function arbolCopa(u: U, frutos: ReactElement | null = null, copa: 'v' | 'w' = 'v') {
+  return (
+    <g>
+      {piso(20, 9)}
+      <path d="M17.4 38L18.6 23H21.4L22.6 38Z" fill={u('k')} />
+      <path d="M20 29L24.5 25.5" stroke={medio('k')} strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="12.5" cy="21" r="7.5" fill={u(copa === 'w' ? 'v' : copa)} />
+      <circle cx="27.5" cy="21" r="7.5" fill={u(copa === 'w' ? 'v' : copa)} />
+      <circle cx="20" cy="14.5" r="10.5" fill={u(copa === 'w' ? 'v' : copa)} />
+      <circle cx="12.5" cy="21" r="7.5" fill={u('s')} />
+      <circle cx="27.5" cy="21" r="7.5" fill={u('s')} />
+      <circle cx="20" cy="14.5" r="10.5" fill={u('e')} />
+      {frutos}
+    </g>
+  );
+}
+
+/** Frutos redondos repartidos en la copa (naranja, mandarina, limón). */
+function frutosCopa(u: U, tono: 'n' | 'l', r: number, muchos = false) {
+  const puntos = muchos
+    ? [
+        [13.5, 20],
+        [25.5, 12.5],
+        [27.5, 23],
+        [17, 11],
+        [21.5, 19.5],
+        [10, 24.5],
+      ]
+    : [
+        [13.5, 20],
+        [25.5, 12.5],
+        [27.5, 23],
+        [18.5, 15],
+      ];
+  return (
+    <g>
+      {puntos.map(([x, y]) => (
+        <g key={`${x}-${y}`}>
+          <circle cx={x} cy={y} r={r} fill={u(tono)} />
+          <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.3} fill="#fff" opacity=".6" />
+        </g>
+      ))}
+    </g>
+  );
+}
 
 /** Dibujos de 40 × 40, con la paleta y la luz de los iconos. */
 const formas: Record<Objeto, (u: U) => ReactElement> = {
@@ -157,20 +219,116 @@ const formas: Record<Objeto, (u: U) => ReactElement> = {
       <path d="M11.5 16C10.5 20 10.5 26 11.5 30" stroke="#fff" strokeOpacity=".5" strokeWidth="1.4" strokeLinecap="round" fill="none" />
     </g>
   ),
-  arbol: (u) => (
+  arbol: (u) => arbolCopa(u),
+  'arbol-naranja': (u) => arbolCopa(u, frutosCopa(u, 'n', 1.9)),
+  'arbol-mandarina': (u) => arbolCopa(u, frutosCopa(u, 'n', 1.6, true)),
+  'arbol-limon': (u) => arbolCopa(u, frutosCopa(u, 'l', 1.7, true)),
+  'arbol-aguacate': (u) => (
+    <g>
+      {arbolCopa(u, null, 'w')}
+      {[
+        [13, 22, -12],
+        [25.5, 13.5, 8],
+        [28, 23.5, -6],
+        [18.5, 17, 4],
+      ].map(([x, y, r]) => (
+        <g key={`${x}-${y}`} transform={`rotate(${r} ${x} ${y})`}>
+          <path d={`M${x} ${y - 3.4}C${x + 1.3} ${y - 3.4} ${x + 1.6} ${y - 1.6} ${x + 1.7} ${y - 0.6}C${x + 2.6} ${y + 0.6} ${x + 2.6} ${y + 3.2} ${x} ${y + 3.4}C${x - 2.6} ${y + 3.2} ${x - 2.6} ${y + 0.6} ${x - 1.7} ${y - 0.6}C${x - 1.6} ${y - 1.6} ${x - 1.3} ${y - 3.4} ${x} ${y - 3.4}Z`} fill={oscuro('w')} stroke="#1c2e07" strokeWidth=".5" />
+          <ellipse cx={x - 0.7} cy={y + 0.6} rx=".6" ry="1.2" fill="#fff" opacity=".35" />
+        </g>
+      ))}
+    </g>
+  ),
+  'arbol-cacao': (u) => (
+    <g>
+      {piso(20, 10)}
+      <path d="M17 38L18 21H22L23 38Z" fill={u('k')} />
+      <path d="M20 26L25 21.5M20 24L15 20" stroke={medio('k')} strokeWidth="1.8" strokeLinecap="round" />
+      <ellipse cx="11.5" cy="15" rx="8" ry="6.5" fill={u('v')} />
+      <ellipse cx="28.5" cy="15" rx="8" ry="6.5" fill={u('v')} />
+      <ellipse cx="20" cy="10" rx="10" ry="7.5" fill={u('v')} />
+      <ellipse cx="11.5" cy="15" rx="8" ry="6.5" fill={u('s')} />
+      <ellipse cx="28.5" cy="15" rx="8" ry="6.5" fill={u('s')} />
+      <ellipse cx="20" cy="10" rx="10" ry="7.5" fill={u('e')} />
+      {/* Las mazorcas del cacao nacen pegadas al tronco. */}
+      {[
+        [15.2, 29, 20],
+        [24.6, 27, -20],
+        [16, 35, 12],
+      ].map(([x, y, r]) => (
+        <g key={`${x}-${y}`} transform={`rotate(${r} ${x} ${y})`}>
+          <path d={`M${x} ${y - 4.4}C${x + 2.6} ${y - 4.4} ${x + 3} ${y - 1} ${x + 3} ${y}C${x + 3} ${y + 2.4} ${x + 1.6} ${y + 4} ${x} ${y + 4.6}C${x - 1.6} ${y + 4} ${x - 3} ${y + 2.4} ${x - 3} ${y}C${x - 3} ${y - 1} ${x - 2.6} ${y - 4.4} ${x} ${y - 4.4}Z`} fill={u('o')} />
+          <path d={`M${x - 1} ${y - 3.8}V${y + 3.8}M${x + 1} ${y - 3.8}V${y + 3.8}`} stroke="#b4400f" strokeOpacity=".45" strokeWidth=".6" />
+          <ellipse cx={x - 1.6} cy={y - 1} rx=".6" ry="1.6" fill="#fff" opacity=".5" />
+        </g>
+      ))}
+    </g>
+  ),
+  'arbol-cafe': (u) => (
+    <g>
+      {piso(20, 10)}
+      <path d="M19.2 38L19.6 4.5H20.4L20.8 38Z" fill={u('k')} />
+      {/* Mata de café: ramas horizontales con hojas alargadas y racimos de cerezas sobre la rama. */}
+      {[
+        [30, 15],
+        [22.5, 12.5],
+        [15, 10],
+        [8.5, 7],
+      ].map(([y, largo]) => (
+        <g key={y}>
+          {[-1, 1].map((lado) => (
+            <g key={lado}>
+              <path d={`M20 ${y}Q${20 + lado * largo * 0.6} ${y - 1.2} ${20 + lado * largo} ${y + 0.8}`} stroke={oscuro('k')} strokeWidth="1" fill="none" />
+              {[0.45, 0.8, 1].map((t) => (
+                <g key={t}>
+                  <ellipse cx={20 + lado * largo * t} cy={y + 2} rx="3.4" ry="1.3" transform={`rotate(${lado * 32} ${20 + lado * largo * t} ${y + 2})`} fill={u('v')} />
+                  <ellipse cx={20 + lado * largo * t} cy={y - 1.6} rx="3" ry="1.15" transform={`rotate(${lado * -28} ${20 + lado * largo * t} ${y - 1.6})`} fill={u('w')} />
+                </g>
+              ))}
+              {[0.3, 0.62].map((t) => {
+                const x = 20 + lado * largo * t;
+                return (
+                  <g key={t}>
+                    {[
+                      [-1.1, 0.4],
+                      [1.1, 0.4],
+                      [0, 1.6],
+                    ].map(([dx, dy]) => (
+                      <circle key={`${dx}-${dy}`} cx={x + dx} cy={y + dy} r="1.25" fill={u('r')} />
+                    ))}
+                    <circle cx={x - 1.4} cy={y} r=".35" fill="#fff" opacity=".7" />
+                  </g>
+                );
+              })}
+            </g>
+          ))}
+        </g>
+      ))}
+      <ellipse cx="20" cy="4" rx="1.3" ry="3" fill={u('l')} />
+    </g>
+  ),
+  platanera: (u) => (
     <g>
       {piso(20, 9)}
-      <path d="M17.4 38L18.6 23H21.4L22.6 38Z" fill={u('k')} />
-      <path d="M20 29L24.5 25.5" stroke={medio('k')} strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="12.5" cy="21" r="7.5" fill={u('v')} />
-      <circle cx="27.5" cy="21" r="7.5" fill={u('v')} />
-      <circle cx="20" cy="14.5" r="10.5" fill={u('v')} />
-      <circle cx="12.5" cy="21" r="7.5" fill={u('s')} />
-      <circle cx="27.5" cy="21" r="7.5" fill={u('s')} />
-      <circle cx="20" cy="14.5" r="10.5" fill={u('e')} />
-      <circle cx="13.5" cy="20" r="1.9" fill={u('n')} />
-      <circle cx="25.5" cy="12.5" r="1.9" fill={u('n')} />
-      <circle cx="27.5" cy="23" r="1.9" fill={u('n')} />
+      <path d="M17.4 38C17.8 30 18 24 18.6 17H21.4C22 24 22.2 30 22.6 38Z" fill={u('w')} />
+      <path d="M19 20C19.2 26 19.2 32 19 37" stroke="#fff" strokeOpacity=".35" strokeWidth=".8" />
+      <path d="M20 17C14 12 7 12 2.5 16C7 18.5 14 19 20 17Z" fill={u('v')} />
+      <path d="M20 17C26 12 33 12 37.5 16C33 18.5 26 19 20 17Z" fill={u('v')} />
+      <path d="M20 17C17 10 13 5 7 3.5C9 9 13.5 14 20 17Z" fill={u('l')} />
+      <path d="M20 17C23 10 27 5 33 3.5C31 9 26.5 14 20 17Z" fill={u('l')} />
+      <path d="M20 17C19 11 19.5 6 21 1.5C22.5 6 22 11 20 17Z" fill={u('v')} />
+      <path d="M3.5 16C9 15.5 15 16 20 17M36.5 16C31 15.5 25 16 20 17M8 4.5C12 9 16 13 20 17M32 4.5C28 9 24 13 20 17" stroke={oscuro('v')} strokeOpacity=".45" strokeWidth=".6" fill="none" />
+      {/* Racimo de plátanos verdes */}
+      <path d="M22 19.5C24 21 25 23 25 25" stroke={oscuro('k')} strokeWidth="1.2" fill="none" />
+      {[
+        [23, 25],
+        [26, 24.6],
+        [24.5, 28],
+        [27.5, 27.6],
+      ].map(([x, y]) => (
+        <path key={`${x}-${y}`} d={`M${x} ${y}C${x - 0.4} ${y + 2.5} ${x + 1} ${y + 4} ${x + 2.4} ${y + 3.6}C${x + 1.2} ${y + 2.6} ${x + 0.6} ${y + 1.2} ${x + 0.8} ${y - 0.4}Z`} fill={u('l')} stroke={oscuro('l')} strokeWidth=".4" />
+      ))}
+      <path d="M25.6 31.6C26.4 33.6 25.6 35 24.6 35.4C24 34 24.4 32.6 25.6 31.6Z" fill={u('m')} />
     </g>
   ),
   platano: (u) => (
@@ -254,6 +412,127 @@ const formas: Record<Objeto, (u: U) => ReactElement> = {
       <rect x="4" y="16.8" width="32" height="1.4" rx=".7" fill="#fff" opacity=".35" />
     </g>
   ),
+  semilla: (u) => (
+    <g>
+      {piso(20, 12)}
+      {[
+        [12, 25, -24],
+        [28, 25, 22],
+        [20, 21, 0],
+      ].map(([x, y, r]) => (
+        <g key={`${x}-${y}`} transform={`rotate(${r} ${x} ${y})`}>
+          <path d={`M${x - 5.5} ${y - 7}C${x - 5.5} ${y - 10} ${x + 5.5} ${y - 10} ${x + 5.5} ${y - 7}L${x + 4} ${y + 6}C${x + 3} ${y + 10.5} ${x - 3} ${y + 10.5} ${x - 4} ${y + 6}Z`} fill={u('y')} />
+          <path d={`M${x - 5.5} ${y - 7}C${x - 5.5} ${y - 10} ${x + 5.5} ${y - 10} ${x + 5.5} ${y - 7}L${x + 4} ${y + 6}C${x + 3} ${y + 10.5} ${x - 3} ${y + 10.5} ${x - 4} ${y + 6}Z`} fill={u('s')} />
+          {/* Germen claro del grano */}
+          <path d={`M${x} ${y - 3}C${x + 2.4} ${y - 3} ${x + 2} ${y + 4} ${x} ${y + 6}C${x - 2} ${y + 4} ${x - 2.4} ${y - 3} ${x} ${y - 3}Z`} fill="#fffbeb" opacity=".85" />
+          <ellipse cx={x - 3} cy={y - 6} rx="1.6" ry=".8" fill="#fff" opacity=".6" />
+        </g>
+      ))}
+    </g>
+  ),
+  pan: (u) => (
+    <g>
+      {piso(20, 14)}
+      <path d="M4.5 29C4 19 11 12 20 12C29 12 36 19 35.5 29C35.4 32.5 31 34 20 34C9 34 4.6 32.5 4.5 29Z" fill={u('z')} />
+      <path d="M6.5 27C6.5 19 12.5 14 20 14C27.5 14 33.5 19 33.5 27C27 25 13 25 6.5 27Z" fill={u('o')} opacity=".55" />
+      <path d="M4.5 29C4 19 11 12 20 12C29 12 36 19 35.5 29C35.4 32.5 31 34 20 34C9 34 4.6 32.5 4.5 29Z" fill={u('s')} />
+      {[12.5, 20, 27.5].map((x) => (
+        <path key={x} d={`M${x - 2.6} ${x === 20 ? 17 : 19}C${x - 1} ${x === 20 ? 21 : 22.5} ${x + 1} ${x === 20 ? 21 : 22.5} ${x + 2.6} ${x === 20 ? 17 : 19}`} stroke="#fff3d6" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      ))}
+      <ellipse cx="13" cy="16.5" rx="4" ry="1.4" fill="#fff" opacity=".5" transform="rotate(-20 13 16.5)" />
+    </g>
+  ),
+  mata: (u) => (
+    <g>
+      <ellipse cx="20" cy="35.5" rx="13" ry="3.5" fill={u('k')} />
+      <ellipse cx="20" cy="34.6" rx="11" ry="2.2" fill={oscuro('k')} opacity=".35" />
+      <path d="M19.4 35V15H20.6V35Z" fill={oscuro('v')} />
+      {[
+        [-58, 24],
+        [58, 24],
+        [-30, 17],
+        [30, 17],
+        [0, 12],
+      ].map(([r, y]) => (
+        <g key={`${r}-${y}`} transform={`rotate(${r} 20 ${y})`}>
+          <path d={`M20 ${y}C16.6 ${y - 4} 17.2 ${y - 10} 20 ${y - 13}C22.8 ${y - 10} 23.4 ${y - 4} 20 ${y}Z`} fill={u(y === 12 ? 'l' : 'v')} />
+          <path d={`M20 ${y}V${y - 11}`} stroke={oscuro('v')} strokeOpacity=".45" strokeWidth=".6" />
+        </g>
+      ))}
+    </g>
+  ),
+  bolsa: (u) => (
+    <g>
+      {piso(20, 11)}
+      <path d="M9 14H31L33 33.5C33.2 35.6 31.8 37 29.8 37H10.2C8.2 37 6.8 35.6 7 33.5Z" fill={u('c')} stroke="#c9b48a" strokeWidth=".8" />
+      <path d="M9 14H31L33 33.5C33.2 35.6 31.8 37 29.8 37H10.2C8.2 37 6.8 35.6 7 33.5Z" fill={u('s')} />
+      <path d="M14 14C14 7 18 5 20 5C22 5 26 7 26 14" stroke={u('c')} strokeWidth="2.6" fill="none" />
+      <path d="M14 14C14 7 18 5 20 5C22 5 26 7 26 14" stroke="#c9b48a" strokeWidth=".7" fill="none" />
+      <path d="M12 18L11 33M28 18L29 33" stroke="#c9b48a" strokeOpacity=".7" strokeWidth=".7" />
+      <path d="M10.5 16.5C10 22 9.8 28 10 32" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" opacity=".8" />
+    </g>
+  ),
+  caja: (u) => (
+    <g>
+      {piso(20, 15)}
+      <path d="M4 14H36V35.5C36 36.3 35.3 37 34.5 37H5.5C4.7 37 4 36.3 4 35.5Z" fill={oscuro('k')} />
+      {[15.5, 23, 30].map((y) => (
+        <g key={y}>
+          <rect x="5" y={y} width="30" height="5" rx="1" fill={u('k')} />
+          <rect x="5" y={y} width="30" height="1.3" rx=".6" fill="#fff" opacity=".35" />
+        </g>
+      ))}
+      <rect x="4" y="13.5" width="4.5" height="23.5" rx="1" fill={u('k')} />
+      <rect x="31.5" y="13.5" width="4.5" height="23.5" rx="1" fill={u('k')} />
+      <circle cx="6.2" cy="18" r=".7" fill={oscuro('k')} />
+      <circle cx="33.8" cy="18" r=".7" fill={oscuro('k')} />
+      <circle cx="6.2" cy="32.5" r=".7" fill={oscuro('k')} />
+      <circle cx="33.8" cy="32.5" r=".7" fill={oscuro('k')} />
+    </g>
+  ),
+  cubeta: (u) => (
+    <g>
+      {piso(20, 16)}
+      {[9, 16.3, 23.6, 31].map((x, k) => (
+        <g key={x}>
+          <ellipse cx={x} cy="17.5" rx="3.5" ry="4.8" fill={u('c')} stroke="#e3cfa6" strokeWidth=".6" />
+          {k % 2 === 0 && <ellipse cx={x - 1.3} cy="15.6" rx=".8" ry="1.6" fill="#fff" opacity=".85" />}
+        </g>
+      ))}
+      <path d="M2.5 20.5H37.5L32 34.5H8Z" fill={u('x')} />
+      {[9, 16.3, 23.6, 31].map((x) => (
+        <path key={x} d={`M${x - 3.4} 20.5C${x - 2.4} 23.5 ${x + 2.4} 23.5 ${x + 3.4} 20.5`} fill={oscuro('x')} opacity=".35" />
+      ))}
+      <path d="M2.5 20.5L8 34.5H32L37.5 20.5Z" fill={u('s')} />
+      <path d="M2.5 20.5H37.5" stroke="#fff" strokeOpacity=".6" strokeWidth="1" />
+      <path d="M5.5 28H34.5" stroke={oscuro('x')} strokeOpacity=".35" strokeWidth=".8" />
+    </g>
+  ),
+  billete: (u) => (
+    <g>
+      {piso(20, 16)}
+      <g transform="rotate(-8 20 22)">
+        <rect x="3" y="12" width="34" height="20" rx="2.2" fill={u('t')} />
+        <rect x="5.4" y="14.4" width="29.2" height="15.2" rx="1.4" fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth=".9" />
+        <circle cx="13" cy="22" r="5.2" fill="#fff" opacity=".85" />
+        <circle cx="13" cy="20.6" r="2" fill={oscuro('t')} opacity=".6" />
+        <path d="M9.6 25.8C10.4 23.6 15.6 23.6 16.4 25.8" fill={oscuro('t')} opacity=".6" />
+        <text x="27" y="26.4" fontSize="11" textAnchor="middle" fill="#fff" fontWeight="900" fontFamily="system-ui, sans-serif">
+          $
+        </text>
+        <rect x="3" y="12" width="34" height="5" rx="2" fill="#fff" opacity=".2" />
+      </g>
+    </g>
+  ),
+  mesa: (u) => (
+    <g>
+      {piso(20, 16)}
+      <path d="M8 21L6.5 37.5M32 21L33.5 37.5M12.5 21L13 34M27.5 21L27 34" stroke={oscuro('k')} strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M3 16.5H37L35 22.5H5Z" fill={u('k')} />
+      <path d="M3 16.5H37" stroke="#fff" strokeOpacity=".55" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M5 22.5H35" stroke={oscuro('k')} strokeWidth="1" />
+    </g>
+  ),
 };
 
 export function DibujoObjeto({ objeto, tamano = 40, etiqueta }: { objeto: Objeto; tamano?: number; etiqueta?: string }) {
@@ -285,9 +564,24 @@ const pluralesObjeto: Record<Objeto, string> = {
   moneda: 'monedas',
   cafe: 'granos de café',
   canasta: 'canastas',
+  semilla: 'semillas de maíz',
+  pan: 'panes',
+  mata: 'matas',
+  bolsa: 'bolsas',
+  caja: 'cajas',
+  cubeta: 'cubetas de huevos',
+  billete: 'billetes',
+  mesa: 'mesas',
+  'arbol-cacao': 'árboles de cacao',
+  'arbol-cafe': 'matas de café',
+  'arbol-aguacate': 'árboles de aguacate',
+  'arbol-naranja': 'árboles de naranja',
+  'arbol-mandarina': 'árboles de mandarina',
+  'arbol-limon': 'árboles de limón',
+  platanera: 'matas de plátano',
 };
 
-const FEMENINOS = new Set<Objeto>(['mazorca', 'naranja', 'gallina', 'mandarina', 'arepa', 'moneda', 'canasta']);
+const FEMENINOS = new Set<Objeto>(['mazorca', 'naranja', 'gallina', 'mandarina', 'arepa', 'moneda', 'canasta', 'semilla', 'mata', 'bolsa', 'caja', 'cubeta', 'mesa', 'arbol-cafe', 'platanera']);
 
 /** ¿El nombre del objeto es femenino? (para «tócalas» o «tócalos»). */
 export function esFemenino(o: Objeto): boolean {
@@ -576,4 +870,21 @@ export function Tienda({ tamano = 80 }: { tamano?: number }) {
       <rect x="36" y="34" width="14" height="12" fill="#9fd3e6" stroke="#7a4a21" />
     </svg>
   );
+}
+
+/** Dibujo de un recipiente o de quien recibe (Recipiente.dibujo). Las personas se alternan para distinguirlas. */
+export function DibujoRecipiente({ dibujo, indice = 0, tamano = 28 }: { dibujo?: Objeto | 'nino' | 'adulto' | 'mula'; indice?: number; tamano?: number }) {
+  if (!dibujo) return null;
+  // Decorativo: el nombre del recipiente ya va escrito al lado.
+  const id = dibujo === 'mula' ? 'mula' : dibujo === 'nino' ? (indice % 2 ? 'nino-caficultor' : 'nina-cacaotera') : dibujo === 'adulto' ? ['adulta', 'adulto', 'abuela', 'abuelo'][indice % 4] : null;
+  return (
+    <span aria-hidden="true" style={{ display: 'inline-flex', flexShrink: 0 }}>
+      {id ? <Avatar id={id} tamano={tamano} etiqueta="" /> : <DibujoObjeto objeto={dibujo as Objeto} tamano={tamano} etiqueta="" />}
+    </span>
+  );
+}
+
+/** Nombre en plural: «naranjas», «cajas». */
+export function pluralObjeto(o: Objeto): string {
+  return pluralesObjeto[o];
 }
