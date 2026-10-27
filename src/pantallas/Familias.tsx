@@ -6,10 +6,66 @@ import { listarPerfiles } from '../almacenamiento/datos';
 import { consejosFamilia as consejos } from '../contenido/red';
 import { CabeceraVidrio } from '../componentes/Red';
 import Icono from '../componentes/Icono';
+import { BotonVideo } from '../componentes/Video';
+import { guiaFamilias, videosLecciones } from '../contenido/videos';
+import { lecciones } from '../contenido/lecciones';
+import type { Pista } from '../juego/tipos';
 
+const GRADOS: { pista: Pista; nombre: string }[] = [
+  { pista: 'g1', nombre: '1.º grado' },
+  { pista: 'g2', nombre: '2.º grado' },
+  { pista: 'g3', nombre: '3.º grado' },
+  { pista: 'g4', nombre: '4.º grado' },
+  { pista: 'g5', nombre: '5.º grado' },
+  { pista: 'familia', nombre: 'Para usted: cuentas de la casa y la finca' },
+];
 
-export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 'avance' }) {
-  const { ir } = useApp();
+export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 'avance' | 'videos' }) {
+  const { ir, ajustes } = useApp();
+
+  if (seccion === 'videos') {
+    const gradosNinos = new Set(listarPerfiles().filter((p) => p.rol === 'estudiante').map((p) => `g${p.grado}`));
+    return (
+      <main className="pantalla">
+        <Barra titulo={<span className="cuaderno-titulo">Videos para acompañar</span>} />
+        <p className="pequeno suave" style={{ margin: 0 }}>
+          Videos cortos de YouTube en español. Necesitan internet: véalos cuando haya señal, solo o con su hijo o hija.
+        </p>
+        {!ajustes.videos && (
+          <p className="tarjeta">
+            Los videos están apagados. Puede encenderlos en <strong>Ajustes → Videos de ayuda de YouTube</strong>.
+          </p>
+        )}
+        <section className="tarjeta columna">
+          <h2 style={{ fontSize: '1.1rem' }}>Cómo acompañar las matemáticas en casa</h2>
+          {guiaFamilias.map((g) => (
+            <div key={g.video.id} className="columna" style={{ gap: 4 }}>
+              <strong className="pequeno">{g.tema}</strong>
+              <BotonVideo video={g.video} adulto clase="boton" texto={g.video.titulo} />
+            </div>
+          ))}
+        </section>
+        {GRADOS.map(({ pista, nombre }) => (
+          <details key={pista} className="tarjeta grado-videos" open={gradosNinos.has(pista)}>
+            <summary>
+              <strong>{nombre}</strong>
+              {gradosNinos.has(pista) && <span className="chip pequeno">Grado de sus niños</span>}
+            </summary>
+            <div className="columna" style={{ marginTop: 10 }}>
+              {videosLecciones[pista].map((v, k) => (
+                <div key={v.id + k} className="columna" style={{ gap: 4 }}>
+                  <span className="pequeno suave">
+                    Lección {k + 1}: {lecciones[pista][k]?.titulo}
+                  </span>
+                  <BotonVideo video={v} adulto clase="boton" texto={v.titulo} />
+                </div>
+              ))}
+            </div>
+          </details>
+        ))}
+      </main>
+    );
+  }
 
   if (seccion === 'acompanar') {
     return (
@@ -74,6 +130,11 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
       <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'familias', seccion: 'acompanar' })}>
         <Icono nombre="personas" tamano={30} /> Acompañar a mi hijo o hija
       </button>
+      {ajustes.videos && (
+        <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'familias', seccion: 'videos' })}>
+          <Icono nombre="video" tamano={30} /> Videos para acompañar en casa
+        </button>
+      )}
       <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'familias', seccion: 'avance' })}>
         <Icono nombre="grafico" tamano={30} /> Ver el avance de los niños de este celular
       </button>

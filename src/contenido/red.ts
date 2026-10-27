@@ -8,8 +8,8 @@ export function avatarDeAutor(autor: string): AvatarId {
   const a = autor.toLowerCase();
   if (a.includes('abuela')) return 'abuela';
   if (a.includes('abuelo')) return 'abuelo';
-  if (a.includes('doña') || a.includes('tía') || a.includes('la profe')) return 'campesina';
-  if (a.includes('don') || a.includes('profe')) return 'campesino';
+  if (a.includes('doña') || a.includes('tía') || a.includes('la profe')) return 'adulta';
+  if (a.includes('don') || a.includes('profe')) return 'adulto';
   // Niñas y niños del banco de contexto.
   return /a$|valentina|mariana|luisa|sofía|daniela|isabela/.test(a) ? 'nina-cacaotera' : 'nino-caficultor';
 }

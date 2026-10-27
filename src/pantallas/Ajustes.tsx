@@ -118,6 +118,15 @@ export default function Ajustes() {
           </span>
           <input type="checkbox" checked={ajustes.audioEnunciados} disabled={!voz.disponible} onChange={(e) => cambiar('audioEnunciados', e.target.checked)} />
         </label>
+        <label className="interruptor">
+          <span>
+            <span className="fila" style={{ flexWrap: 'nowrap' }}>
+              <Icono nombre="video" tamano={28} /> Videos de ayuda de YouTube
+            </span>
+            <span className="pequeno suave"> Necesitan internet; el resto de la aplicación funciona sin conexión.</span>
+          </span>
+          <input type="checkbox" checked={ajustes.videos} onChange={(e) => cambiar('videos', e.target.checked)} />
+        </label>
       </section>
 
       {perfil && !adulto && (

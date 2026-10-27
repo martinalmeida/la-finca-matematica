@@ -257,11 +257,11 @@ const formas: Record<Objeto, (u: U) => ReactElement> = {
 };
 
 export function DibujoObjeto({ objeto, tamano = 40, etiqueta }: { objeto: Objeto; tamano?: number; etiqueta?: string }) {
-  const { id, u } = useDegradados();
+  const { id, u, usados } = useDegradados();
   return (
     <svg width={tamano} height={tamano} viewBox="0 0 40 40" role="img" aria-label={etiqueta ?? nombresObjeto[objeto]} focusable="false">
-      <Degradados id={id} />
       {formas[objeto](u)}
+      <Degradados id={id} usados={usados} />
     </svg>
   );
 }
@@ -272,7 +272,7 @@ export function nombreObjeto(o: Objeto): string {
 
 // --- Avatares (64 × 64) ---
 
-export type AvatarId = 'gallina' | 'mula' | 'perro' | 'loro' | 'mariposa' | 'ardilla' | 'nina-cacaotera' | 'nino-caficultor' | 'abuela' | 'campesino' | 'campesina' | 'abuelo';
+export type AvatarId = 'gallina' | 'mula' | 'perro' | 'loro' | 'mariposa' | 'ardilla' | 'nina-cacaotera' | 'nino-caficultor' | 'abuela' | 'adulto' | 'adulta' | 'abuelo';
 
 export const avataresEstudiante: { id: AvatarId; nombre: string }[] = [
   { id: 'gallina', nombre: 'Gallina' },
@@ -286,8 +286,8 @@ export const avataresEstudiante: { id: AvatarId; nombre: string }[] = [
 ];
 
 export const avataresFamilia: { id: AvatarId; nombre: string }[] = [
-  { id: 'campesina', nombre: 'Campesina' },
-  { id: 'campesino', nombre: 'Campesino' },
+  { id: 'adulta', nombre: 'Mamá' },
+  { id: 'adulto', nombre: 'Papá' },
   { id: 'abuela', nombre: 'Abuela' },
   { id: 'abuelo', nombre: 'Abuelo' },
 ];
@@ -394,14 +394,14 @@ const avatares: Record<AvatarId, ReactElement> = {
       <rect x="20" y="16" width="24" height="3" fill="#222" />
     </g>,
   ),
-  campesina: cara(
+  adulta: cara(
     '#c68b59',
     <g />,
     <g>
       <path d="M14 36 Q12 14 32 14 Q52 14 50 36 L46 30 L18 30Z" fill="#3b2314" />
     </g>,
   ),
-  campesino: cara(
+  adulto: cara(
     '#b07a4f',
     <path d="M24 44 Q32 48 40 44" stroke="#3b2314" strokeWidth="3" fill="none" />,
     <g>
@@ -430,8 +430,11 @@ const avatares: Record<AvatarId, ReactElement> = {
   ),
 };
 
+/** Identificadores de versiones anteriores (perfiles y copias de seguridad ya guardados). */
+const alias: Record<string, AvatarId> = { campesina: 'adulta', campesino: 'adulto' };
+
 export function Avatar({ id, tamano = 64, etiqueta }: { id: string; tamano?: number; etiqueta?: string }) {
-  const forma = avatares[id as AvatarId] ?? avatares.gallina;
+  const forma = avatares[(alias[id] ?? id) as AvatarId] ?? avatares.gallina;
   const nombre = etiqueta ?? [...avataresEstudiante, ...avataresFamilia].find((a) => a.id === id)?.nombre ?? 'Avatar';
   return (
     <svg width={tamano} height={tamano} viewBox="0 0 64 64" role="img" aria-label={nombre} focusable="false">

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { ContextoApp, esPestana, type EstadoApp, type Pantalla } from './estado';
 import {
   fijarPerfilActivo,
@@ -20,17 +20,35 @@ import Pestanas from './componentes/Pestanas';
 import Icono from './componentes/Icono';
 import { InvitacionInstalar } from './componentes/Instalar';
 
-const CrearPerfil = lazy(() => import('./pantallas/CrearPerfil'));
-const Inicio = lazy(() => import('./pantallas/Inicio'));
-const Mapa = lazy(() => import('./pantallas/Mapa'));
-const Aprender = lazy(() => import('./pantallas/Aprender'));
-const Nivel = lazy(() => import('./pantallas/Nivel'));
-const Resultado = lazy(() => import('./pantallas/Resultado'));
-const MiFinca = lazy(() => import('./pantallas/MiFinca'));
-const AjustesPantalla = lazy(() => import('./pantallas/Ajustes'));
-const Familias = lazy(() => import('./pantallas/Familias'));
-const PanelDocente = lazy(() => import('./pantallas/PanelDocente'));
-const RetoPareja = lazy(() => import('./pantallas/RetoPareja'));
+// Pantallas en archivos aparte. Se precargan en segundo plano después de abrir la app,
+// así cambiar de pantalla no espera la descarga (ni muestra «Cargando…»).
+const precargas: (() => Promise<unknown>)[] = [];
+function perezosa<T extends ComponentType<any>>(cargar: () => Promise<{ default: T }>) {
+  let promesa: Promise<{ default: T }> | undefined;
+  const una = () => (promesa ??= cargar());
+  precargas.push(una);
+  return lazy(una);
+}
+
+const CrearPerfil = perezosa(() => import('./pantallas/CrearPerfil'));
+const Inicio = perezosa(() => import('./pantallas/Inicio'));
+const Mapa = perezosa(() => import('./pantallas/Mapa'));
+const Aprender = perezosa(() => import('./pantallas/Aprender'));
+const Nivel = perezosa(() => import('./pantallas/Nivel'));
+const Resultado = perezosa(() => import('./pantallas/Resultado'));
+const MiFinca = perezosa(() => import('./pantallas/MiFinca'));
+const AjustesPantalla = perezosa(() => import('./pantallas/Ajustes'));
+const Familias = perezosa(() => import('./pantallas/Familias'));
+const PanelDocente = perezosa(() => import('./pantallas/PanelDocente'));
+const RetoPareja = perezosa(() => import('./pantallas/RetoPareja'));
+
+function precargarPantallas() {
+  const ocioso = (window as { requestIdleCallback?: (f: () => void) => number }).requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 1200));
+  ocioso(() => {
+    // Una por una para no competir con lo que la persona está haciendo.
+    precargas.reduce<Promise<unknown>>((cadena, f) => cadena.then(f).catch(() => undefined), Promise.resolve());
+  });
+}
 
 function pantallaInicial(): Pantalla {
   return listarPerfiles().length ? { nombre: 'quien' } : { nombre: 'bienvenida' };
@@ -69,6 +87,7 @@ export default function App() {
   }, []);
 
   useEffect(() => alListoSinInternet(() => avisar('Lista para usar sin internet')), [avisar]);
+  useEffect(precargarPantallas, []);
   useEffect(() => alCambiarDisponibilidad(() => setSinAlmacen(!almacenamientoDisponible())), []);
   useEffect(() => aplicarTamanoLetra(perfil, ajustes, pantalla), [perfil, ajustes, pantalla]);
 
@@ -84,7 +103,7 @@ export default function App() {
   const ir = useCallback<EstadoApp['ir']>((destino, opciones) => {
     // Cada entrada a un nivel tiene su clave: "Repetir" monta el nivel desde cero.
     const p: Pantalla = destino.nombre === 'nivel' ? { ...destino, clave: destino.clave ?? Date.now() } : destino;
-    setPila((pilaActual) => {
+    startTransition(() => setPila((pilaActual) => {
       if (opciones?.reemplazar) return [...pilaActual.slice(0, -1), p];
       // Pantallas raíz (pestañas, ¿quién juega?, bienvenida): reinician la pila.
       if (esPestana(p) || p.nombre === 'quien' || p.nombre === 'bienvenida') return [p];
@@ -94,7 +113,7 @@ export default function App() {
         // sin historial
       }
       return [...pilaActual, p];
-    });
+    }));
     window.scrollTo(0, 0);
   }, []);
 

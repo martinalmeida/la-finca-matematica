@@ -33,10 +33,22 @@ export const claro = (k: Tono) => TONOS[k][0];
 
 export type U = (k: string) => string;
 
-/** Identificador único por dibujo: los degradados de un SVG no chocan con los de otro. */
-export function useDegradados(): { id: string; u: U } {
+/**
+ * Identificador único por dibujo (los degradados de un SVG no chocan con los de otro) y registro
+ * de los tonos que usa: <Degradados> solo escribe esos. Por eso va al final del SVG, después del
+ * dibujo, cuando ya se sabe qué se usó (las referencias url(#…) funcionan hacia adelante).
+ */
+export function useDegradados(): { id: string; u: U; usados: Set<string> } {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
-  return { id, u: (k) => `url(#${id}${k})` };
+  const usados = new Set<string>();
+  return {
+    id,
+    usados,
+    u: (k) => {
+      usados.add(k);
+      return `url(#${id}${k})`;
+    },
+  };
 }
 
 /**
@@ -44,29 +56,37 @@ export function useDegradados(): { id: string; u: U } {
  * - uno por tono (luz arriba a la izquierda);
  * - b: brillo de vidrio arriba; s: sombra suave abajo; e: reflejo esférico.
  */
-export function Degradados({ id }: { id: string }) {
+export function Degradados({ id, usados }: { id: string; usados: Set<string> }) {
   return (
     <defs>
-      {Object.entries(TONOS).map(([k, [a, b, c]]) => (
+      {Object.entries(TONOS)
+        .filter(([k]) => usados.has(k))
+        .map(([k, [a, b, c]]) => (
         <linearGradient key={k} id={`${id}${k}`} x1="0.2" y1="0" x2="0.8" y2="1">
           <stop offset="0" stopColor={a} />
           <stop offset="0.5" stopColor={b} />
           <stop offset="1" stopColor={c} />
         </linearGradient>
-      ))}
-      <linearGradient id={`${id}b`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#fff" stopOpacity=".8" />
-        <stop offset="1" stopColor="#fff" stopOpacity="0" />
-      </linearGradient>
-      <linearGradient id={`${id}s`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0.45" stopColor="#0b1a12" stopOpacity="0" />
-        <stop offset="1" stopColor="#0b1a12" stopOpacity=".22" />
-      </linearGradient>
-      <radialGradient id={`${id}e`} cx="0.34" cy="0.28" r="0.62">
-        <stop offset="0" stopColor="#fff" stopOpacity=".85" />
-        <stop offset="0.35" stopColor="#fff" stopOpacity=".18" />
-        <stop offset="1" stopColor="#fff" stopOpacity="0" />
-      </radialGradient>
+        ))}
+      {usados.has('b') && (
+        <linearGradient id={`${id}b`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity=".8" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+      )}
+      {usados.has('s') && (
+        <linearGradient id={`${id}s`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.45" stopColor="#0b1a12" stopOpacity="0" />
+          <stop offset="1" stopColor="#0b1a12" stopOpacity=".22" />
+        </linearGradient>
+      )}
+      {usados.has('e') && (
+        <radialGradient id={`${id}e`} cx="0.34" cy="0.28" r="0.62">
+          <stop offset="0" stopColor="#fff" stopOpacity=".85" />
+          <stop offset="0.35" stopColor="#fff" stopOpacity=".18" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </radialGradient>
+      )}
     </defs>
   );
 }

@@ -79,7 +79,15 @@ En **Ajustes → Copia de seguridad**:
 - **Exportar copia** guarda un archivo `.json` con todos los perfiles y avances del celular. Hágalo con frecuencia, por ejemplo cada semana.
 - **Importar copia** (requiere confirmación de un adulto) **reemplaza** los datos del celular por los de la copia. Sirve si se cambia de celular o se borraron los datos.
 
-## 8. Recomendaciones de uso
+## 8. Videos de ayuda
+
+Cada lección trae un video corto de YouTube en español, y las familias tienen una guía de videos en *Cuaderno de la finca → Videos para acompañar en casa*. En los ejercicios, el video aparece cuando el niño pide dos o más pistas o ve la solución.
+
+- Necesitan internet; sin señal la app avisa y todo lo demás funciona igual.
+- Se pueden apagar en **Ajustes → Videos de ayuda de YouTube** (por ejemplo, durante el pilotaje o si el colegio lo prefiere).
+- La lista completa, con enlaces y una columna para marcar la revisión, está en [VIDEOS.md](VIDEOS.md). Revíselos antes de usarlos con los niños: son de terceros y pueden cambiar.
+
+## 9. Recomendaciones de uso
 
 - Sesiones cortas, de 10 a 20 minutos, con el teléfono en vertical.
 - En el aula multigrado, organice turnos y anime a los estudiantes a ayudarse: el reto en pareja está pensado para eso.

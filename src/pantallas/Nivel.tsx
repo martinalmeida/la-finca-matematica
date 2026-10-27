@@ -16,6 +16,8 @@ import {
 } from '../almacenamiento/datos';
 import { sonar } from '../servicios/sonido';
 import Icono from '../componentes/Icono';
+import { unidadDe } from '../juego/complejidad';
+import { videoDeLeccion } from '../contenido/videos';
 
 export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolean }) {
   const { perfil, ir, ajustes } = useApp();
@@ -26,6 +28,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const intento = (progreso.niveles[nivel]?.intentos ?? 0) + 1;
   // Los ejercicios del nivel se generan al entrar a él.
   const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso }), [p.codigo, pista, nivel, intento, repaso]);
+  const video = videoDeLeccion(pista, unidadDe(pista, Math.max(nivel, 1)).indice);
   const [verTutorial, setVerTutorial] = useState(nivel === 0 && !tutorialVisto(p.id));
   const [indice, setIndice] = useState(0);
   const [resultados, setResultados] = useState<ResultadoEjercicio[]>([]);
@@ -104,7 +107,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
               {indice + 1} de {ejercicios.length}
             </span>
           </div>
-          <Ejercicio key={ejercicios[indice].id} ej={ejercicios[indice]} onTerminar={terminarEjercicio} pistaVisible={repaso} />
+          <Ejercicio key={ejercicios[indice].id} ej={ejercicios[indice]} onTerminar={terminarEjercicio} pistaVisible={repaso} video={video} />
         </>
       )}
     </main>

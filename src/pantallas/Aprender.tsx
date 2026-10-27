@@ -9,9 +9,10 @@ import { barrasGrado, leccionDisponible, nivelParaPracticar, rangoNumeros, RESUM
 import { lecciones } from '../contenido/lecciones';
 import { NIVEL_MAXIMO } from '../juego/motor';
 import Icono, { IconoEmoji } from '../componentes/Icono';
+import { videoDeLeccion } from '../contenido/videos';
 
 export default function Aprender() {
-  const { perfil, ir } = useApp();
+  const { perfil, ir, ajustes } = useApp();
   const p = perfil!;
   const adulto = p.rol === 'familia';
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
@@ -79,6 +80,11 @@ export default function Aprender() {
                       <span className="suave fila" style={{ gap: 4 }}>
                         <Icono nombre={iconoEstado} tamano={18} /> {estado}
                       </span>
+                      {ajustes.videos && libre && videoDeLeccion(pista, u.indice) && (
+                        <span className="suave fila" style={{ gap: 4 }}>
+                          <Icono nombre="video" tamano={18} anim="no" /> Con video
+                        </span>
+                      )}
                     </span>
                   </span>
                 </button>

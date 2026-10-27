@@ -15,6 +15,8 @@ import { useLecturaAutomatica, useVoz } from '../servicios/voz';
 import Icono from './Icono';
 import { BotonEscuchar } from './Comunes';
 import { hashTexto } from '../juego/rng';
+import { BotonVideo } from './Video';
+import type { Video } from '../contenido/videos';
 
 export type ResultadoEjercicio = {
   correcto: boolean;
@@ -27,7 +29,7 @@ export type ResultadoEjercicio = {
 
 const MAX_ERRORES = 3;
 
-const elogiosNinos = ['¡Así se hace!', '¡Muy bien, cosecha asegurada!', '¡Excelente trabajo!', '¡Lo lograste!', '¡Bien pensado!', '¡Eso es! Como buen campesino.', '¡Correcto! Sigue así.'];
+const elogiosNinos = ['¡Así se hace!', '¡Muy bien, cosecha asegurada!', '¡Excelente trabajo!', '¡Lo lograste!', '¡Bien pensado!', '¡Eso es! Así se trabaja en la finca.', '¡Correcto! Sigue así.'];
 const elogiosAdultos = ['¡Muy bien!', 'Correcto. Buen cálculo.', 'Exacto. Cuentas claras.', '¡Así es!', 'Correcto, bien razonado.'];
 
 /** Lo que se lee en voz alta al aparecer el ejercicio: enunciado, instrucción y, si son palabras, las opciones. */
@@ -52,11 +54,13 @@ type Props = {
   onTerminar: (r: ResultadoEjercicio) => void;
   /** Muestra la primera pista desde el inicio (modo repaso); no cuenta como pista usada. */
   pistaVisible?: boolean;
+  /** Video de la lección de esta unidad: se ofrece cuando hacen falta varias pistas. */
+  video?: Video | null;
   /** Ejercicio de práctica: no cuenta para el nivel. */
   practica?: boolean;
 };
 
-export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Props) {
+export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, video }: Props) {
   const { ajustes } = useApp();
   const voz = useVoz();
   const adulto = ej.pista === 'familia';
@@ -187,6 +191,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
               <Icono nombre="bombillo" tamano={22} /> <strong>Pista 3:</strong> {ej.pistas[2]}
             </p>
           )}
+          {pistasMostradas >= 2 && <BotonVideo video={video ?? null} adulto={adulto} clase="boton" texto={adulto ? 'Ver cómo se hace en un video' : '¿Lo vemos en un video?'} />}
         </div>
       )}
 
@@ -205,6 +210,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica }: Pr
             <strong>Respuesta:</strong> {textoRespuesta(ej.respuesta)}
           </p>
           <p style={{ margin: 0 }}>{ej.explicacion}</p>
+          {pistasMostradas < 2 && <BotonVideo video={video ?? null} adulto={adulto} clase="boton" texto={adulto ? 'Ver cómo se hace en un video' : 'Verlo explicado en un video'} />}
         </div>
       )}
 

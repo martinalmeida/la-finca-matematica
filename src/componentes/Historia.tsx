@@ -12,6 +12,9 @@ import { useLecturaAutomatica, useVoz } from '../servicios/voz';
 import Icono, { IconoEmoji } from './Icono';
 import { BotonEscuchar } from './Comunes';
 import { sonar, vibrar } from '../servicios/sonido';
+import { BotonVideo } from './Video';
+import { videoDeLeccion } from '../contenido/videos';
+import { pistaDePerfil } from '../almacenamiento/datos';
 
 export function Medidor({ barras, max = 5, etiqueta }: { barras: number; max?: number; etiqueta?: string }) {
   return (
@@ -88,9 +91,10 @@ type Props = {
 };
 
 export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCerrar }: Props) {
-  const { ajustes } = useApp();
+  const { ajustes, perfil } = useApp();
   const [paso, setPaso] = useState(0);
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
+  const video = perfil ? videoDeLeccion(pistaDePerfil(perfil), unidad.indice) : null;
 
   const diapositivas: { clave: string; voz: string; contenido: ReactNode }[] = [
     {
@@ -194,6 +198,7 @@ export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCe
               <Icono nombre="jugar-simple" tamano={22} /> Practicar ahora
             </button>
           )}
+          <BotonVideo video={video} adulto={adulto} texto={tu('Verlo explicado en un video', 'Verlo explicado en un video')} />
           <button
             type="button"
             className="boton secundario"

@@ -17,6 +17,8 @@ import { insignia } from '../juego/progresion';
 import { estadoSilo, hayCosechaNueva } from '../juego/silo';
 import { NIVEL_MAXIMO } from '../juego/motor';
 import Icono, { IconoEmoji } from '../componentes/Icono';
+import { BotonVideo } from '../componentes/Video';
+import { videoDeLeccion } from '../contenido/videos';
 
 export default function Inicio() {
   const { perfil, ir } = useApp();
@@ -126,9 +128,12 @@ export default function Inicio() {
             lectura={`${lista[unidad.indice].titulo}. ${lista[unidad.indice].idea}`}
             etiqueta={<><Icono nombre="libro" tamano={20} /> Aprende</>}
             acciones={
-              <button type="button" className="boton vidrio-boton" onClick={() => abrir(unidad)}>
-                Ver la historia <Icono nombre="siguiente" tamano={20} />
-              </button>
+              <>
+                <button type="button" className="boton vidrio-boton" onClick={() => abrir(unidad)}>
+                  Ver la historia <Icono nombre="siguiente" tamano={20} />
+                </button>
+                <BotonVideo video={videoDeLeccion(pista, unidad.indice)} clase="boton vidrio-boton" texto="Video" />
+              </>
             }
           >
             <div className="leccion-portada">
@@ -147,7 +152,7 @@ export default function Inicio() {
         {unidadReto && lista[unidadReto.indice] && (
           <Publicacion
             id={`reto-${pista}-${unidadReto.indice}-${indiceDelDia(1000)}`}
-            avatar="campesino"
+            avatar="adulto"
             autor="el profe Julián"
             meta={tu('Reto del día · resuélvelo aquí', 'Reto del día · resuélvalo aquí')}
             etiqueta={<><Icono nombre="diana" tamano={20} /> Reto</>}
@@ -217,7 +222,7 @@ export default function Inicio() {
           </section>
         )}
 
-        <Publicacion id="silo" avatar="campesina" autor="doña Rosa" meta="Silo de la escuela" etiqueta={<><Icono nombre="silo" tamano={20} /> Entre todos</>}>
+        <Publicacion id="silo" avatar="adulta" autor="doña Rosa" meta="Silo de la escuela" etiqueta={<><Icono nombre="silo" tamano={20} /> Entre todos</>}>
           <p style={{ marginTop: 0 }}>
             {tu('Las semillas de todos los jugadores de este celular llenan el silo. ¡Cuando se llena, hay cosecha para todos!', 'Las semillas de todos los jugadores de este celular llenan el silo de la escuela.')}
           </p>

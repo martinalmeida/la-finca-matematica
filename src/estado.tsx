@@ -15,7 +15,7 @@ export type Pantalla =
   | { nombre: 'resultado'; resultado: ResultadoNivel; efecto: Efecto }
   | { nombre: 'mifinca' }
   | { nombre: 'ajustes' }
-  | { nombre: 'familias'; seccion?: 'menu' | 'acompanar' | 'avance' }
+  | { nombre: 'familias'; seccion?: 'menu' | 'acompanar' | 'avance' | 'videos' }
   | { nombre: 'docente' }
   | { nombre: 'pareja' };
 

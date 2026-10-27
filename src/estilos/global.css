@@ -24,9 +24,11 @@
   --iris: conic-gradient(from 0deg, #f59e0b, #ef4444, #d946ef, #6366f1, #06b6d4, #22c55e, #f59e0b);
 
   /* Vidrio */
-  --vidrio: rgba(255, 255, 255, 0.56);
-  --vidrio-fuerte: rgba(255, 255, 255, 0.74);
-  --vidrio-suave: rgba(255, 255, 255, 0.34);
+  /* Más opacos que un vidrio real: las superficies que se desplazan no usan backdrop-filter
+     (el fondo son degradados suaves; desenfocarlos casi no se nota y cuesta mucho en celulares). */
+  --vidrio: rgba(255, 255, 255, 0.68);
+  --vidrio-fuerte: rgba(255, 255, 255, 0.82);
+  --vidrio-suave: rgba(255, 255, 255, 0.46);
   --borde-vidrio: rgba(255, 255, 255, 0.7);
   --desenfoque: blur(22px) saturate(185%);
   --sombra: 0 10px 30px -12px rgba(28, 40, 80, 0.28), 0 2px 6px -2px rgba(28, 40, 80, 0.12);
@@ -167,7 +169,7 @@ button {
   height: 78vmax;
   border-radius: 50%;
   opacity: 0.78;
-  will-change: transform;
+  will-change: translate;
 }
 
 /* Cada capa se mueve a otra velocidad con el scroll (sin/cos la mantiene siempre en pantalla). */
@@ -176,7 +178,6 @@ button {
   left: -28vmax;
   background: radial-gradient(circle at 50% 50%, var(--c1) 0%, transparent 62%);
   translate: calc(sin(calc(var(--s) * 0.09deg)) * 12vmax) calc(cos(calc(var(--s) * 0.07deg)) * 10vmax - 10vmax);
-  animation: deriva-a 24s ease-in-out infinite alternate;
 }
 
 .m2 {
@@ -184,7 +185,6 @@ button {
   right: -36vmax;
   background: radial-gradient(circle at 50% 50%, var(--c2) 0%, transparent 60%);
   translate: calc(cos(calc(var(--s) * 0.11deg)) * -14vmax) calc(sin(calc(var(--s) * 0.08deg)) * 16vmax);
-  animation: deriva-b 28s ease-in-out infinite alternate;
 }
 
 .m3 {
@@ -192,7 +192,6 @@ button {
   left: -10vmax;
   background: radial-gradient(circle at 50% 50%, var(--c3) 0%, transparent 60%);
   translate: calc(sin(calc(var(--s) * 0.13deg)) * 18vmax) calc(sin(calc(var(--s) * 0.05deg)) * -12vmax);
-  animation: deriva-a 32s ease-in-out infinite alternate-reverse;
 }
 
 .m4 {
@@ -202,7 +201,6 @@ button {
   height: 60vmax;
   background: radial-gradient(circle at 50% 50%, var(--c4) 0%, transparent 60%);
   translate: calc(cos(calc(var(--s) * 0.15deg)) * 20vmax) calc(cos(calc(var(--s) * 0.1deg)) * 10vmax);
-  animation: deriva-b 20s ease-in-out infinite alternate-reverse;
 }
 
 .m5 {
@@ -212,7 +210,6 @@ button {
   height: 64vmax;
   background: radial-gradient(circle at 50% 50%, var(--c5) 0%, transparent 60%);
   translate: calc(sin(calc(var(--s) * 0.06deg)) * -16vmax) calc(cos(calc(var(--s) * 0.12deg)) * -14vmax);
-  animation: deriva-a 26s ease-in-out infinite alternate;
 }
 
 /* Velo iridiscente que gira con el scroll: el toque "psicodélico" sobre las manchas. */
@@ -224,20 +221,19 @@ button {
   height: 190vmax;
   translate: -50% -50%;
   rotate: calc(var(--s) * 0.08deg);
-  background: conic-gradient(from 0deg, rgba(255, 0, 170, 0.16), rgba(0, 200, 255, 0.14), rgba(140, 255, 0, 0.14), rgba(255, 170, 0, 0.16), rgba(170, 80, 255, 0.14), rgba(255, 0, 170, 0.16));
-  mix-blend-mode: soft-light;
-  animation: girar 70s linear infinite;
+  /* Sin mix-blend-mode ni giro continuo: ambos obligaban a recomponer toda la pantalla en cada cuadro. */
+  background: conic-gradient(from 0deg, rgba(255, 0, 170, 0.07), rgba(0, 200, 255, 0.06), rgba(140, 255, 0, 0.06), rgba(255, 170, 0, 0.07), rgba(170, 80, 255, 0.06), rgba(255, 0, 170, 0.07));
+  will-change: rotate;
 }
 
 /* Láminas de vidrio flotando en el fondo: refractan las manchas al moverse. */
 .lamina {
   position: absolute;
   border-radius: 48px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.06));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.1));
   border: 1px solid rgba(255, 255, 255, 0.5);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  backdrop-filter: blur(14px) saturate(160%);
   box-shadow: var(--brillo-interno);
+  will-change: translate, rotate;
 }
 
 .l1 {
@@ -261,16 +257,6 @@ button {
   border-radius: 999px;
 }
 
-@keyframes deriva-a {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(6vmax, 5vmax, 0) scale(1.12); }
-}
-
-@keyframes deriva-b {
-  from { transform: translate3d(0, 0, 0) scale(1.05); }
-  to { transform: translate3d(-7vmax, 4vmax, 0) scale(0.92); }
-}
-
 @keyframes girar {
   to { transform: rotate(360deg); }
 }
@@ -280,8 +266,6 @@ button {
 .vidrio {
   position: relative;
   background: var(--vidrio);
-  -webkit-backdrop-filter: var(--desenfoque);
-  backdrop-filter: var(--desenfoque);
   border: 1px solid var(--borde-vidrio);
   border-radius: var(--radio);
   box-shadow: var(--sombra), var(--brillo-interno);
@@ -304,8 +288,6 @@ button {
 .tarjeta {
   position: relative;
   background: var(--vidrio);
-  -webkit-backdrop-filter: var(--desenfoque);
-  backdrop-filter: var(--desenfoque);
   border: 1px solid var(--borde-vidrio);
   border-radius: var(--radio);
   padding: 16px;
@@ -319,7 +301,7 @@ button {
   display: flex;
   flex-direction: column;
   /* Solo "backwards": al terminar no queda transform (no rompe position: fixed de los hijos). */
-  animation: entrar 0.5s var(--suave-salida) backwards;
+  animation: entrar 0.26s var(--suave-salida) backwards;
 }
 
 .escenario.con-pestanas {
@@ -329,8 +311,7 @@ button {
 @keyframes entrar {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
-    filter: blur(8px);
+    transform: translateY(10px);
   }
 }
 
@@ -464,9 +445,7 @@ button {
   padding: 10px 18px;
   border-radius: 18px;
   border: 1px solid var(--borde-vidrio);
-  background: rgba(255, 255, 255, 0.62);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255, 255, 255, 0.74);
   color: var(--tinta);
   font-weight: 700;
   font-size: 1rem;
@@ -476,10 +455,11 @@ button {
   gap: 8px;
   box-shadow: var(--sombra), var(--brillo-interno);
   text-align: center;
-  transition: transform 0.25s var(--resorte), box-shadow 0.25s ease, background 0.25s ease;
+  transition: transform 0.2s var(--resorte);
 }
 
 .boton:active:not(:disabled) {
+  transition-duration: 0.08s;
   transform: scale(0.96);
   box-shadow: 0 4px 12px -6px rgba(28, 40, 80, 0.3), var(--brillo-interno);
 }
@@ -543,18 +523,19 @@ button {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -60%;
+  left: 0;
   width: 45%;
   background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
-  transform: skewX(-18deg);
+  transform: translateX(-140%) skewX(-18deg);
   animation: destello 3.6s ease-in-out infinite;
+  will-change: transform;
   pointer-events: none;
 }
 
 @keyframes destello {
   0%,
-  55% { left: -60%; }
-  100% { left: 130%; }
+  55% { transform: translateX(-140%) skewX(-18deg); }
+  100% { transform: translateX(300%) skewX(-18deg); }
 }
 
 .rejilla {
@@ -1309,7 +1290,6 @@ button {
   from {
     opacity: 0;
     transform: translateX(40px) scale(0.96);
-    filter: blur(6px);
   }
 }
 
@@ -1819,8 +1799,6 @@ button {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
   box-shadow: var(--sombra), var(--brillo-interno);
   animation: aparecer 0.4s var(--resorte);
 }
@@ -1844,8 +1822,6 @@ button {
 
 .pista-caja {
   background: rgba(219, 234, 254, 0.82);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
   border: 1px dashed rgba(59, 130, 246, 0.6);
   border-radius: 20px;
   padding: 12px 14px;
@@ -1866,11 +1842,9 @@ button {
   font-weight: 800;
   border-radius: 20px;
   border: 1px solid var(--borde-vidrio);
-  background: rgba(255, 255, 255, 0.66);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255, 255, 255, 0.8);
   box-shadow: var(--sombra), var(--brillo-interno);
-  transition: transform 0.25s var(--resorte), background 0.25s;
+  transition: transform 0.2s var(--resorte), background 0.15s;
 }
 
 .opcion:active:not(:disabled) {
@@ -1900,8 +1874,6 @@ button {
   border: 2px solid rgba(16, 185, 129, 0.7);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
   font-size: 2rem;
   font-weight: 800;
   display: flex;
@@ -1938,9 +1910,7 @@ button {
   gap: 8px;
   padding: 8px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.28);
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  backdrop-filter: blur(18px) saturate(170%);
+  background: rgba(255, 255, 255, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
@@ -2561,7 +2531,7 @@ button {
 }
 
 /* ===================== Revelado al hacer scroll ===================== */
-/* Las tarjetas entran con escala y desenfoque mientras aparecen en pantalla (Chrome 115+). */
+/* Las tarjetas entran con escala mientras aparecen en pantalla (Chrome 115+). Sin desenfoque: costaba un repintado por cuadro. */
 
 @supports (animation-timeline: view()) {
   :root[data-efectos='completos'] .revelar {
@@ -2580,13 +2550,11 @@ button {
 @keyframes revelar {
   from {
     opacity: 0.2;
-    transform: translateY(36px) scale(0.94);
-    filter: blur(6px);
+    transform: translateY(28px) scale(0.96);
   }
   to {
     opacity: 1;
     transform: none;
-    filter: none;
   }
 }
 
@@ -2665,8 +2633,7 @@ button {
   flex-shrink: 0;
   vertical-align: middle;
   overflow: visible;
-  /* Sombra corta y nítida en tamaños chicos; más alta y suave cuando el ícono es grande. */
-  filter: drop-shadow(0 1.5px 1.5px rgba(16, 32, 24, 0.2));
+  /* Sin filtro en tamaños chicos: el relieve ya lo dan los degradados y la sombra interna. */
 }
 
 .icono.con-relieve {
@@ -2943,3 +2910,98 @@ button:active .icono [class*='a-'] {
 :root[data-efectos='ligeros'] .hoja-instalar { animation: none; }
 .hoja-instalar p { margin: 0; }
 .hoja-instalar a.boton { text-decoration: none; }
+
+/* ===================== Videos de ayuda ===================== */
+
+.velo-video {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(10, 16, 12, 0.72);
+  animation: aparecer-velo 0.2s ease-out;
+}
+
+.hoja-video {
+  width: 100%;
+  max-width: 720px;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radio-grande);
+  background: var(--vidrio-fuerte);
+  box-shadow: var(--sombra-alta);
+  animation: subir-hoja 0.3s var(--suave-salida);
+}
+
+.hoja-video-cabeza {
+  gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.hoja-video-cabeza strong {
+  display: block;
+  line-height: 1.25;
+}
+
+.marco-video {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0b1a12;
+}
+
+.marco-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.marco-video-aviso {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.boton-video {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.historia .boton-video,
+.pista-caja .boton-video {
+  justify-content: center;
+}
+
+.grado-videos summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  cursor: pointer;
+  min-height: var(--toque);
+}
+
+:root[data-efectos='ligeros'] .velo-video,
+:root[data-efectos='ligeros'] .hoja-video {
+  animation: none;
+}

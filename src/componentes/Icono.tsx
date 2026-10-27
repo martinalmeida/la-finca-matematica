@@ -613,6 +613,13 @@ const iconos: Record<string, (u: U) => ReactElement> = {
       {reflejo(u, 'M8 13h30a5 5 0 0 1 5 5H3a5 5 0 0 1 5-5Z')}
     </g>
   ),
+  video: (u) => (
+    <g className="a-latir">
+      <Volumen u={u} c="r" d={rect(3, 9, 42, 30, 9)} />
+      {reflejo(u, 'M12 9h24a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9Z')}
+      <path d="M20 17.5v13l11-6.5Z" fill="#fff" stroke="#fff" strokeWidth="2.4" strokeLinejoin="round" />
+    </g>
+  ),
   cerrar: () => <path d="M14 14l20 20M34 14 14 34" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />,
   // Íconos de los menús del navegador, tal como se ven en Safari y Chrome.
   compartir: () => (
@@ -720,7 +727,7 @@ type Props = {
 const DE_LINEA = new Set(['cerrar', 'compartir', 'agregar', 'puntos', 'atras', 'siguiente', 'jugar-simple', 'corazon-vacio']);
 
 export default function Icono({ nombre, tamano = 28, anim = 'una', etiqueta, className = '' }: Props) {
-  const { id, u } = useDegradados();
+  const { id, u, usados } = useDegradados();
   const accesible = etiqueta ? { role: 'img', 'aria-label': etiqueta } : { 'aria-hidden': true };
   // Relieve (sombra proyectada) solo en tamaños grandes: en los pequeños ensucia el contorno.
   const relieve = DE_LINEA.has(nombre) ? 'de-linea' : tamano >= 40 ? 'con-relieve' : '';
@@ -739,8 +746,8 @@ export default function Icono({ nombre, tamano = 28, anim = 'una', etiqueta, cla
   if (!dibujo) return null;
   return (
     <svg className={clase} width={tamano} height={tamano} viewBox="0 0 48 48" focusable="false" {...accesible}>
-      {!DE_LINEA.has(nombre) && <Degradados id={id} />}
       {dibujo(u)}
+      {!DE_LINEA.has(nombre) && <Degradados id={id} usados={usados} />}
     </svg>
   );
 }

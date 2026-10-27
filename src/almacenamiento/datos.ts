@@ -47,6 +47,8 @@ export type Ajustes = {
   audioEnunciados: boolean;
   /** Efectos de vidrio y movimiento; «ligeros» para celulares lentos o movimiento reducido. */
   efectos: 'completos' | 'ligeros';
+  /** Videos de ayuda de YouTube (necesitan internet). */
+  videos: boolean;
 };
 
 /** Resumen agregado por perfil (sin detalle por ejercicio): alimenta el panel docente
@@ -200,10 +202,21 @@ function movimientoReducido(): boolean {
   }
 }
 
-export const ajustesPorDefecto: Ajustes = { tamanoLetra: 'normal', sonido: true, vibracion: true, audioEnunciados: true, efectos: 'completos' };
+/** Celular de gama baja (Chrome informa la memoria): arranca con efectos ligeros. */
+function equipoModesto(): boolean {
+  try {
+    const memoria = (navigator as { deviceMemory?: number }).deviceMemory;
+    const nucleos = navigator.hardwareConcurrency;
+    return (memoria !== undefined && memoria <= 2) || (/Android/.test(navigator.userAgent) && nucleos > 0 && nucleos <= 4);
+  } catch {
+    return false;
+  }
+}
+
+export const ajustesPorDefecto: Ajustes = { tamanoLetra: 'normal', sonido: true, vibracion: true, audioEnunciados: true, efectos: 'completos', videos: true };
 
 export function leerAjustes(): Ajustes {
-  return { ...ajustesPorDefecto, ...(movimientoReducido() ? { efectos: 'ligeros' as const } : {}), ...leer<Partial<Ajustes>>(K.ajustes, {}) };
+  return { ...ajustesPorDefecto, ...(movimientoReducido() || equipoModesto() ? { efectos: 'ligeros' as const } : {}), ...leer<Partial<Ajustes>>(K.ajustes, {}) };
 }
 
 

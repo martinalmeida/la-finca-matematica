@@ -5,6 +5,7 @@ Aplicación web progresiva (PWA) para practicar **suma, resta, multiplicación y
 - Estudiantes de 1.º a 5.º (aulas multigrado) y sección propia para familias.
 - 101 niveles (0 a 100) por pista, en seis pistas: 1.º, 2.º, 3.º, 4.º, 5.º y Familia (606 niveles), generados por código con **112 plantillas** (ver [docs/PLANTILLAS.md](docs/PLANTILLAS.md)).
 - **100 % sin conexión** después de la primera carga: sin APIs, CDN, fuentes externas, analítica ni anuncios. Todo va empaquetado.
+- **Videos de ayuda opcionales** (YouTube, en español): solo se cargan si alguien toca «Ver video» y hay internet; sin señal se avisa y lo demás sigue igual. Se apagan en Ajustes. Catálogo y revisión docente: [docs/VIDEOS.md](docs/VIDEOS.md).
 - Varios perfiles por celular, datos solo en `localStorage` del dispositivo; nada sale del celular.
 - Interfaz de vidrio tipo red social: muro de inicio con historias (42 mini-lecciones, una por unidad y grado, en `src/contenido/lecciones.ts`), reto del día y logros locales; pestañas Inicio, Ruta, Aprender y Perfil. Cada grado tiene su ruta de 7 unidades con complejidad creciente (Inicio → Básico → Intermedio → Avanzado → Reto; ver `src/juego/complejidad.ts`). En Ajustes, «Ligeros» quita transparencias y animaciones para celulares lentos.
 

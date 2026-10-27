@@ -36,7 +36,7 @@ export function zonaDe(nivel: number): number {
 const base: Insignia[] = [
   { id: 'primer-surco', nombre: 'Primer surco', descripcion: 'Terminaste el tutorial.', icono: '🌱' },
   { id: 'explorador', nombre: 'Explorador del surco', descripcion: 'Completaste una zona entera de la finca.', icono: '🧭' },
-  { id: 'paciencia', nombre: 'Paciencia campesina', descripcion: 'Aprobaste un nivel después de varios intentos.', icono: '🐢' },
+  { id: 'paciencia', nombre: 'Paciencia de cosecha', descripcion: 'Aprobaste un nivel después de varios intentos.', icono: '🐢' },
   { id: 'buen-vecino', nombre: 'Buen vecino', descripcion: 'Completaste un reto en pareja.', icono: '🤝' },
   { id: 'manos-a-la-obra', nombre: 'Aprender del error', descripcion: 'Corregiste una respuesta después de usar una pista.', icono: '💡' },
   { id: 'tres-estrellas', nombre: 'Cosecha limpia', descripcion: 'Lograste 3 estrellas en 10 niveles.', icono: '⭐' },
