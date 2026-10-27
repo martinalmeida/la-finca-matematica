@@ -13,6 +13,8 @@ export type Copia = {
 export function crearCopia(): Copia {
   const datos: Record<string, string> = {};
   for (const k of clavesApp()) {
+    // La versión de la app es de este celular, no de los datos.
+    if (k === 'fincaMat:versionApp') continue;
     const v = leerTexto(k);
     if (v !== null) datos[k] = v;
   }

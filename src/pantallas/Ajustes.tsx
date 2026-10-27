@@ -12,6 +12,7 @@ import { barrasGrado, nombreGrado, pistaDeGrado, RESUMEN_GRADO } from '../juego/
 import { useVoz } from '../servicios/voz';
 import Icono from '../componentes/Icono';
 import { AUTOR, DERECHOS, PROGRAMA, UNIVERSIDAD } from '../contenido/autoria';
+import { buscarActualizacionAhora, repararCache, VERSION_APP } from '../pwa/registro';
 
 export default function Ajustes() {
   const { ajustes, cambiarAjustes, perfil, actualizarPerfil, ir, avisar } = useApp();
@@ -19,6 +20,7 @@ export default function Ajustes() {
   const adulto = perfil?.rol === 'familia';
   const [pin, setPin] = useState<null | 'grado' | 'importar' | 'ra'>(null);
   const [eligiendoGrado, setEligiendoGrado] = useState(false);
+  const [revisando, setRevisando] = useState(false);
   const archivo = useRef<HTMLInputElement>(null);
   const cambiar = <K extends keyof TAjustes>(k: K, v: TAjustes[K]) => cambiarAjustes({ ...ajustes, [k]: v });
 
@@ -203,6 +205,40 @@ export default function Ajustes() {
         <BotonInstalar />
         <button type="button" className="boton" onClick={() => ir({ nombre: 'quien' })}>
           <Icono nombre="personas" tamano={26} /> Cambiar de jugador
+        </button>
+        <p className="pequeno suave" style={{ margin: 0 }}>
+          Versión {VERSION_APP}. Se actualiza sola cuando hay internet.
+        </p>
+        <button
+          type="button"
+          className="boton"
+          disabled={revisando}
+          onClick={async () => {
+            setRevisando(true);
+            const r = await buscarActualizacionAhora();
+            setRevisando(false);
+            avisar(
+              r === 'actualizando'
+                ? 'Hay una versión nueva: actualizando…'
+                : r === 'al-dia'
+                  ? 'Ya tiene la última versión'
+                  : r === 'sin-conexion'
+                    ? 'Sin internet: se buscará cuando haya señal'
+                    : 'Las actualizaciones automáticas no están disponibles en este navegador',
+            );
+          }}
+        >
+          <Icono nombre="repetir" tamano={26} /> {revisando ? 'Buscando…' : 'Buscar actualización'}
+        </button>
+        <button
+          type="button"
+          className="boton"
+          onClick={() => {
+            if (!window.confirm('Se borrará la caché de la aplicación y se volverá a descargar. Los perfiles y el avance no se borran. Necesita internet. ¿Continuar?')) return;
+            void repararCache();
+          }}
+        >
+          <Icono nombre="engrane" tamano={26} /> Reparar la aplicación (borrar caché)
         </button>
       </section>
 

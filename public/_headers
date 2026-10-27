@@ -1,0 +1,8 @@
+# Netlify y Cloudflare Pages: estos archivos nunca se guardan en caché del navegador, para que
+# la app detecte enseguida las versiones nuevas. (GitHub Pages ignora este archivo.)
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+/index.html
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache

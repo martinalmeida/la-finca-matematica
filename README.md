@@ -54,7 +54,11 @@ npm run catalogo   # vuelve a generar docs/PLANTILLAS.md
 1. `npm run build`.
 2. Suba la carpeta `dist/` a un hosting estático gratuito con HTTPS (por ejemplo, GitHub Pages, Netlify o Cloudflare Pages). El build usa rutas relativas (`base: './'`), así que funciona también en subcarpetas.
 3. En cada celular, cuando haya señal (en el casco urbano, por ejemplo), abra la dirección en Chrome, espere el aviso «Lista para usar sin internet» y toque **«Instalar en este celular»** (o menú ⋮ → *Agregar a pantalla de inicio*).
-4. Desde ahí funciona sin conexión. Si hay una versión nueva, se actualiza sola la próxima vez que el celular tenga señal y abra la app.
+4. Desde ahí funciona sin conexión.
+
+**Actualizaciones automáticas.** Cada vez que se publica un build nuevo, la app instalada lo detecta sola cuando hay señal: al abrirse, al volver a primer plano, al recuperar internet y cada 15 minutos. Descarga la versión nueva, la activa, borra la caché de la versión anterior y se recarga, y avisa «La aplicación se actualizó». Si el niño está en un nivel, una prueba, el reto en pareja o el taller, espera a que salga para no cortarle el trabajo. Los perfiles y el avance no se tocan.
+
+En *Ajustes → Aplicación* se ve la versión instalada y hay dos botones: **Buscar actualización** y **Reparar la aplicación (borrar caché)**. Este último quita el service worker y toda la caché y vuelve a descargar la app (necesita internet; no borra datos). En Netlify o Cloudflare Pages, `public/_headers` evita que `sw.js` e `index.html` queden en caché del servidor o del navegador.
 
 ### Opción B: servir desde un computador del colegio en la red local
 

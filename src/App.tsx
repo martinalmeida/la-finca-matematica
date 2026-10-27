@@ -14,7 +14,7 @@ import {
   type Perfil,
 } from './almacenamiento/datos';
 import { alCambiarDisponibilidad, almacenamientoDisponible } from './almacenamiento/almacen';
-import { alListoSinInternet } from './pwa/registro';
+import { alListoSinInternet, marcarOcupada, seActualizo } from './pwa/registro';
 import Bienvenida from './pantallas/Bienvenida';
 import QuienJuega from './pantallas/QuienJuega';
 import Fondo from './componentes/Fondo';
@@ -103,6 +103,12 @@ export default function App() {
   }, []);
 
   useEffect(() => alListoSinInternet(() => avisar('Lista para usar sin internet')), [avisar]);
+  useEffect(() => {
+    if (seActualizo()) avisar('La aplicación se actualizó a la última versión');
+  }, [avisar]);
+  // En un nivel, una prueba, el reto en pareja o el taller no se recarga por una actualización:
+  // se aplica al salir.
+  useEffect(() => marcarOcupada(['nivel', 'prueba', 'pareja', 'taller'].includes(pantalla.nombre)), [pantalla.nombre]);
   useEffect(precargarPantallas, []);
   useEffect(() => alCambiarDisponibilidad(() => setSinAlmacen(!almacenamientoDisponible())), []);
   useEffect(() => aplicarTamanoLetra(perfil, ajustes, pantalla), [perfil, ajustes, pantalla]);

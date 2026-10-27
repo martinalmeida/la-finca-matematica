@@ -2,14 +2,23 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'node:fs';
+
+// Cada build tiene su versión: la del paquete y la hora de compilación (hora de Colombia).
+const paquete = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
+const hora = new Date(Date.now() - 5 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
+const VERSION_APP = `${paquete.version} (${hora})`;
 
 export default defineConfig({
   // Rutas relativas: permite servir dist/ desde cualquier carpeta o empaquetarlo con Capacitor.
   base: './',
+  define: { __VERSION_APP__: JSON.stringify(VERSION_APP) },
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // «prompt»: la versión nueva queda esperando y la app decide cuándo activarla (src/pwa/registro.ts):
+      // enseguida, salvo en medio de un nivel o una prueba, para no cortarle el trabajo a un niño.
+      registerType: 'prompt',
       injectRegister: false,
       includeManifestIcons: false,
       includeAssets: ['favicon.svg', 'iconos/icono-192.png', 'iconos/icono-maskable-192.png', 'iconos/icono-apple-180.png', 'iconos/favicon-32.png'],
@@ -47,9 +56,11 @@ export default defineConfig({
         // Los íconos de 512 solo los usa el sistema al instalar: no hace falta guardarlos sin conexión.
         globIgnores: ['**/iconos/*-512.png'],
         navigateFallback: 'index.html',
+        // Al activarse una versión nueva se borran los archivos de la versión anterior.
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: true,
+        // La versión nueva espera la orden de la app (SKIP_WAITING) para no recargar a mitad de un nivel.
+        skipWaiting: false,
       },
     }),
   ],
