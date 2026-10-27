@@ -4,7 +4,8 @@ import Ejercicio, { type ResultadoEjercicio } from '../componentes/Ejercicio';
 import { generarNivel, temaDe } from '../juego/motor';
 import { etiquetaNivel, nivelConTotal, unidadDe } from '../juego/complejidad';
 import { aplicarResultado, type ResultadoNivel } from '../juego/progresion';
-import { bandaDePerfil, guardarProgreso, leerProgreso, leerResumen, pistaDePerfil, registrar, sumarAlResumen } from '../almacenamiento/datos';
+import { bandaDePerfil, guardarPartida, guardarProgreso, leerProgreso, leerResumen, pistaDePerfil, registrar, sumarAlResumen } from '../almacenamiento/datos';
+import { sincronizarPronto } from '../servicios/sincronizacion';
 import { sonar } from '../servicios/sonido';
 import Icono from '../componentes/Icono';
 import { videoDeLeccion, type Video } from '../contenido/videos';
@@ -93,7 +94,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const progreso = useMemo(() => leerProgreso(p.id, pista), [p.id, pista]);
   const intento = (progreso.niveles[nivel]?.intentos ?? 0) + 1;
   // Las 10 preguntas del nivel se generan al entrar a él.
-  const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso, banda }), [p.codigo, pista, nivel, intento, repaso, banda]);
+  const ejercicios = useMemo(() => generarNivel({ codigo: p.usuario, pista, nivel, intento, repaso, banda }), [p.usuario, pista, nivel, intento, repaso, banda]);
   const video = ajustes.videos === false ? null : videoDeLeccion(pista, nivel - 1);
   const leccion = lecciones[pista][unidadDe(pista, nivel).indice];
   const adulto = p.rol === 'familia';
@@ -107,8 +108,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const terminarEjercicio = (r: ResultadoEjercicio) => {
     const ej = ejercicios[indice];
     sumarAlResumen(p.id, ej.operacion, r.correcto, r.tipoError, r.pasoAPaso);
-    registrar(p.id, {
-      t: new Date().toISOString(),
+    registrar('nivel', {
       pista,
       nivel,
       plantilla: ej.plantilla,
@@ -118,7 +118,6 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
       pistasUsadas: r.pistas,
       tipoError: r.tipoError,
       ms: r.ms,
-      pasoAPaso: r.pasoAPaso,
     });
     const todos = [...resultados, r];
     setResultados(todos);
@@ -141,6 +140,18 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
     };
     const efecto = aplicarResultado(leerProgreso(p.id, pista), resultado, leerResumen(p.id).diasJugados.length);
     guardarProgreso(p.id, pista, efecto.progreso);
+    guardarPartida({
+      tipo: 'nivel',
+      pista,
+      nivel,
+      aciertos: resultado.aciertos,
+      total: resultado.total,
+      estrellas: efecto.estrellas,
+      ms_total: todos.reduce((s, x) => s + x.ms, 0),
+      repaso,
+      banda: inclusion ? null : banda,
+    });
+    sincronizarPronto();
     sonar(efecto.aprobado ? 'nivel' : 'intento', ajustes.sonido);
     ir({ nombre: 'resultado', resultado, efecto }, { reemplazar: true });
   };

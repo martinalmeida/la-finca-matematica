@@ -1,15 +1,14 @@
 // Inicio: muro tipo red social de la finca. Historias con las lecciones del grado, tarjeta para
-// seguir la ruta, lección y reto del día, datos curiosos y logros de los jugadores de este celular.
+// seguir la ruta, lección y reto del día, datos curiosos y el silo de la escuela.
 // Todo se arma con datos locales; no hay red real.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '../estado';
-import { Avatar } from '../componentes/Ilustraciones';
+import { Logo } from '../componentes/Ilustraciones';
 import Celebracion from '../componentes/Celebracion';
 import Historia, { Medidor, MiniReto } from '../componentes/Historia';
 import { BarraHistorias, CabeceraVidrio, Publicacion } from '../componentes/Red';
-import { LogoConPanel } from './Bienvenida';
-import { haceDiagnostica, historiasVistas, leerProgreso, leerPruebas, listarPerfiles, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
+import { haceDiagnostica, historiasVistas, leerProgreso, leerPruebas, marcarHistoriaVista, pistaDePerfil, primerNombre } from '../almacenamiento/datos';
 import { etiquetaNivel, etiquetaUnidad, nivelConTotal, leccionDisponible, nivelParaPracticar, RESUMEN_GRADO, unidadDe, unidadesDe, type Unidad } from '../juego/complejidad';
 import { lecciones } from '../contenido/lecciones';
 import { avatarDeAutor, consejosFamilia, datosCuriosos, indiceDelDia } from '../contenido/red';
@@ -62,27 +61,15 @@ export default function Inicio() {
   const dato2 = datosCuriosos[indiceDelDia(datosCuriosos.length, 5)];
   const consejo = consejosFamilia[indiceDelDia(consejosFamilia.length)];
 
-  // Logros de los jugadores de este celular (solo apodos, como en «¿Quién juega?»).
-  const logros = listarPerfiles()
-    .filter((x) => x.rol === 'estudiante')
-    .map((x) => {
-      const px = pistaDePerfil(x);
-      const pr = x.id === p.id ? progreso : leerProgreso(x.id, px);
-      return { perfil: x, pista: px, progreso: pr, estrellas: Object.values(pr.niveles).reduce((s, n) => s + n.estrellas, 0) };
-    })
-    .filter((x) => Object.keys(x.progreso.niveles).length > 0)
-    .sort((a, b) => b.progreso.nivelMaximoDesbloqueado - a.progreso.nivelMaximoDesbloqueado)
-    .slice(0, 4);
-
   const silo = estadoSilo();
   const ultimaInsignia = progreso.insignias.length ? insignia(progreso.insignias[progreso.insignias.length - 1]) : undefined;
 
   return (
     <>
       <CabeceraVidrio
-        izquierda={<LogoConPanel tamano={38} />}
+        izquierda={<Logo tamano={38} />}
         titulo="La Finca"
-        subtitulo={tu(`Hola, ${p.apodo}`, `Bienvenido(a), ${p.apodo}`)}
+        subtitulo={tu(`Hola, ${primerNombre(p)}`, `Bienvenido(a), ${primerNombre(p)}`)}
         derecha={
           <>
             <span className="chip semillas" aria-label={`${progreso.semillas} semillas`}>
@@ -192,7 +179,7 @@ export default function Inicio() {
         </Publicacion>
 
         {ultimaInsignia && (
-          <Publicacion id={`insignia-${ultimaInsignia.id}`} avatar={p.avatar} autor={p.apodo} meta={tu('Tu último logro', 'Su último logro')} etiqueta={<><Icono nombre="medalla" tamano={20} /> Logro</>} reaccion={['Aplaudir', '¡Aplaudido!']} iconoReaccion="fiesta">
+          <Publicacion id={`insignia-${ultimaInsignia.id}`} avatar={p.avatar} autor={primerNombre(p)} meta={tu('Tu último logro', 'Su último logro')} etiqueta={<><Icono nombre="medalla" tamano={20} /> Logro</>} reaccion={['Aplaudir', '¡Aplaudido!']} iconoReaccion="fiesta">
             <div className="logro-grande">
               <span>
                 <IconoEmoji emoji={ultimaInsignia.icono} tamano={42} anim="siempre" />
@@ -205,37 +192,9 @@ export default function Inicio() {
           </Publicacion>
         )}
 
-        {logros.length > 0 && (
-          <section className="publicacion vidrio revelar" aria-label="Así van en este celular">
-            <header className="publicacion-cabecera">
-              <span className="chip">
-                <Icono nombre="trofeo" tamano={20} /> Así van en este celular
-              </span>
-            </header>
-            <ul className="lista-logros">
-              {logros.map((x) => (
-                <li key={x.perfil.id}>
-                  <span className="anillo-avatar pequeno-anillo">
-                    <Avatar id={x.perfil.avatar} tamano={40} etiqueta="" />
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <strong>{x.perfil.id === p.id ? `${x.perfil.apodo} (${tu('tú', 'usted')})` : x.perfil.apodo}</strong>
-                    <div className="pequeno suave">
-                      Nivel {etiquetaNivel(x.pista, Math.min(x.progreso.nivelMaximoDesbloqueado, nivelMaximo(x.pista)))} · {RESUMEN_GRADO[x.pista].nombre} · ★ {x.estrellas}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="pequeno suave" style={{ margin: 0 }}>
-              {tu('Cada quien avanza en la ruta de su grado. ¡Lo importante es seguir aprendiendo!', 'Cada estudiante avanza en la ruta de su grado; no es una competencia.')}
-            </p>
-          </section>
-        )}
-
         <Publicacion id="silo" avatar="adulta" autor="doña Rosa" meta="Silo de la escuela" etiqueta={<><Icono nombre="silo" tamano={20} /> Entre todos</>}>
           <p style={{ marginTop: 0 }}>
-            {tu('Las semillas de todos los jugadores de este celular llenan el silo. ¡Cuando se llena, hay cosecha para todos!', 'Las semillas de todos los jugadores de este celular llenan el silo de la escuela.')}
+            {tu('Las semillas de todos los compañeros de la escuela llenan el silo. ¡Cuando se llena, hay cosecha para todos!', 'Las semillas de todos los estudiantes y familias de la escuela llenan el silo.')}
           </p>
           <div className="silo" role="progressbar" aria-valuemin={0} aria-valuemax={silo.capacidad} aria-valuenow={silo.enSilo} aria-label="Semillas en el silo">
             <div style={{ width: `${(silo.enSilo / silo.capacidad) * 100}%` }} />
@@ -244,24 +203,6 @@ export default function Inicio() {
             {silo.enSilo} de {silo.capacidad} semillas · Cosechas colectivas: {silo.cosechas}
           </p>
         </Publicacion>
-
-        {!adulto && listarPerfiles().filter((x) => x.rol === 'estudiante').length >= 2 && (
-          <Publicacion
-            id="pareja"
-            avatar="nina-cacaotera"
-            autor="Valentina"
-            meta="Invitación"
-            lectura="¿Resolvemos un reto en pareja? Uno hace el primer paso y el otro el segundo. ¡Juntos es más fácil!"
-            etiqueta={<><Icono nombre="pareja" tamano={20} /> Pareja</>}
-            acciones={
-              <button type="button" className="boton vidrio-boton" onClick={() => ir({ nombre: 'pareja' })}>
-                Aceptar el reto <Icono nombre="siguiente" tamano={20} />
-              </button>
-            }
-          >
-            <p style={{ margin: 0 }}>¿Resolvemos un reto en pareja? Uno hace el primer paso y el otro el segundo. ¡Juntos es más fácil!</p>
-          </Publicacion>
-        )}
 
         <Publicacion id={`dato-${dato2.titulo}`} avatar={avatarDeAutor(dato2.autor)} autor={dato2.autor} meta="¿Sabías que…?" lectura={`${dato2.titulo}. ${dato2.texto}`} etiqueta={<><Icono nombre="dato" tamano={20} /> Dato</>}>
           <div className="dato-curioso">
@@ -293,7 +234,7 @@ export default function Inicio() {
       {cosecha && (
         <Celebracion
           titulo="¡Cosecha colectiva!"
-          texto="Entre todos los jugadores de este celular llenaron el silo de la escuela. ¡Gracias por trabajar juntos!"
+          texto="Entre todos los compañeros llenaron el silo de la escuela. ¡Gracias por trabajar juntos!"
           alCerrar={() => setCosecha(false)}
         />
       )}

@@ -3,7 +3,7 @@
 
 import { borrar, clavesApp, escribirTexto, leerTexto, PREFIJO_V1 } from './almacen';
 
-export const VERSION_ACTUAL = 3;
+export const VERSION_ACTUAL = 4;
 export const CLAVE_VERSION = 'fincaMat:version';
 
 type Migracion = { a: number; aplicar: () => void };
@@ -54,6 +54,16 @@ const migraciones: Migracion[] = [
         if (k.startsWith(PREFIJO_V1 + 'progreso:') && k.endsWith(':inclusion')) borrar(k);
       }
       for (const id of inclusion) borrar(PREFIJO_V1 + 'historiasVistas:' + id);
+    },
+  },
+  {
+    a: 4,
+    aplicar: () => {
+      // v3 → v4: los perfiles anónimos del celular se reemplazan por cuentas que crea el profesor.
+      // Se borran perfiles, progreso, registro y PIN docente; solo se conservan los ajustes del celular.
+      for (const k of clavesApp()) {
+        if (k.startsWith(PREFIJO_V1) && k !== PREFIJO_V1 + 'ajustes') borrar(k);
+      }
     },
   },
 ];

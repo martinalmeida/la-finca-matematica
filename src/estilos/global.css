@@ -4158,3 +4158,44 @@ button.frase:active {
   font-size: 0.8rem;
   font-weight: 800;
 }
+
+/* ===================== Entrar (usuario y contraseña) ===================== */
+
+.entrar label > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.campo-clave {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.campo-clave .campo {
+  flex: 1;
+  min-width: 0;
+}
+
+.boton.enlace {
+  min-height: auto;
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: var(--azul);
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+.estado-nube {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.perfil-boton.elegido {
+  outline: 3px solid var(--verde);
+  outline-offset: 2px;
+}

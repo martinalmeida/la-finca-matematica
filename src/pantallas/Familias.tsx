@@ -1,13 +1,12 @@
 import { useApp } from '../estado';
 import { Barra } from '../componentes/Comunes';
-import { Avatar } from '../componentes/Ilustraciones';
 import { informePerfil, nombresOperacion } from '../juego/informes';
-import { leerPruebas, listarPerfiles, pistaDePerfil } from '../almacenamiento/datos';
+import { leerPruebas, pistaDePerfil } from '../almacenamiento/datos';
 import Comparacion from '../componentes/Comparacion';
 import { temaDe } from '../juego/motor';
 import { consejosFamilia as consejos } from '../contenido/red';
 import { CabeceraVidrio } from '../componentes/Red';
-import { nivelConTotal, nombreGrado } from '../juego/complejidad';
+import { nivelConTotal, RESUMEN_GRADO } from '../juego/complejidad';
 import Icono from '../componentes/Icono';
 import { BotonVideo } from '../componentes/Video';
 import { guiaFamilias, videosLecciones } from '../contenido/videos';
@@ -26,10 +25,10 @@ const GRADOS: { pista: Pista; nombre: string }[] = [
 ];
 
 export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 'avance' | 'videos' }) {
-  const { ir, ajustes } = useApp();
+  const { ir, ajustes, perfil } = useApp();
 
   if (seccion === 'videos') {
-    const gradosNinos = new Set<Pista>(listarPerfiles().filter((p) => p.rol === 'estudiante').map(pistaDePerfil));
+    const propia = pistaDePerfil(perfil);
     return (
       <main className="pantalla">
         <Barra titulo={<span className="cuaderno-titulo">Videos para acompañar</span>} />
@@ -51,10 +50,10 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
           ))}
         </section>
         {GRADOS.map(({ pista, nombre }) => (
-          <details key={pista} className="tarjeta grado-videos" open={gradosNinos.has(pista)}>
+          <details key={pista} className="tarjeta grado-videos" open={pista === propia}>
             <summary>
               <strong>{nombre}</strong>
-              {gradosNinos.has(pista) && <span className="chip pequeno">Grado de sus niños</span>}
+              {pista === propia && <span className="chip pequeno">Su cuaderno</span>}
             </summary>
             <div className="columna" style={{ marginTop: 10 }}>
               {videosLecciones[pista].map(
@@ -92,45 +91,31 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
   }
 
   if (seccion === 'avance') {
-    const ninos = listarPerfiles().filter((p) => p.rol === 'estudiante');
+    const f = informePerfil(perfil);
+    const pr = leerPruebas(perfil);
+    const pista = pistaDePerfil(perfil);
     return (
       <main className="pantalla">
-        <Barra titulo={<span className="cuaderno-titulo">Avance de los niños</span>} />
+        <Barra titulo={<span className="cuaderno-titulo">Mi avance</span>} />
         <p className="pequeno suave" style={{ margin: 0 }}>
-          Solo lectura. Muestra los perfiles de estudiantes de este celular. No son notas escolares: indican en qué conviene practicar.
+          No es una nota: muestra en qué le conviene practicar. Su profesor ve este mismo avance.
         </p>
-        {ninos.length === 0 && <p className="tarjeta">Todavía no hay perfiles de estudiantes en este celular.</p>}
-        {ninos.map((p) => {
-          const f = informePerfil(p);
-          const pr = leerPruebas(p);
-          return (
-            <article key={p.id} className="tarjeta columna">
-              <div className="fila">
-                <Avatar id={p.avatar} tamano={48} />
-                <div>
-                  <strong>{p.apodo}</strong>
-                  <div className="pequeno suave">
-                    {nombreGrado(p.grado)} · {p.codigo}
-                  </div>
-                </div>
-              </div>
-              <p style={{ margin: 0 }}>
-                Va en el <strong>nivel {nivelConTotal(pistaDePerfil(p), f.nivelMaximo)}</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
-              </p>
-              {pr.diagnostica && !pr.final && (
-                <p className="pequeno" style={{ margin: 0 }}>
-                  Prueba de entrada: {pr.diagnostica.aciertos} de {pr.diagnostica.total}. Al terminar los 10 niveles hará la prueba final y podrá comparar.
-                </p>
-              )}
-              {pr.diagnostica && pr.final && <Comparacion diagnostica={pr.diagnostica} final={pr.final} adulto />}
-              <p style={{ margin: 0 }}>
-                {f.masCuesta.length
-                  ? `Le cuesta más: ${f.masCuesta.map((o) => nombresOperacion[o].toLowerCase()).join(' y ')}. Practiquen juntos con ejemplos de la casa.`
-                  : 'Aún no hay suficientes ejercicios para saber qué le cuesta más, o le va bien en todas las operaciones.'}
-              </p>
-            </article>
-          );
-        })}
+        <article className="tarjeta columna">
+          <p style={{ margin: 0 }}>
+            {RESUMEN_GRADO[pista].nombre} · <strong>nivel {nivelConTotal(pista, f.nivelMaximo)}</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
+          </p>
+          {pr.diagnostica && !pr.final && (
+            <p className="pequeno" style={{ margin: 0 }}>
+              Prueba de entrada: {pr.diagnostica.aciertos} de {pr.diagnostica.total}. Al terminar los 10 niveles hará la prueba final y podrá comparar.
+            </p>
+          )}
+          {pr.diagnostica && pr.final && <Comparacion diagnostica={pr.diagnostica} final={pr.final} adulto />}
+          <p style={{ margin: 0 }}>
+            {f.masCuesta.length
+              ? `Le cuesta más: ${f.masCuesta.map((o) => nombresOperacion[o].toLowerCase()).join(' y ')}. Practique con ejemplos de la casa.`
+              : 'Aún no hay suficientes ejercicios para saber qué le cuesta más, o le va bien en todas las operaciones.'}
+          </p>
+        </article>
       </main>
     );
   }
@@ -151,7 +136,7 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
         </button>
       )}
       <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'familias', seccion: 'avance' })}>
-        <Icono nombre="grafico" tamano={30} /> Ver el avance de los niños de este celular
+        <Icono nombre="grafico" tamano={30} /> Ver mi avance
       </button>
       <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'ajustes' })}>
         <Icono nombre="engrane" tamano={30} /> Ajustes

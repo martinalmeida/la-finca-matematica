@@ -1,0 +1,138 @@
+// Sincronización con la nube. Sube lo pendiente de la cola (progreso, ejercicios,
+// partidas) y baja la cuenta para aplicar lo que decidió el profesor: grado, tipo,
+// exigencia, permiso de repetir la final, desactivación o reinicio del progreso.
+
+import { borrarDatosLocales, confirmarLote, pendientes, tomarLote, type Lote } from '../almacenamiento/cola';
+import { guardarCuenta, guardarSiloEscuela, leerCuenta, type FilaPerfil } from '../almacenamiento/datos';
+import { escribir, leer, PREFIJO_V1 } from '../almacenamiento/almacen';
+import { esErrorDeRed, obtenerSupabase } from './supabase';
+
+export type EstadoSync = 'ok' | 'sin-red' | 'sin-sesion' | 'inactivo' | 'reiniciado' | 'error';
+
+type Aviso = { estado: EstadoSync; cuentaCambio: boolean };
+
+const K_ULTIMA = PREFIJO_V1 + 'ultimaSync';
+/** Ejercicios por envío: los lotes grandes se parten. */
+const POR_ENVIO = 400;
+
+const oyentes = new Set<(a: Aviso) => void>();
+let enCurso: Promise<EstadoSync> | null = null;
+let temporizador: number | undefined;
+
+export function alSincronizar(f: (a: Aviso) => void): () => void {
+  oyentes.add(f);
+  return () => oyentes.delete(f);
+}
+
+function avisar(a: Aviso) {
+  oyentes.forEach((f) => f(a));
+}
+
+export function ultimaSincronizacion(): string | null {
+  return leer<string | null>(K_ULTIMA, null);
+}
+
+export { pendientes };
+
+/** Parte el lote para no mandar miles de ejercicios en una sola llamada. */
+function partir(lote: Lote): Lote[] {
+  const lotes: Lote[] = [{ filas: lote.filas, eventos: lote.eventos.slice(0, POR_ENVIO), partidas: lote.partidas }];
+  for (let i = POR_ENVIO; i < lote.eventos.length; i += POR_ENVIO) lotes.push({ filas: [], eventos: lote.eventos.slice(i, i + POR_ENVIO), partidas: [] });
+  return lotes;
+}
+
+/** ¿Cambió algo de la cuenta que afecte lo que se ve? */
+function cambioVisible(antes: FilaPerfil, despues: FilaPerfil): boolean {
+  const k: (keyof FilaPerfil)[] = ['nombre', 'tipo', 'grado', 'activo', 'generacion'];
+  return k.some((c) => antes[c] !== despues[c]) || JSON.stringify(antes.bandas) !== JSON.stringify(despues.bandas) || JSON.stringify(antes.finales_permitidos) !== JSON.stringify(despues.finales_permitidos);
+}
+
+async function sincronizar(): Promise<EstadoSync> {
+  const cuenta = leerCuenta();
+  if (!cuenta || cuenta.rol !== 'usuario') return 'ok';
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'sin-red';
+  const sb = await obtenerSupabase();
+  if (!sb) return 'error';
+  try {
+    const { data: sesion, error: errorSesion } = await sb.auth.getSession();
+    if (errorSesion) return esErrorDeRed(errorSesion) ? 'sin-red' : 'sin-sesion';
+    if (!sesion.session || sesion.session.user.id !== cuenta.id) return 'sin-sesion';
+
+    if (cuenta.avatarPendiente && cuenta.avatar) {
+      const { error } = await sb.rpc('elegir_avatar', { p_avatar: cuenta.avatar });
+      if (!error) guardarCuenta({ ...(leerCuenta() ?? cuenta), avatarPendiente: false });
+    }
+
+    let perfil: FilaPerfil | null = null;
+    for (const lote of partir(tomarLote(cuenta.id))) {
+      const { data, error } = await sb.rpc('sincronizar', {
+        p_generacion: cuenta.generacion,
+        p_filas: lote.filas,
+        p_eventos: lote.eventos,
+        p_partidas: lote.partidas,
+      });
+      if (error) return esErrorDeRed(error) ? 'sin-red' : /JWT|token|401/i.test(error.message) ? 'sin-sesion' : 'error';
+      const r = data as { estado: 'ok' | 'inactivo' | 'generacion'; perfil?: FilaPerfil };
+      if (r.estado === 'inactivo') return 'inactivo';
+      if (r.estado === 'generacion' && r.perfil) {
+        // El profesor reinició el progreso: lo de este celular ya no vale.
+        borrarDatosLocales(cuenta.id);
+        guardarCuenta({ ...r.perfil, avatarPendiente: leerCuenta()?.avatarPendiente });
+        return 'reiniciado';
+      }
+      confirmarLote(cuenta.id, lote);
+      perfil = r.perfil ?? perfil;
+    }
+    if (perfil) {
+      const actual = leerCuenta() ?? cuenta;
+      guardarCuenta({ ...perfil, avatar: actual.avatarPendiente ? actual.avatar : perfil.avatar, avatarPendiente: actual.avatarPendiente });
+      if (cambioVisible(cuenta, perfil)) avisar({ estado: 'ok', cuentaCambio: true });
+    }
+    const silo = await sb.rpc('silo_escuela');
+    if (!silo.error && typeof silo.data === 'number') guardarSiloEscuela(silo.data);
+    escribir(K_ULTIMA, new Date().toISOString());
+    return 'ok';
+  } catch (e) {
+    return esErrorDeRed(e) ? 'sin-red' : 'error';
+  }
+}
+
+/** Sincroniza ya (si ya hay una en curso, espera esa). */
+export function sincronizarAhora(): Promise<EstadoSync> {
+  if (!enCurso) {
+    enCurso = sincronizar()
+      .then((estado) => {
+        avisar({ estado, cuentaCambio: estado === 'reiniciado' || estado === 'inactivo' });
+        return estado;
+      })
+      .finally(() => {
+        enCurso = null;
+      });
+  }
+  return enCurso;
+}
+
+/** Sincroniza en unos segundos (al terminar un nivel o una prueba). */
+export function sincronizarPronto(): void {
+  window.clearTimeout(temporizador);
+  temporizador = window.setTimeout(() => void sincronizarAhora(), 2500);
+}
+
+/** Sincroniza al abrir, al volver la señal, al volver a la app y cada minuto con señal. */
+export function iniciarSincronizacion(): () => void {
+  const alVolverSenal = () => void sincronizarAhora();
+  const alVerse = () => {
+    if (document.visibilityState === 'visible') void sincronizarAhora();
+  };
+  window.addEventListener('online', alVolverSenal);
+  document.addEventListener('visibilitychange', alVerse);
+  const intervalo = window.setInterval(() => {
+    if (navigator.onLine && pendientes() > 0) void sincronizarAhora();
+  }, 60_000);
+  void sincronizarAhora();
+  return () => {
+    window.removeEventListener('online', alVolverSenal);
+    document.removeEventListener('visibilitychange', alVerse);
+    window.clearInterval(intervalo);
+  };
+}

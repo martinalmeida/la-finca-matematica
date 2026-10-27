@@ -1,22 +1,24 @@
 import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
-import { ContextoApp, esPestana, type EstadoApp, type Pantalla } from './estado';
+import { ContextoApp, esPestana, useApp, type EstadoApp, type Pantalla } from './estado';
 import {
-  fijarPerfilActivo,
   guardarAjustes,
-  guardarPerfil,
+  guardarCuenta,
   leerAjustes,
   bandaDePerfil,
-  listarPerfiles,
+  leerCuenta,
   necesitaDiagnostica,
-  obtenerPerfil,
-  perfilActivo,
+  perfilDeFila,
   type Ajustes,
+  type FilaPerfil,
   type Perfil,
 } from './almacenamiento/datos';
 import { alCambiarDisponibilidad, almacenamientoDisponible } from './almacenamiento/almacen';
+import { activarCola } from './almacenamiento/cola';
 import { alListoSinInternet, marcarOcupada, seActualizo } from './pwa/registro';
-import Bienvenida from './pantallas/Bienvenida';
-import QuienJuega from './pantallas/QuienJuega';
+import { cerrarSesion } from './servicios/sesion';
+import { alSincronizar, iniciarSincronizacion, sincronizarAhora } from './servicios/sincronizacion';
+import Entrar from './pantallas/Entrar';
+import ElegirAvatar from './pantallas/ElegirAvatar';
 import Fondo from './componentes/Fondo';
 import Pestanas from './componentes/Pestanas';
 import Icono from './componentes/Icono';
@@ -33,7 +35,6 @@ function perezosa<T extends ComponentType<any>>(cargar: () => Promise<{ default:
   return lazy(una);
 }
 
-const CrearPerfil = perezosa(() => import('./pantallas/CrearPerfil'));
 const Inicio = perezosa(() => import('./pantallas/Inicio'));
 const Mapa = perezosa(() => import('./pantallas/Mapa'));
 const Aprender = perezosa(() => import('./pantallas/Aprender'));
@@ -42,10 +43,10 @@ const Resultado = perezosa(() => import('./pantallas/Resultado'));
 const MiFinca = perezosa(() => import('./pantallas/MiFinca'));
 const AjustesPantalla = perezosa(() => import('./pantallas/Ajustes'));
 const Familias = perezosa(() => import('./pantallas/Familias'));
-const PanelDocente = perezosa(() => import('./pantallas/PanelDocente'));
-const RetoPareja = perezosa(() => import('./pantallas/RetoPareja'));
 const Taller = perezosa(() => import('./pantallas/Taller'));
 const Prueba = perezosa(() => import('./pantallas/Prueba'));
+// El panel del profesor no se precarga: los usuarios que juegan nunca lo abren.
+const AppProfesor = lazy(() => import('./profesor/AppProfesor'));
 
 function precargarPantallas() {
   const ocioso = (window as { requestIdleCallback?: (f: () => void) => number }).requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 1200));
@@ -55,19 +56,14 @@ function precargarPantallas() {
   });
 }
 
-function pantallaInicial(): Pantalla {
-  return listarPerfiles().length ? { nombre: 'quien' } : { nombre: 'bienvenida' };
-}
-
-function aplicarTamanoLetra(perfil: Perfil | null, ajustes: Ajustes, pantalla: Pantalla) {
+function aplicarTamanoLetra(perfil: Perfil | null, ajustes: Ajustes, pantalla: Pantalla | null) {
   // Base de 20 px en Inclusión, 1.º y 2.º; 18 px en los demás; ajustable en Ajustes.
   const base = perfil?.grado && (perfil.grado === 'inclusion' || perfil.grado <= 2) ? 20 : 18;
   const extra = ajustes.tamanoLetra === 'grande' ? 2 : ajustes.tamanoLetra === 'muy-grande' ? 4 : 0;
   document.documentElement.style.setProperty('--fs-base', `${base + extra}px`);
-  // Paleta propia (azul) en las pantallas de la sección de familias.
-  const general = ['bienvenida', 'quien', 'docente', 'pareja'].includes(pantalla.nombre);
-  const rol = pantalla.nombre === 'crear' ? pantalla.rol : general ? 'estudiante' : (perfil?.rol ?? 'estudiante');
-  document.documentElement.dataset.rol = rol;
+  // Paleta propia (azul) para familias (el panel del profesor la fija por su cuenta).
+  const general = !perfil || !pantalla;
+  document.documentElement.dataset.rol = perfil ? perfil.rol : 'estudiante';
   // Inclusión: pantalla calmada, siempre con efectos ligeros.
   document.documentElement.dataset.efectos = perfil?.grado === 'inclusion' && !general ? 'ligeros' : ajustes.efectos;
   document.documentElement.dataset.grado = perfil?.grado && !general ? String(perfil.grado) : '';
@@ -76,21 +72,85 @@ function aplicarTamanoLetra(perfil: Perfil | null, ajustes: Ajustes, pantalla: P
   document.documentElement.dataset.apoyo = espaciado && !general ? '1' : '';
 }
 
+/** Raíz: sin sesión muestra «Entrar»; con sesión, la app del profesor o la del usuario. */
 export default function App() {
-  const [pila, setPila] = useState<Pantalla[]>(() => [pantallaInicial()]);
-  const [perfil, setPerfil] = useState<Perfil | null>(() => {
-    const id = perfilActivo();
-    return id ? (obtenerPerfil(id) ?? null) : null;
-  });
+  const [cuenta, setCuenta] = useState<FilaPerfil | null>(() => leerCuenta());
+  // La sesión venció o la cerró el servidor: se vuelve a pedir la contraseña sin borrar el avance.
+  const [motivo, setMotivo] = useState<string | null>(null);
+  const [sinAlmacen, setSinAlmacen] = useState(!almacenamientoDisponible());
+
+  useEffect(() => alCambiarDisponibilidad(() => setSinAlmacen(!almacenamientoDisponible())), []);
+
+  const salir = useCallback(async (porque?: string) => {
+    await cerrarSesion();
+    setMotivo(porque ?? null);
+    setCuenta(null);
+  }, []);
+
+  const pedirClave = useCallback((porque: string) => setMotivo(porque), []);
+
+  let contenido;
+  if (!cuenta || motivo) {
+    contenido = (
+      <Entrar
+        usuarioPrevio={cuenta?.usuario}
+        motivo={motivo ?? undefined}
+        alEntrar={(c) => {
+          setMotivo(null);
+          setCuenta(c);
+        }}
+      />
+    );
+  } else if (cuenta.rol === 'profesor') {
+    contenido = (
+      <Suspense fallback={<div className="cargando" aria-live="polite">Cargando…</div>}>
+        <AppProfesor cuenta={cuenta} alSalir={() => salir()} alVencer={() => pedirClave('Su sesión terminó. Escriba otra vez su contraseña.')} />
+      </Suspense>
+    );
+  } else {
+    contenido = <AppUsuario key={cuenta.id} cuenta={cuenta} alCambiarCuenta={setCuenta} salir={salir} pedirClave={pedirClave} />;
+  }
+
+  return (
+    <>
+      {sinAlmacen && (
+        <div className="aviso-memoria" role="status">
+          <Icono nombre="aviso" tamano={22} /> Este celular no deja guardar datos. Puedes jugar, pero el avance se borrará al cerrar la aplicación.
+        </div>
+      )}
+      {/* El usuario que juega lleva su propio fondo (sigue sus ajustes de efectos). */}
+      {(!cuenta || motivo || cuenta.rol === 'profesor') && <Fondo />}
+      {(!cuenta || motivo) && <SinSesion />}
+      {contenido}
+      <PieAutor />
+    </>
+  );
+}
+
+/** Ajustes visuales de la pantalla de entrada y aviso de instalación. */
+function SinSesion() {
+  useEffect(() => aplicarTamanoLetra(null, leerAjustes(), null), []);
+  return <InvitacionInstalar permitida />;
+}
+
+type PropsUsuario = {
+  cuenta: FilaPerfil;
+  alCambiarCuenta: (c: FilaPerfil) => void;
+  salir: (porque?: string) => Promise<void>;
+  pedirClave: (porque: string) => void;
+};
+
+function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario) {
+  const perfil = useMemo(() => perfilDeFila(cuenta), [cuenta]);
+  const [pila, setPila] = useState<Pantalla[]>(() => [{ nombre: 'inicio' }]);
   const [ajustes, setAjustes] = useState<Ajustes>(() => leerAjustes());
   const [aviso, setAviso] = useState<string | null>(null);
-  const [sinAlmacen, setSinAlmacen] = useState(!almacenamientoDisponible());
   const temporizador = useRef<number>(undefined);
 
   // Sin prueba diagnóstica no se entra a la ruta: las pestañas y los niveles llevan a ella.
   // La prueba queda en la pila, así su pantalla de resultado no desaparece al terminar.
   const pedida = pila[pila.length - 1];
-  const debeDiagnostica = !!perfil && (esPestana(pedida) || pedida.nombre === 'nivel') && necesitaDiagnostica(perfil);
+  const debeDiagnostica = (esPestana(pedida) || pedida.nombre === 'nivel') && necesitaDiagnostica(perfil);
   const pantalla: Pantalla = debeDiagnostica ? { nombre: 'prueba', tipo: 'diagnostica' } : pedida;
   useEffect(() => {
     if (debeDiagnostica) setPila([{ nombre: 'prueba', tipo: 'diagnostica' }]);
@@ -108,10 +168,41 @@ export default function App() {
   }, [avisar]);
   // En un nivel, una prueba, el reto en pareja o el taller no se recarga por una actualización:
   // se aplica al salir.
-  useEffect(() => marcarOcupada(['nivel', 'prueba', 'pareja', 'taller'].includes(pantalla.nombre)), [pantalla.nombre]);
+  useEffect(() => marcarOcupada(['nivel', 'prueba', 'taller'].includes(pantalla.nombre)), [pantalla.nombre]);
   useEffect(precargarPantallas, []);
-  useEffect(() => alCambiarDisponibilidad(() => setSinAlmacen(!almacenamientoDisponible())), []);
   useEffect(() => aplicarTamanoLetra(perfil, ajustes, pantalla), [perfil, ajustes, pantalla]);
+
+  // Lo que se juega se guarda en la cola y sube a la nube cuando hay señal.
+  useEffect(() => {
+    activarCola(cuenta.id);
+    return iniciarSincronizacion();
+  }, [cuenta.id]);
+  useEffect(
+    () =>
+      alSincronizar(({ estado, cuentaCambio }) => {
+        if (estado === 'inactivo') void salir('Tu cuenta fue desactivada. Habla con tu profesor.');
+        else if (estado === 'sin-sesion') pedirClave('Escribe otra vez tu contraseña para seguir guardando tu avance.');
+        else if (estado === 'reiniciado') {
+          setPila([{ nombre: 'inicio' }]);
+          avisar('Tu profesor reinició tu progreso: empiezas de nuevo');
+        }
+        if (cuentaCambio) {
+          const c = leerCuenta();
+          if (c) alCambiarCuenta(c);
+        }
+      }),
+    [salir, pedirClave, alCambiarCuenta, avisar],
+  );
+
+  const elegirAvatar = useCallback(
+    (avatar: string) => {
+      const c = { ...(leerCuenta() ?? cuenta), avatar, avatarPendiente: true };
+      guardarCuenta(c);
+      alCambiarCuenta(c);
+      void sincronizarAhora();
+    },
+    [cuenta, alCambiarCuenta],
+  );
 
   // Botón "atrás" de Android: vuelve a la pantalla anterior dentro de la app.
   useEffect(() => {
@@ -127,8 +218,8 @@ export default function App() {
     const p: Pantalla = destino.nombre === 'nivel' ? { ...destino, clave: destino.clave ?? Date.now() } : destino;
     startTransition(() => setPila((pilaActual) => {
       if (opciones?.reemplazar) return [...pilaActual.slice(0, -1), p];
-      // Pantallas raíz (pestañas, ¿quién juega?, bienvenida): reinician la pila.
-      if (esPestana(p) || p.nombre === 'quien' || p.nombre === 'bienvenida') return [p];
+      // Pantallas raíz (pestañas): reinician la pila.
+      if (esPestana(p)) return [p];
       try {
         history.pushState({ finca: true }, '');
       } catch {
@@ -151,40 +242,31 @@ export default function App() {
       ir,
       volver,
       avisar,
-      elegirPerfil: (p) => {
-        setPerfil(p);
-        fijarPerfilActivo(p?.id ?? null);
-      },
-      actualizarPerfil: (p) => {
-        guardarPerfil(p);
-        setPerfil(p);
-      },
+      salir: () => salir(),
+      cambiarAvatar: elegirAvatar,
       cambiarAjustes: (a) => {
         setAjustes(a);
         guardarAjustes(a);
       },
     }),
-    [pantalla, perfil, ajustes, ir, volver, avisar],
+    [pantalla, perfil, ajustes, ir, volver, avisar, salir, elegirAvatar],
   );
+
+  // La primera vez: elegir personaje (antes de la prueba de entrada).
+  const sinAvatar = !perfil.avatar;
 
   return (
     <ContextoApp.Provider value={valor}>
-      {sinAlmacen && (
-        <div className="aviso-memoria" role="status">
-          <Icono nombre="aviso" tamano={22} /> Este celular no deja guardar datos. Puedes jugar, pero el avance se borrará al cerrar la aplicación.
-        </div>
-      )}
       <Fondo />
       <Suspense fallback={<div className="cargando" aria-live="polite">Cargando…</div>}>
         {/* La clave cambia con cada pantalla: dispara la animación de entrada. */}
-        <div key={`${pila.length}-${pantalla.nombre}-${pantalla.nombre === 'nivel' ? pantalla.clave : ''}`} className={`escenario ${esPestana(pantalla) ? 'con-pestanas' : ''}`}>
-          <Contenido pantalla={pantalla} perfil={perfil} />
+        <div key={sinAvatar ? 'avatar' : `${pila.length}-${pantalla.nombre}-${pantalla.nombre === 'nivel' ? pantalla.clave : ''}`} className={`escenario ${esPestana(pantalla) && !sinAvatar ? 'con-pestanas' : ''}`}>
+          {sinAvatar ? <ElegirAvatar perfil={perfil} alElegir={elegirAvatar} /> : <Contenido pantalla={pantalla} perfil={perfil} />}
         </div>
       </Suspense>
-      <PieAutor />
-      {perfil && esPestana(pantalla) && <Pestanas />}
-      {/* No interrumpe un nivel en curso: se ofrece en las pantallas de entrada y en las pestañas. */}
-      <InvitacionInstalar permitida={!['nivel', 'resultado', 'pareja', 'crear', 'taller', 'prueba'].includes(pantalla.nombre)} />
+      {esPestana(pantalla) && !sinAvatar && <Pestanas />}
+      {/* No interrumpe un nivel en curso: se ofrece en las pestañas. */}
+      <InvitacionInstalar permitida={!sinAvatar && !['nivel', 'resultado', 'taller', 'prueba'].includes(pantalla.nombre)} />
       {aviso && (
         <div className="aviso" role="status" aria-live="polite">
           {aviso}
@@ -194,21 +276,12 @@ export default function App() {
   );
 }
 
-function Contenido({ pantalla, perfil }: { pantalla: Pantalla; perfil: Perfil | null }) {
-  // Pantallas que necesitan un perfil activo.
-  const requiere = !['bienvenida', 'quien', 'crear', 'docente', 'pareja'].includes(pantalla.nombre);
-  if (requiere && !perfil) return <QuienJuega />;
+function Contenido({ pantalla, perfil }: { pantalla: Pantalla; perfil: Perfil }) {
   switch (pantalla.nombre) {
-    case 'bienvenida':
-      return <Bienvenida />;
-    case 'quien':
-      return <QuienJuega />;
-    case 'crear':
-      return <CrearPerfil rol={pantalla.rol} />;
     case 'inicio':
-      return <Inicio key={perfil!.id} />;
+      return <Inicio key={perfil.id} />;
     case 'mapa':
-      return <Mapa key={perfil!.id} />;
+      return <Mapa key={perfil.id} />;
     case 'aprender':
       return <Aprender />;
     case 'nivel':
@@ -221,13 +294,25 @@ function Contenido({ pantalla, perfil }: { pantalla: Pantalla; perfil: Perfil | 
       return <AjustesPantalla />;
     case 'familias':
       return <Familias seccion={pantalla.seccion ?? 'menu'} />;
-    case 'docente':
-      return <PanelDocente />;
-    case 'pareja':
-      return <RetoPareja />;
     case 'taller':
       return <Taller />;
     case 'prueba':
-      return <Prueba key={`${perfil!.id}-${pantalla.tipo}`} tipo={pantalla.tipo} />;
+      return <Prueba key={`${perfil.id}-${pantalla.tipo}`} tipo={pantalla.tipo} />;
+    case 'avatar':
+      return <CambiarAvatar perfil={perfil} />;
   }
+}
+
+function CambiarAvatar({ perfil }: { perfil: Perfil }) {
+  const { cambiarAvatar, volver } = useApp();
+  return (
+    <ElegirAvatar
+      perfil={perfil}
+      alVolver={volver}
+      alElegir={(a) => {
+        cambiarAvatar(a);
+        volver();
+      }}
+    />
+  );
 }

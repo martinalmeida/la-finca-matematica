@@ -27,7 +27,6 @@ const catalogo: Insignia[] = [
   { id: 'primer-surco', nombre: 'Primer surco', descripcion: 'Terminaste la prueba de entrada.', icono: '🌱' },
   { id: 'explorador', nombre: 'Explorador del surco', descripcion: 'Llegaste a la mitad de la ruta.', icono: '🧭' },
   { id: 'paciencia', nombre: 'Paciencia de cosecha', descripcion: 'Aprobaste un nivel después de varios intentos.', icono: '🐢' },
-  { id: 'buen-vecino', nombre: 'Buen vecino', descripcion: 'Completaste un reto en pareja.', icono: '🤝' },
   { id: 'manos-a-la-obra', nombre: 'Aprender del error', descripcion: 'Corregiste una respuesta después de usar una pista.', icono: '💡' },
   { id: 'tres-estrellas', nombre: 'Cosecha limpia', descripcion: 'Lograste 3 estrellas en 5 niveles.', icono: '⭐' },
   { id: 'constancia', nombre: 'Constancia', descripcion: 'Practicaste en 5 días distintos.', icono: '📅' },

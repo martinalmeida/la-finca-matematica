@@ -12,8 +12,9 @@ import Icono from '../componentes/Icono';
 import { Medidor } from '../componentes/Historia';
 import {
   bandaDePerfil,
+  guardarPartida,
   guardarProgreso,
-  guardarPruebas,
+  guardarResultadoPrueba,
   leerProgreso,
   leerPruebas,
   pistaDePerfil,
@@ -21,6 +22,7 @@ import {
   registrar,
   type Perfil,
 } from '../almacenamiento/datos';
+import { sincronizarPronto } from '../servicios/sincronizacion';
 import { BANDAS, generarPrueba, type TipoPrueba } from '../juego/motor';
 import { rutaFamiliaPorPuntaje, type ResultadoPrueba } from '../juego/pruebas';
 import { darInsignia } from '../juego/progresion';
@@ -42,15 +44,16 @@ function insigniaEnRuta(p: Perfil, pista: Pista, id: string) {
 }
 
 export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
-  const { perfil, ir, ajustes, actualizarPerfil } = useApp();
+  const { perfil, ir, ajustes } = useApp();
   const p = perfil!;
   const adulto = p.rol === 'familia';
   const t = (nino: string, adultoTxt: string) => (adulto ? adultoTxt : nino);
   const pistaPrueba = pistaDePrueba(p);
+  const haceBanda = !adulto;
   const pruebasGuardadas = useMemo(() => leerPruebas(p), [p.id]);
   const yaHecha = tipo === 'diagnostica' ? pruebasGuardadas.diagnostica : pruebasGuardadas.repetirFinal ? undefined : pruebasGuardadas.final;
   const intento = tipo === 'final' && pruebasGuardadas.final ? 2 : 1;
-  const ejercicios = useMemo(() => generarPrueba({ codigo: p.codigo, pista: pistaPrueba, tipo, intento }), [p.codigo, pistaPrueba, tipo, intento]);
+  const ejercicios = useMemo(() => generarPrueba({ codigo: p.usuario, pista: pistaPrueba, tipo, intento }), [p.usuario, pistaPrueba, tipo, intento]);
 
   const [fase, setFase] = useState<'intro' | 'jugando' | 'fin'>(yaHecha ? 'fin' : 'intro');
   const [indice, setIndice] = useState(0);
@@ -74,9 +77,8 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
 
   const terminarEjercicio = (r: ResultadoEjercicio) => {
     const ej = ejercicios[indice];
-    registrar(p.id, {
-      t: new Date().toISOString(),
-      pista: `${pistaPrueba}:${tipo}`,
+    registrar(tipo === 'diagnostica' ? 'prueba-diagnostica' : 'prueba-final', {
+      pista: pistaPrueba,
       nivel: indice + 1,
       plantilla: ej.plantilla,
       operacion: ej.operacion,
@@ -101,12 +103,22 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
       total: lista.length,
       ms: Date.now() - inicio.current,
     };
-    guardarPruebas(p, { ...leerPruebas(p), [tipo]: res, ...(tipo === 'final' ? { repetirFinal: false } : {}) });
+    guardarResultadoPrueba(p, tipo, res);
+    guardarPartida({
+      tipo: tipo === 'diagnostica' ? 'prueba-diagnostica' : 'prueba-final',
+      pista: pistaPrueba,
+      nivel: null,
+      aciertos: res.aciertos,
+      total: res.total,
+      estrellas: null,
+      ms_total: res.ms,
+      repaso: false,
+      banda: haceBanda ? bandaDePerfil(p) : null,
+    });
+    sincronizarPronto();
     if (tipo === 'diagnostica') {
-      // Estudiantes: la banda sale de la diagnóstica guardada. Familias: se asigna la ruta.
-      const nuevo: Perfil = adulto ? { ...p, rutaFamilia: rutaFamiliaPorPuntaje(res.aciertos, res.total) } : p;
-      insigniaEnRuta(nuevo, pistaDePerfil(nuevo), 'primer-surco');
-      actualizarPerfil(nuevo);
+      // Estudiantes: la banda sale de la diagnóstica guardada. Familias: la ruta (pistaDePerfil la deduce).
+      insigniaEnRuta(p, pistaDePerfil(p), 'primer-surco');
     } else {
       insigniaEnRuta(p, pistaDePerfil(p), 'gran-cosecha');
     }
@@ -156,7 +168,7 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
   if (fase === 'fin' && resultado) {
     const pr = leerPruebas(p);
     const banda = bandaDePerfil(p);
-    const ruta = p.rutaFamilia ?? rutaFamiliaPorPuntaje(resultado.aciertos, resultado.total);
+    const ruta = tipo === 'diagnostica' ? rutaFamiliaPorPuntaje(resultado.aciertos, resultado.total) : pistaDePerfil(p);
     return (
       <main className="pantalla">
         <section className="vidrio tarjeta-resultado columna centro">

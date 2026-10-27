@@ -12,9 +12,12 @@
     "preview": "vite preview",
     "test": "vitest run",
     "iconos": "node scripts/generar-iconos.mjs",
-    "catalogo": "tsx scripts/catalogo-plantillas.ts"
+    "catalogo": "tsx scripts/catalogo-plantillas.ts",
+    "db:aplicar": "node scripts/supabase/aplicar.mjs",
+    "crear-profesor": "node scripts/supabase/crear-profesor.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "locar": "^0.2.12",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

@@ -1,33 +1,76 @@
-// Esquema de datos (v2) y operaciones sobre perfiles, progreso, registro, ajustes y panel docente.
+// Esquema de datos y operaciones sobre la cuenta, el progreso, el registro y los ajustes.
+// Las derivaciones (ruta, exigencia, pruebas) reciben una «fuente» de datos, así el panel del
+// profesor las calcula igual que el celular del usuario, pero con lo que bajó de la nube.
 
-import { borrar, clavesApp, escribir, leer, PREFIJO_V1 } from './almacen';
+import { borrar, escribir, leer, PREFIJO_V1 } from './almacen';
+import { claveLocal, encolarEvento, encolarPartida, type Partida, type TipoPartida } from './cola';
 import type { Banda, Grado, Operacion, Pista } from '../juego/tipos';
-import { bandaPorPuntaje, type ResultadoPrueba } from '../juego/pruebas';
+import { bandaPorPuntaje, rutaFamiliaPorPuntaje, type ResultadoPrueba } from '../juego/pruebas';
+import { uuid } from '../juego/perfil';
 
 export type Rol = 'estudiante' | 'familia';
+export type TipoUsuario = 'estudiante' | 'familia' | 'inclusion';
 
+/** Renglón de la tabla «perfiles» de Supabase. */
+export type FilaPerfil = {
+  id: string;
+  usuario: string;
+  nombre: string;
+  rol: 'profesor' | 'usuario';
+  tipo: TipoUsuario | null;
+  grado: number | null;
+  activo: boolean;
+  avatar: string | null;
+  bandas: Partial<Record<string, Banda>>;
+  finales_permitidos: Record<string, number>;
+  generacion: number;
+  profesor_id: string | null;
+  creado: string;
+  ultima_sync: string | null;
+};
+
+/** Usuario que juega (lo crea el profesor; aquí se guarda su copia local). */
 export type Perfil = {
   id: string;
-  codigo: string;
-  apodo: string;
+  /** Nombre de usuario: también es la semilla de los ejercicios. */
+  usuario: string;
+  nombre: string;
   avatar: string;
   rol: Rol;
   grado: Grado | null;
-  creado: string;
-  /** Ruta de padres que asignó la diagnóstica de familias. */
-  rutaFamilia?: Pista;
+  /** Exigencia fijada por el profesor, por pista de prueba. */
+  bandas: Partial<Record<string, Banda>>;
+  /** Veces que el profesor permitió repetir la final, por pista de prueba. */
+  finalesPermitidos: Record<string, number>;
 };
+
+export function perfilDeFila(f: FilaPerfil): Perfil {
+  return {
+    id: f.id,
+    usuario: f.usuario,
+    nombre: f.nombre,
+    avatar: f.avatar ?? '',
+    rol: f.tipo === 'familia' ? 'familia' : 'estudiante',
+    grado: f.tipo === 'inclusion' ? 'inclusion' : f.tipo === 'estudiante' && f.grado ? (f.grado as Grado) : null,
+    bandas: f.bandas ?? {},
+    finalesPermitidos: f.finales_permitidos ?? {},
+  };
+}
+
+/** Primer nombre, para saludar. */
+export function primerNombre(p: { nombre: string }): string {
+  return p.nombre.trim().split(/\s+/)[0] ?? p.nombre;
+}
 
 /** Pruebas de entrada y salida del perfil en su grado (cada grado tiene las suyas). */
 export type Pruebas = {
   diagnostica?: ResultadoPrueba;
   final?: ResultadoPrueba;
-  /** El docente permitió repetir la prueba final. */
+  /** El profesor permitió repetir la prueba final (se calcula, no se guarda). */
   repetirFinal?: boolean;
-  /** Exigencia elegida a mano por el docente (si no, la da la diagnóstica). */
-  banda?: Banda;
+  /** Permisos de repetir la final ya usados. */
+  finalesUsados?: number;
 };
-
 export type EtapaPlanta = 'semilla' | 'brote' | 'planta' | 'flor' | 'fruto' | 'cosecha';
 
 export type EstadoNivel = { estrellas: 0 | 1 | 2 | 3; intentos: number; mejorAciertos: number; completado: boolean };
@@ -40,20 +83,6 @@ export type Progreso = {
   etapaPlanta: EtapaPlanta;
 };
 
-export type RegistroItem = {
-  t: string;
-  pista: string;
-  nivel: number;
-  plantilla: string;
-  operacion: Operacion;
-  correcto: boolean;
-  intentos: number;
-  pistasUsadas: 0 | 1 | 2 | 3;
-  tipoError?: string;
-  ms: number;
-  /** Se resolvió con el paso a paso. */
-  pasoAPaso?: boolean;
-};
 
 export type Ajustes = {
   tamanoLetra: 'normal' | 'grande' | 'muy-grande';
@@ -68,27 +97,29 @@ export type Ajustes = {
   realidadAumentada: boolean;
 };
 
-/** Resumen agregado por perfil (sin detalle por ejercicio): alimenta el panel docente
- *  y la vista de familias aunque el modo investigación esté apagado. */
+/** Resumen agregado por usuario: alimenta los informes del profesor y la vista de familias. */
 export type Resumen = {
   porOperacion: Partial<Record<Operacion, { total: number; aciertos: number }>>;
   errores: Record<string, number>;
   diasJugados: string[];
-  retosPareja: number;
   /** Ejercicios resueltos con el paso a paso. */
   pasoAPaso: number;
 };
 
-export type Docente = { pinHash: string | null; modoInvestigacion: boolean };
+/** Lee un dato del usuario por su clave remota («progreso:g3», «resumen»…). */
+export type Fuente = (clave: string) => unknown;
+
+/** Fuente local: lo guardado en este celular para el usuario `id`. */
+export function fuenteLocal(id: string): Fuente {
+  return (clave) => leer<unknown>(claveLocal(clave, id), undefined);
+}
 
 const K = {
-  perfiles: PREFIJO_V1 + 'perfiles',
-  activo: PREFIJO_V1 + 'perfilActivo',
+  cuenta: PREFIJO_V1 + 'cuenta',
   ajustes: PREFIJO_V1 + 'ajustes',
-  docente: PREFIJO_V1 + 'docente',
   silo: PREFIJO_V1 + 'silo',
+  siloEscuela: PREFIJO_V1 + 'siloEscuela',
   progreso: (id: string, pista: string) => `${PREFIJO_V1}progreso:${id}:${pista}`,
-  registro: (id: string) => `${PREFIJO_V1}registro:${id}`,
   resumen: (id: string) => `${PREFIJO_V1}resumen:${id}`,
   pruebas: (id: string, pista: string) => `${PREFIJO_V1}pruebas:${id}:${pista}`,
   historias: (id: string) => `${PREFIJO_V1}historiasVistas:${id}`,
@@ -96,66 +127,75 @@ const K = {
   taller: (id: string) => `${PREFIJO_V1}taller:${id}`,
 };
 
-export const MAX_REGISTRO = 3000;
+// --- Cuenta con sesión iniciada ---
 
-// --- Perfiles ---
-
-export function listarPerfiles(): Perfil[] {
-  const lista = leer<Perfil[]>(K.perfiles, []);
-  return Array.isArray(lista) ? lista : [];
+/** Cuenta de este celular (la fila de «perfiles» tal como llegó de la nube). */
+export function leerCuenta(): (FilaPerfil & { avatarPendiente?: boolean }) | null {
+  const c = leer<(FilaPerfil & { avatarPendiente?: boolean }) | null>(K.cuenta, null);
+  return c && typeof c === 'object' && c.id ? c : null;
 }
 
-export function guardarPerfil(p: Perfil): void {
-  const lista = listarPerfiles().filter((x) => x.id !== p.id);
-  lista.push(p);
-  escribir(K.perfiles, lista);
+export function guardarCuenta(c: FilaPerfil & { avatarPendiente?: boolean }): void {
+  escribir(K.cuenta, c);
 }
 
-export function obtenerPerfil(id: string): Perfil | undefined {
-  return listarPerfiles().find((p) => p.id === id);
+export function borrarCuenta(): void {
+  borrar(K.cuenta);
 }
 
-export function perfilActivo(): string | null {
-  return leer<string | null>(K.activo, null);
-}
+// --- Derivaciones (iguales en el celular y en el panel del profesor) ---
 
-export function fijarPerfilActivo(id: string | null): void {
-  if (id) escribir(K.activo, id);
-  else borrar(K.activo);
-}
-
-/** Elimina el perfil y todos sus datos. */
-export function eliminarPerfil(id: string): void {
-  escribir(
-    K.perfiles,
-    listarPerfiles().filter((p) => p.id !== id),
-  );
-  for (const k of clavesApp()) if (k.includes(`:${id}:`) || k.endsWith(`:${id}`)) borrar(k);
-  if (perfilActivo() === id) fijarPerfilActivo(null);
-}
-
-/** Reinicia el progreso del perfil, conservando apodo, código y avatar. */
-export function reiniciarPerfil(id: string): void {
-  for (const k of clavesApp()) {
-    if ((k.includes(`progreso:${id}:`) || k.endsWith(`registro:${id}`) || k.endsWith(`resumen:${id}`) || k.includes(`pruebas:${id}:`)) && !k.includes('perfiles')) borrar(k);
-  }
-}
-
-/** Ruta de juego del perfil (grado, Inclusión o la ruta de padres asignada). */
-export function pistaDePerfil(p: Perfil): Pista {
-  if (p.rol === 'familia' || !p.grado) return p.rutaFamilia ?? 'fam-intermedia';
-  return p.grado === 'inclusion' ? 'inclusion' : (`g${p.grado}` as Pista);
+function pruebasCrudas(f: Fuente, pista: Pista): Pruebas {
+  const v = f(`pruebas:${pista}`);
+  return v && typeof v === 'object' ? (v as Pruebas) : {};
 }
 
 /** Pista de la que salen las preguntas de la diagnóstica y la final. */
 export function pistaDePrueba(p: Perfil): Pista {
-  return p.rol === 'familia' || !p.grado ? 'familia' : pistaDePerfil(p);
+  return p.rol === 'familia' || !p.grado ? 'familia' : p.grado === 'inclusion' ? 'inclusion' : (`g${p.grado}` as Pista);
 }
 
-/** Exigencia del perfil en su grado: la que eligió el docente o la que dio la diagnóstica. */
+/** Ruta de juego: grado, Inclusión o la ruta de padres que asignó su diagnóstica. */
+export function pistaDe(p: Perfil, f: Fuente): Pista {
+  if (p.rol === 'familia' || !p.grado) {
+    const d = pruebasCrudas(f, 'familia').diagnostica;
+    return d ? rutaFamiliaPorPuntaje(d.aciertos, d.total) : 'fam-intermedia';
+  }
+  return pistaDePrueba(p);
+}
+
+export function pruebasDe(p: Perfil, f: Fuente): Pruebas {
+  const pista = pistaDePrueba(p);
+  const v = pruebasCrudas(f, pista);
+  return { ...v, repetirFinal: !!v.final && (p.finalesPermitidos[pista] ?? 0) > (v.finalesUsados ?? 0) };
+}
+
+/** Exigencia en su grado: la que fijó el profesor o la que dio la diagnóstica. */
+export function bandaDe(p: Perfil, f: Fuente): Banda {
+  const fijada = p.bandas[pistaDePrueba(p)];
+  if (fijada) return fijada;
+  const d = pruebasCrudas(f, pistaDePrueba(p)).diagnostica;
+  return d ? bandaPorPuntaje(d.aciertos, d.total) : 'basico';
+}
+
+export function progresoDe(f: Fuente, pista: Pista): Progreso {
+  const v = f(`progreso:${pista}`);
+  return v && typeof v === 'object' ? { ...progresoVacio(), ...(v as Partial<Progreso>) } : progresoVacio();
+}
+
+export function resumenDe(f: Fuente): Resumen {
+  const v = f('resumen');
+  return { porOperacion: {}, errores: {}, diasJugados: [], pasoAPaso: 0, ...(v && typeof v === 'object' ? (v as Partial<Resumen>) : {}) };
+}
+
+// --- Atajos sobre los datos de este celular ---
+
+export function pistaDePerfil(p: Perfil): Pista {
+  return pistaDe(p, fuenteLocal(p.id));
+}
+
 export function bandaDePerfil(p: Perfil): Banda {
-  const pr = leerPruebas(p);
-  return pr.banda ?? (pr.diagnostica ? bandaPorPuntaje(pr.diagnostica.aciertos, pr.diagnostica.total) : 'basico');
+  return bandaDe(p, fuenteLocal(p.id));
 }
 
 /** Inclusión no hace pruebas; los demás empiezan por la diagnóstica. */
@@ -176,8 +216,7 @@ export function progresoVacio(): Progreso {
 }
 
 export function leerProgreso(id: string, pista: Pista): Progreso {
-  const p = leer<Progreso | null>(K.progreso(id, pista), null);
-  return p ? { ...progresoVacio(), ...p } : progresoVacio();
+  return progresoDe(fuenteLocal(id), pista);
 }
 
 export function guardarProgreso(id: string, pista: Pista, p: Progreso): void {
@@ -197,24 +236,45 @@ export function totalesPerfil(id: string): { semillas: number; insignias: string
   return { semillas, insignias: [...insignias] };
 }
 
-// --- Registro detallado (solo en modo investigación) ---
+// --- Registro en la nube: cada ejercicio y cada nivel o prueba terminada ---
 
-export function leerRegistro(id: string): RegistroItem[] {
-  return leer<RegistroItem[]>(K.registro(id), []);
+export type RegistroItem = {
+  pista: string;
+  nivel: number;
+  plantilla: string;
+  operacion: Operacion;
+  correcto: boolean;
+  intentos: number;
+  pistasUsadas: number;
+  tipoError?: string;
+  ms: number;
+};
+
+export function registrar(tipo: TipoPartida, item: RegistroItem): void {
+  encolarEvento({
+    id: uuid(),
+    t: new Date().toISOString(),
+    tipo,
+    pista: item.pista,
+    nivel: item.nivel,
+    plantilla: item.plantilla,
+    operacion: item.operacion,
+    correcto: item.correcto,
+    intentos: item.intentos,
+    pistas_usadas: item.pistasUsadas,
+    tipo_error: item.tipoError,
+    ms: Math.round(item.ms),
+  });
 }
 
-export function registrar(id: string, item: RegistroItem): void {
-  if (!leerDocente().modoInvestigacion) return;
-  const lista = leerRegistro(id);
-  lista.push(item);
-  // Máximo 3000 entradas: se recortan las más antiguas.
-  escribir(K.registro(id), lista.length > MAX_REGISTRO ? lista.slice(lista.length - MAX_REGISTRO) : lista);
+export function guardarPartida(p: Omit<Partida, 'id' | 't'>): void {
+  encolarPartida({ ...p, id: uuid(), t: new Date().toISOString() });
 }
 
 // --- Resumen agregado ---
 
 export function leerResumen(id: string): Resumen {
-  return { porOperacion: {}, errores: {}, diasJugados: [], retosPareja: 0, pasoAPaso: 0, ...leer<Partial<Resumen>>(K.resumen(id), {}) };
+  return resumenDe(fuenteLocal(id));
 }
 
 export function sumarAlResumen(id: string, operacion: Operacion, correcto: boolean, tipoError?: string, pasoAPaso = false): Resumen {
@@ -229,12 +289,6 @@ export function sumarAlResumen(id: string, operacion: Operacion, correcto: boole
   if (!r.diasJugados.includes(hoy)) r.diasJugados = [...r.diasJugados.slice(-60), hoy];
   escribir(K.resumen(id), r);
   return r;
-}
-
-export function sumarRetoPareja(id: string): void {
-  const r = leerResumen(id);
-  r.retosPareja++;
-  escribir(K.resumen(id), r);
 }
 
 // --- Ajustes ---
@@ -269,17 +323,7 @@ export function guardarAjustes(a: Ajustes): void {
   escribir(K.ajustes, a);
 }
 
-// --- Panel docente ---
-
-export function leerDocente(): Docente {
-  return { pinHash: null, modoInvestigacion: false, ...leer<Partial<Docente>>(K.docente, {}) };
-}
-
-export function guardarDocente(d: Docente): void {
-  escribir(K.docente, d);
-}
-
-// --- Silo de la escuela (cosechas colectivas ya celebradas) ---
+// --- Silo de la escuela: cosechas ya celebradas y último total que llegó de la nube ---
 
 export function leerSilo(): { cosechas: number } {
   return leer(K.silo, { cosechas: 0 });
@@ -289,15 +333,31 @@ export function guardarSilo(s: { cosechas: number }): void {
   escribir(K.silo, s);
 }
 
+export function leerSiloEscuela(): number {
+  const v = leer<number>(K.siloEscuela, 0);
+  return typeof v === 'number' ? v : 0;
+}
+
+export function guardarSiloEscuela(total: number): void {
+  escribir(K.siloEscuela, total);
+}
+
 // --- Pruebas diagnóstica y final ---
 
 export function leerPruebas(p: Perfil): Pruebas {
-  const v = leer<Pruebas>(K.pruebas(p.id, pistaDePrueba(p)), {});
-  return v && typeof v === 'object' ? v : {};
+  return pruebasDe(p, fuenteLocal(p.id));
 }
 
 export function guardarPruebas(p: Perfil, pruebas: Pruebas): void {
-  escribir(K.pruebas(p.id, pistaDePrueba(p)), pruebas);
+  const { repetirFinal: _calculado, ...guardar } = pruebas;
+  escribir(K.pruebas(p.id, pistaDePrueba(p)), guardar);
+}
+
+/** Guarda una prueba terminada; la final consume el permiso de repetirla. */
+export function guardarResultadoPrueba(p: Perfil, tipo: 'diagnostica' | 'final', res: ResultadoPrueba): void {
+  const actual = leerPruebas(p);
+  const usados = tipo === 'final' ? { finalesUsados: p.finalesPermitidos[pistaDePrueba(p)] ?? 0 } : {};
+  guardarPruebas(p, { ...actual, [tipo]: res, ...usados });
 }
 
 // --- Red de la finca: historias (lecciones) vistas y reacciones a publicaciones ---

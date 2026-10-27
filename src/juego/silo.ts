@@ -1,10 +1,13 @@
-// Silo de la escuela: suma las semillas de todos los perfiles del mismo celular.
+// Silo de la escuela: semillas de todos los usuarios del mismo profesor.
+// El total llega de la nube al sincronizar; sin señal se usa el último conocido.
 
-import { guardarSilo, leerSilo, listarPerfiles, totalesPerfil } from '../almacenamiento/datos';
+import { guardarSilo, leerCuenta, leerSilo, leerSiloEscuela, perfilDeFila, totalesPerfil } from '../almacenamiento/datos';
 import { CAPACIDAD_SILO } from './progresion';
 
 export function estadoSilo() {
-  const total = listarPerfiles().reduce((s, p) => s + totalesPerfil(p.id).semillas, 0);
+  const cuenta = leerCuenta();
+  const propias = cuenta ? totalesPerfil(perfilDeFila(cuenta).id).semillas : 0;
+  const total = Math.max(leerSiloEscuela(), propias);
   const cosechas = Math.floor(total / CAPACIDAD_SILO);
   return { total, cosechas, enSilo: total % CAPACIDAD_SILO, capacidad: CAPACIDAD_SILO, celebradas: leerSilo().cosechas };
 }

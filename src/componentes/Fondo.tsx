@@ -4,11 +4,13 @@
 // La posición del scroll (--s) se escribe solo en .fondo: en la raíz obligaba a recalcular
 // el estilo de toda la página en cada cuadro de scroll.
 
-import { useEffect, useRef } from 'react';
-import { useApp } from '../estado';
+import { useContext, useEffect, useRef } from 'react';
+import { ContextoApp } from '../estado';
+import { leerAjustes } from '../almacenamiento/datos';
 
 export default function Fondo() {
-  const { ajustes } = useApp();
+  // Va en la raíz: sin sesión (o en el panel del profesor) usa los ajustes del celular.
+  const ajustes = useContext(ContextoApp)?.ajustes ?? leerAjustes();
   const activo = ajustes.efectos === 'completos';
   const ref = useRef<HTMLDivElement>(null);
 

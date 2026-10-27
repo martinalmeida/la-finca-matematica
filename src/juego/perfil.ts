@@ -1,15 +1,4 @@
-// Creación automática de perfiles: apodo amigable y código anónimo (sin datos personales).
-
-import type { Grado } from './tipos';
-import type { Perfil, Rol } from '../almacenamiento/datos';
-
-const sustantivos = ['Mazorca', 'Semilla', 'Cacao', 'Naranja', 'Arepa', 'Guadua', 'Quebrada', 'Cafetal', 'Aguacate', 'Mandarina', 'Colibrí', 'Lucero'];
-const adjetivos = ['Veloz', 'Alegre', 'Valiente', 'Curiosa', 'Brillante', 'Paciente', 'Amable', 'Dorada', 'Feliz', 'Serena', 'Fuerte', 'Viajera'];
-const adultos = ['Cuaderno', 'Cosecha', 'Surco', 'Fogón', 'Trapiche', 'Secadero'];
-const adjAdultos = ['de la Loma', 'del Río', 'del Monte', 'de la Vega', 'del Alto', 'de la Mata'];
-
-// Sin letras ni números que se confundan (O/0, I/1).
-const ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+// Identificadores aleatorios (eventos y partidas que se suben a la nube).
 
 function azar(n: number): number {
   try {
@@ -31,43 +20,4 @@ export function uuid(): string {
     const r = azar(16);
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
-}
-
-export function generarApodo(rol: Rol): string {
-  if (rol === 'familia') return `${adultos[azar(adultos.length)]} ${adjAdultos[azar(adjAdultos.length)]}`;
-  return `${sustantivos[azar(sustantivos.length)]} ${adjetivos[azar(adjetivos.length)]} ${10 + azar(90)}`;
-}
-
-/** Letra o número del grado en el código: 1–5, I para Inclusión y F para familia. */
-function marcaGrado(grado: Grado | null): string {
-  return grado === null ? 'F' : grado === 'inclusion' ? 'I' : String(grado);
-}
-
-/** Código anónimo: FM-3-K7Q2 (3 es el grado; I para Inclusión; F para familia). */
-export function generarCodigo(grado: Grado | null, existentes: string[] = []): string {
-  const g = marcaGrado(grado);
-  for (let i = 0; i < 50; i++) {
-    let s = '';
-    for (let j = 0; j < 4; j++) s += ALFABETO[azar(ALFABETO.length)];
-    const codigo = `FM-${g}-${s}`;
-    if (!existentes.includes(codigo)) return codigo;
-  }
-  return `FM-${g}-${Date.now().toString(36).slice(-4).toUpperCase()}`;
-}
-
-export function crearPerfil(rol: Rol, grado: Grado | null, avatar: string, existentes: Perfil[]): Perfil {
-  return {
-    id: uuid(),
-    codigo: generarCodigo(grado, existentes.map((p) => p.codigo)),
-    apodo: generarApodo(rol),
-    avatar,
-    rol,
-    grado: rol === 'familia' ? null : grado,
-    creado: new Date().toISOString(),
-  };
-}
-
-/** Al cambiar de grado, el código conserva su parte aleatoria y actualiza el número. */
-export function codigoConGrado(codigo: string, grado: Grado): string {
-  return codigo.replace(/^FM-[^-]+-/, `FM-${marcaGrado(grado)}-`);
 }

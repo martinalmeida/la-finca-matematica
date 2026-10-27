@@ -6,7 +6,8 @@ import { useApp } from '../estado';
 import { Avatar, Planta } from '../componentes/Ilustraciones';
 import { Medidor } from '../componentes/Historia';
 import { CabeceraVidrio } from '../componentes/Red';
-import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, listarPerfiles, pistaDePerfil } from '../almacenamiento/datos';
+import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, pistaDePerfil } from '../almacenamiento/datos';
+import EstadoNube from '../componentes/EstadoNube';
 import Comparacion from '../componentes/Comparacion';
 import { catalogoInsignias, ETAPAS } from '../juego/progresion';
 import { estadoSilo } from '../juego/silo';
@@ -28,15 +29,14 @@ export default function MiFinca() {
   const unidad = unidadDe(pista, actual);
   const estrellas = Object.values(prog.niveles).reduce((s, n) => s + n.estrellas, 0);
   const catalogo = catalogoInsignias();
-  const hayPareja = listarPerfiles().filter((x) => x.rol === 'estudiante').length >= 2;
   const pruebas = leerPruebas(p);
   const adulto = p.rol === 'familia';
 
   return (
     <>
       <CabeceraVidrio
-        titulo={p.apodo}
-        subtitulo={p.codigo}
+        titulo={p.nombre}
+        subtitulo={`@${p.usuario}`}
         derecha={
           <button type="button" className="boton icono vidrio-boton" onClick={() => ir({ nombre: 'ajustes' })} aria-label="Ajustes">
             <Icono nombre="engrane" tamano={28} />
@@ -77,15 +77,11 @@ export default function MiFinca() {
             </div>
           </div>
           <div className="fila">
-            <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} onClick={() => ir({ nombre: 'quien' })}>
-              <Icono nombre="personas" tamano={26} /> Cambiar jugador
+            <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} onClick={() => ir({ nombre: 'avatar' })}>
+              <Icono nombre="personas" tamano={26} /> {adulto ? 'Cambiar personaje' : 'Cambiar mi personaje'}
             </button>
-            {hayPareja && (
-              <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} onClick={() => ir({ nombre: 'pareja' })}>
-                <Icono nombre="pareja" tamano={26} /> Reto en pareja
-              </button>
-            )}
           </div>
+          <EstadoNube adulto={adulto} />
         </section>
 
         {pruebas.diagnostica && pruebas.final && (
@@ -154,7 +150,7 @@ export default function MiFinca() {
               <Icono nombre="silo" tamano={34} /> Silo de la escuela
             </h2>
             <p className="pequeno" style={{ margin: 0 }}>
-              Aquí se juntan las semillas de todos los jugadores de este celular. Cuando se llena, ¡hay cosecha para todos!
+              Aquí se juntan las semillas de todos los compañeros de la escuela. Cuando se llena, ¡hay cosecha para todos!
             </p>
             <div className="silo" role="progressbar" aria-valuemin={0} aria-valuemax={silo.capacidad} aria-valuenow={silo.enSilo} aria-label="Semillas en el silo">
               <div style={{ width: `${(silo.enSilo / silo.capacidad) * 100}%` }} />

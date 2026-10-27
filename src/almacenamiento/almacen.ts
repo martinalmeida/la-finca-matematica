@@ -8,6 +8,7 @@ export const PREFIJO_V1 = 'fincaMat:v1:';
 const memoria = new Map<string, string>();
 let disponible = probar();
 const oyentes = new Set<() => void>();
+const observadores = new Set<(clave: string) => void>();
 
 function probar(): boolean {
   try {
@@ -36,6 +37,12 @@ export function alCambiarDisponibilidad(f: () => void): () => void {
   return () => oyentes.delete(f);
 }
 
+/** Avisa cada escritura (la usa la cola de sincronización). */
+export function alEscribir(f: (clave: string) => void): () => void {
+  observadores.add(f);
+  return () => observadores.delete(f);
+}
+
 export function leerTexto(clave: string): string | null {
   if (disponible) {
     try {
@@ -49,6 +56,7 @@ export function leerTexto(clave: string): string | null {
 
 export function escribirTexto(clave: string, valor: string): void {
   memoria.set(clave, valor);
+  observadores.forEach((f) => f(clave));
   if (!disponible) return;
   try {
     localStorage.setItem(clave, valor);

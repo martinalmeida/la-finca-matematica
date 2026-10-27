@@ -1,14 +1,11 @@
-// Estado global: pantalla actual (enrutamiento en memoria), perfil activo, ajustes y avisos.
+// Estado global del usuario que juega: pantalla actual (enrutamiento en memoria), perfil, ajustes y avisos.
 
 import { createContext, useContext } from 'react';
-import type { Ajustes, Perfil, Rol } from './almacenamiento/datos';
+import type { Ajustes, Perfil } from './almacenamiento/datos';
 import type { Efecto, ResultadoNivel } from './juego/progresion';
 import type { TipoPrueba } from './juego/motor';
 
 export type Pantalla =
-  | { nombre: 'bienvenida' }
-  | { nombre: 'quien' }
-  | { nombre: 'crear'; rol: Rol }
   | { nombre: 'inicio' }
   | { nombre: 'mapa' }
   | { nombre: 'aprender' }
@@ -17,19 +14,19 @@ export type Pantalla =
   | { nombre: 'mifinca' }
   | { nombre: 'ajustes' }
   | { nombre: 'familias'; seccion?: 'menu' | 'acompanar' | 'avance' | 'videos' }
-  | { nombre: 'docente' }
-  | { nombre: 'pareja' }
   | { nombre: 'taller' }
+  | { nombre: 'avatar' }
   | { nombre: 'prueba'; tipo: TipoPrueba };
 
 export type EstadoApp = {
   pantalla: Pantalla;
-  perfil: Perfil | null;
+  perfil: Perfil;
   ajustes: Ajustes;
   ir: (p: Pantalla, opciones?: { reemplazar?: boolean }) => void;
   volver: () => void;
-  elegirPerfil: (p: Perfil | null) => void;
-  actualizarPerfil: (p: Perfil) => void;
+  /** Cierra la sesión (borra del celular los datos de la cuenta). */
+  salir: () => Promise<void>;
+  cambiarAvatar: (avatar: string) => void;
   cambiarAjustes: (a: Ajustes) => void;
   avisar: (texto: string) => void;
 };

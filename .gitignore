@@ -5,3 +5,7 @@ android
 .DS_Store
 
 *.tsbuildinfo
+
+# Variables de entorno (Supabase)
+.env
+.env.local

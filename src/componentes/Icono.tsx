@@ -507,6 +507,45 @@ const iconos: Record<string, (u: U) => ReactElement> = {
       </g>
     </>
   ),
+  'ojo-cerrado': () => (
+    <>
+      <path d="M3 22s8 11 21 11 21-11 21-11" fill="none" stroke={medio('a')} strokeWidth="3" strokeLinecap="round" />
+      <path d="M10 28.5l-3.5 4.5M18 31.5l-1.5 5M30 31.5l1.5 5M38 28.5l3.5 4.5" stroke={medio('a')} strokeWidth="2.6" strokeLinecap="round" />
+    </>
+  ),
+  salir: (u) => (
+    <>
+      <Volumen u={u} c="k" d={rect(6, 5, 22, 38, 3)} />
+      <rect x="10" y="9" width="14" height="30" rx="1.5" fill={oscuro('k')} />
+      <circle cx="21" cy="25" r="1.6" fill={medio('y')} />
+      <g className="a-asomar">
+        <path d="M27 24h14" stroke={medio('r')} strokeWidth="4" strokeLinecap="round" />
+        <path d="M35.5 17.5 42 24l-6.5 6.5" fill="none" stroke={medio('r')} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+    </>
+  ),
+  imprimir: (u) => (
+    <>
+      <rect x="13" y="5" width="22" height="13" rx="1.5" fill={u('c')} stroke="#cbd5e1" strokeWidth=".8" />
+      <Volumen u={u} c="d" d={rect(4, 16, 40, 18, 4)} />
+      {reflejo(u, 'M8 16h32a4 4 0 0 1 4 4H4a4 4 0 0 1 4-4Z')}
+      <circle cx="37" cy="23" r="2" fill={medio('v')} />
+      <g className="a-rebote">
+        <rect x="12" y="27" width="24" height="16" rx="1.5" fill={u('c')} stroke="#cbd5e1" strokeWidth=".8" />
+        <path d="M16 32h16M16 36.5h11" stroke="#94a3b8" strokeWidth="1.6" strokeLinecap="round" />
+      </g>
+    </>
+  ),
+  buscar: (u) => (
+    <>
+      <path d="M29.5 29.5 42 42" stroke={oscuro('k')} strokeWidth="6" strokeLinecap="round" />
+      <g className="a-mirar">
+        <circle cx="20" cy="20" r="14" fill="#fff" stroke={medio('a')} strokeWidth="4" />
+        <circle cx="20" cy="20" r="10.5" fill={u('a')} opacity=".35" />
+        <path d="M13 17a8 8 0 0 1 6-6" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+      </g>
+    </>
+  ),
   carrito: (u) => (
     <g className="a-rodar">
       <path d="M3 8h6l5 23h24.5" fill="none" stroke={medio('d')} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />

@@ -250,7 +250,7 @@ export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () =>
         <Pasos plataforma={plataforma} />
         {ios && (
           <p className="pequeno suave">
-            Importante: la app instalada guarda sus datos aparte de Safari. Si ya jugaron aquí, antes use «Exportar copia» en Ajustes y luego «Importar copia» dentro de la app.
+            Importante: la app instalada guarda sus datos aparte de Safari. Al abrirla, vuelva a entrar con el usuario y la contraseña: el avance que ya se subió a la nube aparece ahí.
           </p>
         )}
       </>

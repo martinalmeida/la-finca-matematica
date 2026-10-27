@@ -182,7 +182,7 @@ export default function Mapa() {
       {cosecha && (
         <Celebracion
           titulo="¡Cosecha colectiva!"
-          texto="Entre todos los jugadores de este celular llenaron el silo de la escuela. ¡Gracias por trabajar juntos!"
+          texto="Entre todos los compañeros llenaron el silo de la escuela. ¡Gracias por trabajar juntos!"
           alCerrar={() => setCosecha(false)}
         />
       )}
