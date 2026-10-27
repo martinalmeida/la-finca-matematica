@@ -7,6 +7,10 @@ Aplicación web progresiva (PWA) para practicar **suma, resta, multiplicación y
 - **100 % sin conexión** después de la primera carga: sin APIs, CDN, fuentes externas, analítica ni anuncios. Todo va empaquetado.
 - **Videos de ayuda opcionales** (YouTube, en español): solo se cargan si alguien toca «Ver video» y hay internet; sin señal se avisa y lo demás sigue igual. Se apagan en Ajustes. Catálogo y revisión docente: [docs/VIDEOS.md](docs/VIDEOS.md).
 - Varios perfiles por celular, datos solo en `localStorage` del dispositivo; nada sale del celular.
+- **Inclusión:** «Apoyo extra» por perfil para quien aprende a otro ritmo (números más pequeños en la misma unidad, dos opciones, dibujo de ayuda visible, enunciado frase por frase con voz lenta, paso a paso). A cualquier estudiante se le ofrece el paso a paso tras dos errores (`src/juego/apoyo.ts`, `src/componentes/PasoAPaso.tsx`).
+- **Escribir números con el dedo (1.º):** Taller de números (mira, repasa, escribe solo) y respuestas escritas en la ruta. Reconocedor de cifras propio, sin librerías ni internet (nubes de puntos $P, `src/juego/trazos.ts`; trazos de las cifras en `src/contenido/cifras.ts`).
+- **Realidad aumentada opcional** (apagada por defecto, la activa un adulto): objetos de la finca sobre la imagen de la cámara para contar, juntar y quitar; con WebXR en Android con ARCore, los objetos quedan sobre el piso (`src/componentes/EscenaRA.tsx`, `src/servicios/xr.ts`). La imagen no se graba ni se envía.
+- **Vibración corta solo en los errores** (35 ms, `retroError` en `src/servicios/sonido.ts`).
 - Interfaz de vidrio tipo red social: muro de inicio con historias (42 mini-lecciones, una por unidad y grado, en `src/contenido/lecciones.ts`), reto del día y logros locales; pestañas Inicio, Ruta, Aprender y Perfil. Cada grado tiene su ruta de 7 unidades con complejidad creciente (Inicio → Básico → Intermedio → Avanzado → Reto; ver `src/juego/complejidad.ts`). En Ajustes, «Ligeros» quita transparencias y animaciones para celulares lentos.
 
 > Antes de usarla con estudiantes, la plataforma debe pasar por la validación de expertos y el pilotaje previstos en la tesis (apartado 5.8).
@@ -23,7 +27,7 @@ npm install        # instala las dependencias (solo la primera vez, con internet
 npm run dev        # servidor de desarrollo en http://localhost:5173
 npm run build      # build de producción en dist/ (incluye el service worker)
 npm run preview    # sirve dist/ en http://localhost:4173 para probar la PWA
-npm test           # pruebas (Vitest): generadores, detector de errores, progresión, almacenamiento
+npm test           # pruebas (Vitest): generadores, detector de errores, progresión, almacenamiento, apoyo, cifras, vibración
 npm run iconos     # vuelve a generar los íconos PNG (public/iconos)
 npm run catalogo   # vuelve a generar docs/PLANTILLAS.md
 ```
@@ -97,9 +101,9 @@ src/
   contenido/        contexto.ts (banco de contexto local), pistas.ts (registro), plantillas/ (g1–g5, familia, util)
   almacenamiento/   localStorage seguro (respaldo en memoria), datos, migraciones, copia de seguridad
   componentes/      teclado propio, ejercicio, pistas visuales, ilustraciones SVG, interacciones táctiles
-  pantallas/        bienvenida, ¿quién juega?, crear perfil, mapa, nivel, resultado, mi finca, ajustes, familias, panel docente, reto en pareja
+  pantallas/        bienvenida, ¿quién juega?, crear perfil, mapa, nivel, resultado, mi finca, ajustes, familias, panel docente, reto en pareja, taller de números
   pwa/              registro del service worker e instalación
-  servicios/        sonidos (Web Audio), vibración, voz (speechSynthesis)
+  servicios/        sonidos (Web Audio), vibración, voz (speechSynthesis), cámara y WebXR
 tests/              pruebas Vitest
 scripts/            generador de íconos y del catálogo de plantillas
 docs/               guía docente y catálogo de plantillas

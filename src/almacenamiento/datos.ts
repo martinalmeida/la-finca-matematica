@@ -13,6 +13,9 @@ export type Perfil = {
   rol: Rol;
   grado: Grado | null;
   creado: string;
+  /** Apoyo extra para aprendizaje más pausado (lo activa un adulto): números más pequeños,
+   *  menos opciones, dibujo de ayuda visible y paso a paso. */
+  apoyo?: boolean;
 };
 
 export type EtapaPlanta = 'semilla' | 'brote' | 'planta' | 'flor' | 'fruto' | 'cosecha';
@@ -38,6 +41,8 @@ export type RegistroItem = {
   pistasUsadas: 0 | 1 | 2 | 3;
   tipoError?: string;
   ms: number;
+  /** Se resolvió con el paso a paso. */
+  pasoAPaso?: boolean;
 };
 
 export type Ajustes = {
@@ -49,6 +54,8 @@ export type Ajustes = {
   efectos: 'completos' | 'ligeros';
   /** Videos de ayuda de YouTube (necesitan internet). */
   videos: boolean;
+  /** Realidad aumentada con la cámara. Apagada hasta que un adulto la active. */
+  realidadAumentada: boolean;
 };
 
 /** Resumen agregado por perfil (sin detalle por ejercicio): alimenta el panel docente
@@ -58,6 +65,8 @@ export type Resumen = {
   errores: Record<string, number>;
   diasJugados: string[];
   retosPareja: number;
+  /** Ejercicios resueltos con el paso a paso. */
+  pasoAPaso: number;
 };
 
 export type Docente = { pinHash: string | null; modoInvestigacion: boolean };
@@ -74,6 +83,7 @@ const K = {
   tutorial: (id: string) => `${PREFIJO_V1}tutorialVisto:${id}`,
   historias: (id: string) => `${PREFIJO_V1}historiasVistas:${id}`,
   reacciones: (id: string) => `${PREFIJO_V1}reacciones:${id}`,
+  taller: (id: string) => `${PREFIJO_V1}taller:${id}`,
 };
 
 export const MAX_REGISTRO = 3000;
@@ -170,16 +180,17 @@ export function registrar(id: string, item: RegistroItem): void {
 // --- Resumen agregado ---
 
 export function leerResumen(id: string): Resumen {
-  return { porOperacion: {}, errores: {}, diasJugados: [], retosPareja: 0, ...leer<Partial<Resumen>>(K.resumen(id), {}) };
+  return { porOperacion: {}, errores: {}, diasJugados: [], retosPareja: 0, pasoAPaso: 0, ...leer<Partial<Resumen>>(K.resumen(id), {}) };
 }
 
-export function sumarAlResumen(id: string, operacion: Operacion, correcto: boolean, tipoError?: string): Resumen {
+export function sumarAlResumen(id: string, operacion: Operacion, correcto: boolean, tipoError?: string, pasoAPaso = false): Resumen {
   const r = leerResumen(id);
   const op = r.porOperacion[operacion] ?? { total: 0, aciertos: 0 };
   op.total++;
   if (correcto) op.aciertos++;
   r.porOperacion[operacion] = op;
   if (tipoError) r.errores[tipoError] = (r.errores[tipoError] ?? 0) + 1;
+  if (pasoAPaso) r.pasoAPaso++;
   const hoy = new Date().toISOString().slice(0, 10);
   if (!r.diasJugados.includes(hoy)) r.diasJugados = [...r.diasJugados.slice(-60), hoy];
   escribir(K.resumen(id), r);
@@ -213,7 +224,7 @@ function equipoModesto(): boolean {
   }
 }
 
-export const ajustesPorDefecto: Ajustes = { tamanoLetra: 'normal', sonido: true, vibracion: true, audioEnunciados: true, efectos: 'completos', videos: true };
+export const ajustesPorDefecto: Ajustes = { tamanoLetra: 'normal', sonido: true, vibracion: true, audioEnunciados: true, efectos: 'completos', videos: true, realidadAumentada: false };
 
 export function leerAjustes(): Ajustes {
   return { ...ajustesPorDefecto, ...(movimientoReducido() || equipoModesto() ? { efectos: 'ligeros' as const } : {}), ...leer<Partial<Ajustes>>(K.ajustes, {}) };
@@ -273,4 +284,17 @@ export function alternarReaccion(id: string, publicacion: string): boolean {
   r[publicacion] = !r[publicacion];
   escribir(K.reacciones(id), r);
   return r[publicacion];
+}
+
+// --- Taller de números: estrellas (0 a 3) por cifra ---
+
+export function leerTaller(id: string): Record<string, number> {
+  const t = leer<Record<string, number>>(K.taller(id), {});
+  return t && typeof t === 'object' ? t : {};
+}
+
+export function guardarCifraTaller(id: string, cifra: number, estrellas: number): void {
+  const t = leerTaller(id);
+  t[cifra] = Math.max(t[cifra] ?? 0, Math.min(3, estrellas));
+  escribir(K.taller(id), t);
 }

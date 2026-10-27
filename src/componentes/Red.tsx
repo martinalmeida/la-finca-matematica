@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { useApp } from '../estado';
 import { Avatar, type AvatarId } from './Ilustraciones';
 import { alternarReaccion, leerReacciones } from '../almacenamiento/datos';
-import { sonar, vibrar } from '../servicios/sonido';
+import { sonar } from '../servicios/sonido';
 import type { Unidad } from '../juego/complejidad';
 import type { Leccion } from '../contenido/lecciones';
 import Icono, { IconoEmoji } from './Icono';
@@ -67,7 +67,6 @@ export function Publicacion({ id, avatar, autor, meta, etiqueta, children, reacc
               if (v) {
                 setPulso((p) => p + 1);
                 sonar('toque', ajustes.sonido);
-                vibrar(15, ajustes.vibracion);
               }
             }}
           >

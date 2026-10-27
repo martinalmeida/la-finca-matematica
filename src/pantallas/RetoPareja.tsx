@@ -8,7 +8,7 @@ import { guardarProgreso, leerProgreso, listarPerfiles, pistaDePerfil, sumarReto
 import { generarReto, gradosCercanos } from '../juego/pareja';
 import { num } from '../contenido/contexto';
 import type { Grado } from '../juego/tipos';
-import { sonar, vibrar } from '../servicios/sonido';
+import { retroError, sonar } from '../servicios/sonido';
 import Icono from '../componentes/Icono';
 
 function premiar(p: Perfil) {
@@ -94,14 +94,13 @@ export default function RetoPareja() {
   const responder = () => {
     if (Number(valor) === p.respuesta) {
       sonar('acierto', ajustes.sonido);
-      vibrar(40, ajustes.vibracion);
       avanzar();
       return;
     }
     const n = errores + 1;
     setErrores(n);
     setValor('');
-    sonar('intento', ajustes.sonido);
+    retroError(ajustes);
     setMensaje(n >= 2 ? `La respuesta era ${num(p.respuesta)}. ¡Sigan juntos!` : 'Todavía no. Pídele ayuda a tu compañero y vuelve a intentarlo.');
     if (n >= 2) setTimeout(avanzar, 2500);
   };

@@ -42,7 +42,7 @@ export default function MiFinca() {
       />
       <main className="pantalla">
         <section className="perfil-cabecera vidrio revelar" aria-label="Mi perfil">
-          <div className="fila" style={{ flexWrap: 'nowrap', gap: 16 }}>
+          <div className="fila" style={{ justifyContent: 'center', gap: 16 }}>
             <span className="anillo-avatar grande-anillo">
               <Avatar id={p.avatar} tamano={84} />
             </span>
@@ -70,12 +70,12 @@ export default function MiFinca() {
               <Medidor barras={unidad.complejidad.barras} /> Complejidad: {unidad.complejidad.nombre}
             </span>
           </div>
-          <div className="fila" style={{ flexWrap: 'nowrap' }}>
-            <button type="button" className="boton vidrio-boton" style={{ flex: 1 }} onClick={() => ir({ nombre: 'quien' })}>
+          <div className="fila">
+            <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} onClick={() => ir({ nombre: 'quien' })}>
               <Icono nombre="personas" tamano={26} /> Cambiar jugador
             </button>
             {hayPareja && (
-              <button type="button" className="boton vidrio-boton" style={{ flex: 1 }} onClick={() => ir({ nombre: 'pareja' })}>
+              <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} onClick={() => ir({ nombre: 'pareja' })}>
                 <Icono nombre="pareja" tamano={26} /> Reto en pareja
               </button>
             )}

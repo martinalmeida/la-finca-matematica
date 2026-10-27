@@ -41,6 +41,7 @@ const AjustesPantalla = perezosa(() => import('./pantallas/Ajustes'));
 const Familias = perezosa(() => import('./pantallas/Familias'));
 const PanelDocente = perezosa(() => import('./pantallas/PanelDocente'));
 const RetoPareja = perezosa(() => import('./pantallas/RetoPareja'));
+const Taller = perezosa(() => import('./pantallas/Taller'));
 
 function precargarPantallas() {
   const ocioso = (window as { requestIdleCallback?: (f: () => void) => number }).requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 1200));
@@ -65,6 +66,8 @@ function aplicarTamanoLetra(perfil: Perfil | null, ajustes: Ajustes, pantalla: P
   document.documentElement.dataset.rol = rol;
   document.documentElement.dataset.efectos = ajustes.efectos;
   document.documentElement.dataset.grado = perfil?.grado && !general ? String(perfil.grado) : '';
+  // Apoyo extra: letra más espaciada y renglones más amplios.
+  document.documentElement.dataset.apoyo = perfil?.apoyo && !general ? '1' : '';
 }
 
 export default function App() {
@@ -161,7 +164,7 @@ export default function App() {
       </Suspense>
       {perfil && esPestana(pantalla) && <Pestanas />}
       {/* No interrumpe un nivel en curso: se ofrece en las pantallas de entrada y en las pestañas. */}
-      <InvitacionInstalar permitida={!['nivel', 'resultado', 'pareja', 'crear'].includes(pantalla.nombre)} />
+      <InvitacionInstalar permitida={!['nivel', 'resultado', 'pareja', 'crear', 'taller'].includes(pantalla.nombre)} />
       {aviso && (
         <div className="aviso" role="status" aria-live="polite">
           {aviso}
@@ -202,5 +205,7 @@ function Contenido({ pantalla, perfil }: { pantalla: Pantalla; perfil: Perfil | 
       return <PanelDocente />;
     case 'pareja':
       return <RetoPareja />;
+    case 'taller':
+      return <Taller />;
   }
 }

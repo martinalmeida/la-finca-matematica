@@ -21,6 +21,8 @@ export type FilaInforme = {
   porcentajes: Partial<Record<Operacion, { pct: number; total: number }>>;
   erroresFrecuentes: { tipo: string; n: number }[];
   masCuesta: Operacion[];
+  /** Ejercicios resueltos con el paso a paso. */
+  pasoAPaso: number;
 };
 
 export function informePerfil(p: Perfil): FilaInforme {
@@ -50,6 +52,7 @@ export function informePerfil(p: Perfil): FilaInforme {
       .slice(0, 3)
       .map(([tipo, n]) => ({ tipo: nombresErrores[tipo as TipoError] ?? tipo, n })),
     masCuesta,
+    pasoAPaso: res.pasoAPaso,
   };
 }
 
@@ -64,7 +67,7 @@ function csv(filas: (string | number | boolean | undefined)[][]): string {
 /** CSV de resumen por perfil (códigos, sin apodos ni nombres). */
 export function csvResumen(): string {
   const ops: Operacion[] = ['suma', 'resta', 'multiplicacion', 'division', 'mixta'];
-  const enc = ['codigo', 'rol', 'grado', 'pista', 'nivel_maximo', 'estrellas', 'semillas', ...ops.flatMap((o) => [`${o}_pct`, `${o}_n`]), 'errores_frecuentes'];
+  const enc = ['codigo', 'rol', 'grado', 'pista', 'nivel_maximo', 'estrellas', 'semillas', ...ops.flatMap((o) => [`${o}_pct`, `${o}_n`]), 'errores_frecuentes', 'apoyo_extra', 'paso_a_paso'];
   const filas = informeTodos().map((f) => [
     f.perfil.codigo,
     f.perfil.rol,
@@ -75,16 +78,18 @@ export function csvResumen(): string {
     f.semillas,
     ...ops.flatMap((o) => [f.porcentajes[o]?.pct ?? '', f.porcentajes[o]?.total ?? 0]),
     f.erroresFrecuentes.map((e) => `${e.tipo} (${e.n})`).join('; '),
+    f.perfil.apoyo ? 'si' : 'no',
+    f.pasoAPaso,
   ]);
   return '﻿' + csv([enc, ...filas]);
 }
 
 /** CSV del registro detallado (modo investigación). */
 export function csvRegistro(): string {
-  const enc = ['codigo', 't', 'pista', 'nivel', 'plantilla', 'operacion', 'correcto', 'intentos', 'pistas_usadas', 'tipo_error', 'ms'];
+  const enc = ['codigo', 't', 'pista', 'nivel', 'plantilla', 'operacion', 'correcto', 'intentos', 'pistas_usadas', 'tipo_error', 'ms', 'paso_a_paso'];
   const filas: (string | number | boolean | undefined)[][] = [];
   for (const p of listarPerfiles()) {
-    for (const r of leerRegistro(p.id)) filas.push([p.codigo, r.t, r.pista, r.nivel, r.plantilla, r.operacion, r.correcto, r.intentos, r.pistasUsadas, r.tipoError, r.ms]);
+    for (const r of leerRegistro(p.id)) filas.push([p.codigo, r.t, r.pista, r.nivel, r.plantilla, r.operacion, r.correcto, r.intentos, r.pistasUsadas, r.tipoError, r.ms, r.pasoAPaso ?? false]);
   }
   return '﻿' + csv([enc, ...filas]);
 }
@@ -101,6 +106,7 @@ export function jsonInvestigacion(): string {
           rol: p.rol,
           grado: p.grado,
           creado: p.creado,
+          apoyo: !!p.apoyo,
           nivelMaximo: f.nivelMaximo,
           estrellas: f.estrellas,
           semillas: f.semillas,

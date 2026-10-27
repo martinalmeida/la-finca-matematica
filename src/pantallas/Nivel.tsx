@@ -27,7 +27,8 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const progreso = useMemo(() => leerProgreso(p.id, pista), [p.id, pista]);
   const intento = (progreso.niveles[nivel]?.intentos ?? 0) + 1;
   // Los ejercicios del nivel se generan al entrar a él.
-  const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso }), [p.codigo, pista, nivel, intento, repaso]);
+  const apoyo = !!p.apoyo;
+  const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso, apoyo }), [p.codigo, pista, nivel, intento, repaso, apoyo]);
   const video = videoDeLeccion(pista, unidadDe(pista, Math.max(nivel, 1)).indice);
   const [verTutorial, setVerTutorial] = useState(nivel === 0 && !tutorialVisto(p.id));
   const [indice, setIndice] = useState(0);
@@ -35,7 +36,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
 
   const terminarEjercicio = (r: ResultadoEjercicio) => {
     const ej = ejercicios[indice];
-    sumarAlResumen(p.id, ej.operacion, r.correcto, r.tipoError);
+    sumarAlResumen(p.id, ej.operacion, r.correcto, r.tipoError, r.pasoAPaso);
     registrar(p.id, {
       t: new Date().toISOString(),
       pista,
@@ -47,6 +48,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
       pistasUsadas: r.pistas,
       tipoError: r.tipoError,
       ms: r.ms,
+      pasoAPaso: r.pasoAPaso,
     });
     const todos = [...resultados, r];
     setResultados(todos);

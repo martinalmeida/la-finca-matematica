@@ -117,8 +117,21 @@ export function detectarTipoError(calculo: Calculo | undefined, respuestaCorrect
   return 'otro';
 }
 
-export function mensajeError(tipo: TipoError, ej: Pick<Ejercicio, 'pista' | 'calculo'>): string {
+/** Mensajes cortos, con una sola idea, para quien tiene apoyo extra. */
+const MENSAJES_APOYO: Record<TipoError, [nino: string, adulto: string]> = {
+  'suma-sin-llevar': ['Mira las unidades. Si pasan de 9, llevas 1.', 'Mire las unidades. Si pasan de 9, se lleva 1.'],
+  'resta-menor-mayor': ['Mira las unidades. Si no alcanza, pide 1 decena.', 'Mire las unidades. Si no alcanza, pida 1 decena.'],
+  'operacion-equivocada': ['¿Se juntan o se quitan? Piénsalo otra vez.', '¿Se juntan o se quitan? Piénselo otra vez.'],
+  'tabla-vecina': ['Casi. Cuenta los grupos otra vez.', 'Casi. Cuente los grupos otra vez.'],
+  'residuo-ignorado': ['Lo que sobra también cuenta.', 'Lo que sobra también cuenta.'],
+  'conteo-por-uno': ['Casi. Cuenta otra vez, despacio.', 'Casi. Cuente otra vez, despacio.'],
+  cerca: ['¡Muy cerca! Revisa otra vez.', '¡Muy cerca! Revise otra vez.'],
+  otro: ['Todavía no. Mira el dibujo y prueba otra vez.', 'Todavía no. Mire el dibujo y pruebe otra vez.'],
+};
+
+export function mensajeError(tipo: TipoError, ej: Pick<Ejercicio, 'pista' | 'calculo' | 'apoyo'>): string {
   const adulto = ej.pista === 'familia';
+  if (ej.apoyo) return MENSAJES_APOYO[tipo][adulto ? 1 : 0];
   switch (tipo) {
     case 'suma-sin-llevar':
       return adulto

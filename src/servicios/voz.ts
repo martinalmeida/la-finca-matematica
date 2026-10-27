@@ -17,6 +17,8 @@ function vozEspanolLocal(): SpeechSynthesisVoice | null {
 
 // --- Estado global de lo que se está leyendo ---
 let leyendo: string | null = null;
+/** Cambia con cada lectura nueva: una lectura interrumpida no continúa su cadena. */
+let turno = 0;
 const oyentes = new Set<() => void>();
 function fijarLeyendo(clave: string | null) {
   leyendo = clave;
@@ -41,6 +43,7 @@ export function textoParaVoz(texto: string): string {
 }
 
 export function detenerVoz() {
+  turno++;
   try {
     window.speechSynthesis.cancel();
   } catch {
@@ -50,6 +53,9 @@ export function detenerVoz() {
 }
 
 export function useVoz() {
+  const { perfil } = useApp();
+  // Con apoyo extra, la voz va más despacio.
+  const velocidad = perfil?.apoyo ? 0.75 : 0.88;
   const [voz, setVoz] = useState<SpeechSynthesisVoice | null>(() => vozEspanolLocal());
   const actual = useSyncExternalStore(suscribir, () => leyendo);
   useEffect(() => {
@@ -70,16 +76,22 @@ export function useVoz() {
     };
   }, []);
 
-  const leer = (texto: string, clave = texto) => {
+  /** Lee un texto; alTerminar se llama solo si la lectura termina sin que otra la interrumpa. */
+  const leer = (texto: string, clave = texto, alTerminar?: () => void) => {
     if (!voz) return;
     try {
+      const mio = ++turno;
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(textoParaVoz(texto));
       u.voice = voz;
       u.lang = voz.lang;
-      u.rate = 0.88;
+      u.rate = velocidad;
       u.onstart = () => fijarLeyendo(clave);
-      u.onend = () => leyendo === clave && fijarLeyendo(null);
+      u.onend = () => {
+        if (mio !== turno) return;
+        if (leyendo === clave) fijarLeyendo(null);
+        alTerminar?.();
+      };
       u.onerror = () => leyendo === clave && fijarLeyendo(null);
       fijarLeyendo(clave);
       window.speechSynthesis.speak(u);

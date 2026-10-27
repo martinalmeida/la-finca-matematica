@@ -270,6 +270,35 @@ export function nombreObjeto(o: Objeto): string {
   return nombresObjeto[o];
 }
 
+const pluralesObjeto: Record<Objeto, string> = {
+  huevo: 'huevos',
+  mazorca: 'mazorcas de cacao',
+  naranja: 'naranjas',
+  aguacate: 'aguacates',
+  gallina: 'gallinas',
+  bulto: 'bultos',
+  arbol: 'árboles',
+  platano: 'plátanos',
+  mandarina: 'mandarinas',
+  limon: 'limones',
+  arepa: 'arepas',
+  moneda: 'monedas',
+  cafe: 'granos de café',
+  canasta: 'canastas',
+};
+
+const FEMENINOS = new Set<Objeto>(['mazorca', 'naranja', 'gallina', 'mandarina', 'arepa', 'moneda', 'canasta']);
+
+/** ¿El nombre del objeto es femenino? (para «tócalas» o «tócalos»). */
+export function esFemenino(o: Objeto): boolean {
+  return FEMENINOS.has(o);
+}
+
+/** Nombre con la cantidad: «1 huevo», «3 huevos». */
+export function cantidadObjeto(o: Objeto, n: number): string {
+  return `${n} ${n === 1 ? nombresObjeto[o] : pluralesObjeto[o]}`;
+}
+
 // --- Avatares (64 × 64) ---
 
 export type AvatarId = 'gallina' | 'mula' | 'perro' | 'loro' | 'mariposa' | 'ardilla' | 'nina-cacaotera' | 'nino-caficultor' | 'abuela' | 'adulto' | 'adulta' | 'abuelo';

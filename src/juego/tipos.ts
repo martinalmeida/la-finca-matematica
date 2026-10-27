@@ -37,14 +37,16 @@ export type Visual =
 export type Interaccion =
   | { tipo: 'opciones'; opciones: Respuesta[] }
   | { tipo: 'numerica' }
-  | { tipo: 'contar'; objeto: Objeto; cantidad: number; opciones: number[] }
+  | { tipo: 'contar'; objeto: Objeto; cantidad: number; opciones: number[]; /** Responder escribiendo el número con el dedo. */ escribir?: boolean }
   | { tipo: 'arrastrar'; objeto: Objeto; modo: 'juntar' | 'quitar' | 'repartir'; a: number; b: number }
   | { tipo: 'arreglo'; filas: number; columnas: number; objeto: Objeto }
   | { tipo: 'recta'; min: number; max: number; paso: number; inicio: number }
   | { tipo: 'bloques'; modo: 'leer' | 'construir'; valor: number }
   | { tipo: 'algoritmo'; operacion: 'suma' | 'resta' | 'multiplicacion'; a: number; b: number }
   | { tipo: 'razonable'; propuesto: number; esRazonable: boolean; opciones: number[] }
-  | { tipo: 'tabla'; encabezados: string[]; filas: (string | number)[][]; opciones?: Respuesta[] };
+  | { tipo: 'tabla'; encabezados: string[]; filas: (string | number)[][]; opciones?: Respuesta[] }
+  /** Escribir el número con el dedo, una cifra por casilla (1.º). */
+  | { tipo: 'escribir'; cifras: number };
 
 /** Cálculo principal del ejercicio: lo usa el detector de errores. */
 export type Calculo = {
@@ -80,10 +82,12 @@ export type Ejercicio = {
   permiteResiduo?: boolean;
   /** Para generar un ejercicio parecido. */
   origen?: { params: Parametros; d: number; nivel: number };
+  /** Generado con apoyo extra (números más pequeños y menos opciones). */
+  apoyo?: boolean;
 };
 
 /** Lo que una plantilla devuelve; el motor completa id, pista y validar. */
-export type EjercicioBase = Omit<Ejercicio, 'id' | 'pista' | 'validar' | 'plantilla' | 'dimension' | 'operacion' | 'origen'> & {
+export type EjercicioBase = Omit<Ejercicio, 'id' | 'pista' | 'validar' | 'plantilla' | 'dimension' | 'operacion' | 'origen' | 'apoyo'> & {
   validar?: (r: Respuesta) => boolean;
   dimension?: Dimension;
   operacion?: Operacion;

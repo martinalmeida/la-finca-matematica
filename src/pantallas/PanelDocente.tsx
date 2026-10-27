@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useApp } from '../estado';
 import { Barra } from '../componentes/Comunes';
 import Teclado from '../componentes/Teclado';
-import { eliminarPerfil, guardarDocente, leerDocente, reiniciarPerfil } from '../almacenamiento/datos';
+import { eliminarPerfil, guardarDocente, guardarPerfil, leerDocente, reiniciarPerfil, type Perfil } from '../almacenamiento/datos';
 import { hashTexto } from '../juego/rng';
 import { csvRegistro, csvResumen, informeTodos, jsonInvestigacion, nombresOperacion } from '../juego/informes';
 import { descargar, fechaArchivo } from '../almacenamiento/copia';
@@ -64,7 +64,7 @@ function Acceso({ alEntrar }: { alEntrar: () => void }) {
 }
 
 export default function PanelDocente() {
-  const { avisar, perfil, elegirPerfil } = useApp();
+  const { avisar, perfil, elegirPerfil, actualizarPerfil } = useApp();
   const [dentro, setDentro] = useState(false);
   const [docente, setDocente] = useState(leerDocente());
   const [, refrescar] = useState(0);
@@ -73,6 +73,14 @@ export default function PanelDocente() {
 
   const filas = informeTodos();
   const ops: Operacion[] = ['suma', 'resta', 'multiplicacion', 'division'];
+
+  const cambiarApoyo = (p: Perfil, apoyo: boolean) => {
+    const nuevo = { ...p, apoyo };
+    if (perfil?.id === p.id) actualizarPerfil(nuevo);
+    else guardarPerfil(nuevo);
+    avisar(apoyo ? `Apoyo extra activado para ${p.codigo}` : `Apoyo extra desactivado para ${p.codigo}`);
+    refrescar((x) => x + 1);
+  };
 
   const cambiarInvestigacion = (v: boolean) => {
     if (v && !window.confirm('Active el modo investigación solo si cuenta con el consentimiento informado de las familias. ¿Confirmar?')) return;
@@ -129,6 +137,7 @@ export default function PanelDocente() {
                   </th>
                 ))}
                 <th scope="col">Errores frecuentes</th>
+                <th scope="col">Apoyo extra</th>
                 <th scope="col">Acciones</th>
               </tr>
             </thead>
@@ -143,6 +152,13 @@ export default function PanelDocente() {
                     <td key={o}>{f.porcentajes[o] ? `${f.porcentajes[o]!.pct} % (${f.porcentajes[o]!.total})` : '—'}</td>
                   ))}
                   <td>{f.erroresFrecuentes.map((e) => `${e.tipo} (${e.n})`).join(', ') || '—'}</td>
+                  <td>
+                    <label className="fila" style={{ gap: 6, flexWrap: 'nowrap' }}>
+                      <input type="checkbox" checked={!!f.perfil.apoyo} onChange={(e) => cambiarApoyo(f.perfil, e.target.checked)} aria-label={`Apoyo extra para ${f.perfil.codigo}`} />
+                      {f.perfil.apoyo ? 'Sí' : 'No'}
+                    </label>
+                    {f.pasoAPaso > 0 && <div className="pequeno suave">{f.pasoAPaso} paso a paso</div>}
+                  </td>
                   <td>
                     <div className="columna">
                       <button
@@ -178,6 +194,10 @@ export default function PanelDocente() {
           </table>
         </div>
         <p className="pequeno suave">Los porcentajes no son notas escolares: muestran en qué operaciones conviene reforzar.</p>
+        <p className="pequeno suave">
+          <strong>Apoyo extra</strong>: para quien aprende a otro ritmo. Números más pequeños dentro de la misma unidad, dos opciones para elegir, el dibujo de ayuda visible desde el inicio,
+          el enunciado frase por frase con voz más lenta y el «paso a paso». La aplicación no muestra ninguna etiqueta al estudiante ni a sus compañeros.
+        </p>
       </section>
     </main>
   );

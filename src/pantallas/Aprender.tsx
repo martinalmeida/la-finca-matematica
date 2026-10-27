@@ -53,6 +53,21 @@ export default function Aprender() {
           </p>
         </section>
 
+        {(pista === 'g1' || p.apoyo) && !adulto && (
+          <button type="button" className="vidrio tarjeta-taller revelar" onClick={() => ir({ nombre: 'taller' })}>
+            <span className="icono-taller" aria-hidden="true">
+              <Icono nombre="lapiz" tamano={44} anim="siempre" />
+            </span>
+            <span className="columna" style={{ flex: 1, gap: 2, textAlign: 'left', minWidth: 0 }}>
+              <strong className="titulo-tarjeta">Taller de números</strong>
+              <span className="pequeno suave">
+                Aprende a escribir del 0 al 9 con el dedo{ajustes.realidadAumentada ? ' y míralos aparecer en tu finca con la cámara' : ''}.
+              </span>
+            </span>
+            <Icono nombre="siguiente" tamano={24} />
+          </button>
+        )}
+
         <ol className="lista-lecciones">
           {unidades.map((u) => {
             const l = lista[u.indice];

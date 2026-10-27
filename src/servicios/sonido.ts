@@ -57,11 +57,44 @@ export function sonar(s: Sonido, activo: boolean) {
   }
 }
 
+/** Duración del pulso de error: corto, solo para avisar «revisa». */
+export const PULSO_ERROR = 35;
+
+let interruptorIos: HTMLLabelElement | null = null;
+
+/** iOS no tiene navigator.vibrate; desde iOS 18, alternar un <input switch> produce un toque háptico. */
+function toqueIos() {
+  try {
+    if (!interruptorIos) {
+      const label = document.createElement('label');
+      label.setAttribute('aria-hidden', 'true');
+      label.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;left:-10px;top:0';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.setAttribute('switch', '');
+      input.tabIndex = -1;
+      label.appendChild(input);
+      document.body.appendChild(label);
+      interruptorIos = label;
+    }
+    interruptorIos.click();
+  } catch {
+    // sin háptica disponible
+  }
+}
+
 export function vibrar(ms: number | number[], activo: boolean) {
   if (!activo) return;
   try {
-    navigator.vibrate?.(ms);
+    if (typeof navigator.vibrate === 'function') navigator.vibrate(ms);
+    else if (/iP(hone|ad|od)/.test(navigator.userAgent)) toqueIos();
   } catch {
     // sin vibración disponible
   }
+}
+
+/** Retroalimentación de un error: sonido suave y una vibración corta. Los aciertos no vibran. */
+export function retroError(ajustes: { sonido: boolean; vibracion: boolean }) {
+  sonar('intento', ajustes.sonido);
+  vibrar(PULSO_ERROR, ajustes.vibracion);
 }

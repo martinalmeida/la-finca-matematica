@@ -5,6 +5,7 @@ import { crearRng, semillaNivel, type Rng } from './rng';
 import type { DefinicionPista, Dimension, Ejercicio, Pista, Respuesta, Tramo, Uso } from './tipos';
 import { definiciones } from '../contenido/pistas';
 import { igualNumero } from '../contenido/plantillas/util';
+import { FACTOR_DIFICULTAD_APOYO, reducirOpciones } from './apoyo';
 
 export const NIVEL_MAXIMO = 100;
 
@@ -70,17 +71,19 @@ function candidatosNivel(pista: Pista, nivel: number): Candidato[] {
   return tramoDe(pista, nivel).usos.map((uso) => ({ uso, d, nivel }));
 }
 
-function construir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: string, nivelReal: number): Ejercicio {
+function construir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: string, nivelReal: number, apoyo = false): Ejercicio {
   const p = c.uso.plantilla;
   const params = c.uso.params ?? {};
-  const base = p.generar({ rng, d: c.d, nivel: nivelReal, pista, repaso, params });
+  // Con apoyo extra, la dificultad baja dentro de la misma unidad (los números se achican).
+  const d = apoyo ? c.d * FACTOR_DIFICULTAD_APOYO : c.d;
+  const base = p.generar({ rng, d, nivel: nivelReal, pista, repaso, params });
   const respuesta = base.respuesta;
   const validar =
     base.validar ??
     (typeof respuesta === 'number'
       ? igualNumero(respuesta)
       : (r: Respuesta) => String(r).trim().toLowerCase() === String(respuesta).trim().toLowerCase());
-  return {
+  const ej: Ejercicio = {
     ...base,
     id,
     pista,
@@ -89,7 +92,9 @@ function construir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: st
     operacion: base.operacion ?? p.operacion,
     validar,
     origen: { params, d: c.d, nivel: c.nivel },
+    apoyo,
   };
+  return apoyo ? reducirOpciones(ej) : ej;
 }
 
 export type OpcionesNivel = {
@@ -98,10 +103,12 @@ export type OpcionesNivel = {
   nivel: number;
   intento: number;
   repaso?: boolean;
+  /** Apoyo extra del perfil. */
+  apoyo?: boolean;
 };
 
 /** Genera los ejercicios de un nivel (4 en 1.º, 5 en los demás). */
-export function generarNivel({ codigo, pista, nivel, intento, repaso = false }: OpcionesNivel): Ejercicio[] {
+export function generarNivel({ codigo, pista, nivel, intento, repaso = false, apoyo = false }: OpcionesNivel): Ejercicio[] {
   const rng = crearRng(semillaNivel(codigo, pista, nivel, intento) ^ (repaso ? 0x5f3759df : 0));
   const total = cantidadEjercicios(pista);
   const candidatos = candidatosNivel(pista, nivel);
@@ -127,9 +134,9 @@ export function generarNivel({ codigo, pista, nivel, intento, repaso = false }: 
     const elegido = rng.elegir(opciones);
     usadas.set(elegido.uso.plantilla.id, minimo + 1);
 
-    let ej = construir(pista, elegido, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, nivel);
+    let ej = construir(pista, elegido, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, nivel, apoyo);
     for (let r = 0; r < 12 && enunciados.has(ej.enunciado); r++) {
-      ej = construir(pista, elegido, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, nivel);
+      ej = construir(pista, elegido, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, nivel, apoyo);
     }
     enunciados.add(ej.enunciado);
     ejercicios.push(ej);
@@ -143,14 +150,14 @@ export function generarParecido(ej: Ejercicio, semilla: number): Ejercicio {
   const plantilla = def.plantillas.find((p) => p.id === ej.plantilla)!;
   const origen = ej.origen ?? { params: {}, d: 0, nivel: 0 };
   const rng = crearRng(semilla);
-  let nuevo = construir(ej.pista, { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel }, rng, true, ej.id + '-p', origen.nivel);
+  let nuevo = construir(ej.pista, { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel }, rng, true, ej.id + '-p', origen.nivel, ej.apoyo);
   for (let i = 0; i < 8 && nuevo.enunciado === ej.enunciado; i++) {
-    nuevo = construir(ej.pista, { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel }, rng, true, ej.id + '-p', origen.nivel);
+    nuevo = construir(ej.pista, { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel }, rng, true, ej.id + '-p', origen.nivel, ej.apoyo);
   }
   return nuevo;
 }
 
 /** Generación de un ejercicio concreto (para pruebas y depuración). */
-export function generarConUso(pista: Pista, uso: Uso, d: number, nivel: number, semilla: number, repaso = false): Ejercicio {
-  return construir(pista, { uso, d, nivel }, crearRng(semilla), repaso, `prueba-${semilla}`, nivel);
+export function generarConUso(pista: Pista, uso: Uso, d: number, nivel: number, semilla: number, repaso = false, apoyo = false): Ejercicio {
+  return construir(pista, { uso, d, nivel }, crearRng(semilla), repaso, `prueba-${semilla}`, nivel, apoyo);
 }

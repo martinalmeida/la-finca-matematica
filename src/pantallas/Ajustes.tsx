@@ -15,7 +15,7 @@ export default function Ajustes() {
   const { ajustes, cambiarAjustes, perfil, actualizarPerfil, ir, avisar } = useApp();
   const voz = useVoz();
   const adulto = perfil?.rol === 'familia';
-  const [pin, setPin] = useState<null | 'grado' | 'importar'>(null);
+  const [pin, setPin] = useState<null | 'grado' | 'importar' | 'ra' | 'apoyo'>(null);
   const [eligiendoGrado, setEligiendoGrado] = useState(false);
   const archivo = useRef<HTMLInputElement>(null);
   const cambiar = <K extends keyof TAjustes>(k: K, v: TAjustes[K]) => cambiarAjustes({ ...ajustes, [k]: v });
@@ -24,11 +24,23 @@ export default function Ajustes() {
     return (
       <main className="pantalla">
         <PinAdulto
-          texto={pin === 'grado' ? 'Para cambiar el grado, un adulto debe resolver:' : 'Para restaurar una copia, un adulto debe resolver:'}
+          texto={
+            pin === 'grado'
+              ? 'Para cambiar el grado, un adulto debe resolver:'
+              : pin === 'ra'
+                ? 'La realidad aumentada usa la cámara. Para activarla, un adulto debe resolver:'
+                : pin === 'apoyo'
+                  ? 'Para cambiar el apoyo extra, un adulto debe resolver:'
+                  : 'Para restaurar una copia, un adulto debe resolver:'
+          }
           alCancelar={() => setPin(null)}
           alAprobar={() => {
             if (pin === 'grado') setEligiendoGrado(true);
-            else archivo.current?.click();
+            else if (pin === 'ra') cambiar('realidadAumentada', true);
+            else if (pin === 'apoyo' && perfil) {
+              actualizarPerfil({ ...perfil, apoyo: !perfil.apoyo });
+              avisar(perfil.apoyo ? 'Apoyo extra desactivado' : 'Apoyo extra activado');
+            } else archivo.current?.click();
             setPin(null);
           }}
         />
@@ -127,6 +139,19 @@ export default function Ajustes() {
           </span>
           <input type="checkbox" checked={ajustes.videos} onChange={(e) => cambiar('videos', e.target.checked)} />
         </label>
+        <label className="interruptor">
+          <span>
+            <span className="fila" style={{ flexWrap: 'nowrap' }}>
+              <Icono nombre="camara" tamano={28} /> Realidad aumentada (usa la cámara)
+            </span>
+            <span className="pequeno suave"> Los objetos de la finca aparecen sobre lo que ve la cámara. La imagen no se graba ni se envía. Para activarla se pide un adulto.</span>
+          </span>
+          <input
+            type="checkbox"
+            checked={ajustes.realidadAumentada}
+            onChange={(e) => (e.target.checked ? setPin('ra') : cambiar('realidadAumentada', false))}
+          />
+        </label>
       </section>
 
       {perfil && !adulto && (
@@ -137,6 +162,14 @@ export default function Ajustes() {
           </p>
           <button type="button" className="boton" onClick={() => setPin('grado')}>
             <Icono nombre="candado" tamano={26} /> Cambiar grado (adulto)
+          </button>
+          <h2>Apoyo extra</h2>
+          <p className="pequeno" style={{ margin: 0 }}>
+            Para quien aprende a su propio ritmo: números más pequeños, dos opciones, el dibujo de ayuda desde el inicio, lectura frase por frase y paso a paso.
+            Ahora: <strong>{perfil.apoyo ? 'activado' : 'desactivado'}</strong>
+          </p>
+          <button type="button" className="boton" onClick={() => setPin('apoyo')}>
+            <Icono nombre="apoyo" tamano={26} /> {perfil.apoyo ? 'Desactivar apoyo extra (adulto)' : 'Activar apoyo extra (adulto)'}
           </button>
         </section>
       )}

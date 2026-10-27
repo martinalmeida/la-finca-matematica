@@ -17,7 +17,8 @@ export type Pantalla =
   | { nombre: 'ajustes' }
   | { nombre: 'familias'; seccion?: 'menu' | 'acompanar' | 'avance' | 'videos' }
   | { nombre: 'docente' }
-  | { nombre: 'pareja' };
+  | { nombre: 'pareja' }
+  | { nombre: 'taller' };
 
 export type EstadoApp = {
   pantalla: Pantalla;

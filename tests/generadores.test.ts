@@ -84,6 +84,9 @@ export function revisar(ej: Ejercicio, limite: number): string | null {
     case 'razonable':
       if (!/^(si|no):\d+$/.test(String(r))) return `razonable: respuesta mal formada ${r}`;
       break;
+    case 'escribir':
+      if (typeof r !== 'number' || String(r).length > i.cifras) return `escribir: ${r} no cabe en ${i.cifras} casillas`;
+      break;
     default:
       break;
   }
@@ -113,7 +116,8 @@ describe('generadores de ejercicios', () => {
             const d = tramo.fin === tramo.inicio ? 0 : (nivel - tramo.inicio) / (tramo.fin - tramo.inicio);
             it(`${uso.plantilla.id} [uso ${k}] nivel ${nivel}`, () => {
               for (let s = 0; s < POR_MUESTRA; s++) {
-                const ej = generarConUso(pista, uso, d, nivel, s * 7919 + nivel, s % 5 === 0);
+                // Una de cada 10 muestras con apoyo extra (menos opciones, números más pequeños).
+                const ej = generarConUso(pista, uso, d, nivel, s * 7919 + nivel, s % 5 === 0, s % 10 === 3);
                 const error = revisar(ej, def.limite);
                 if (error) {
                   throw new Error(`${uso.plantilla.id} nivel ${nivel} semilla ${s}: ${error}\n${ej.enunciado}\nrespuesta=${String(ej.respuesta)} datos=${JSON.stringify(ej.datos)} distractores=${JSON.stringify(ej.distractores)} interaccion=${JSON.stringify(ej.interaccion)}`);

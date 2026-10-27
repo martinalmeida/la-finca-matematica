@@ -107,7 +107,11 @@ export function modoRespuesta(
   const candidatos = [...(opts.extras ?? []), ...(calc ? distractoresTipicos(calc) : [])];
   const distr = distractores(ctx.rng, respuesta, candidatos, cantidad, d, opts.paso ?? 1);
   const pAbierta = ctx.repaso ? 0.2 : lerpF(opts.abiertaMin ?? 0.25, opts.abiertaMax ?? 0.8, d);
-  if (ctx.rng.azar(pAbierta)) return { interaccion: { tipo: 'numerica' }, distractores: distr };
+  if (ctx.rng.azar(pAbierta)) {
+    // En 1.º, la respuesta abierta se puede escribir con el dedo (dos casillas: hasta 99).
+    const escribir = pb(ctx, 'escribir') && respuesta >= 0 && respuesta <= 99;
+    return { interaccion: escribir ? { tipo: 'escribir', cifras: 2 } : { tipo: 'numerica' }, distractores: distr };
+  }
   return { interaccion: { tipo: 'opciones', opciones: mezclarOpciones(ctx.rng, respuesta, distr) }, distractores: distr };
 }
 

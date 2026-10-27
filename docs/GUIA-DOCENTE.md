@@ -37,13 +37,50 @@ Las familias crean su propio perfil con **«Soy papá, mamá o cuidador»**. Enc
 - Los niveles 10, 20, 30… son **niveles de cosecha**: repasan lo de la decena anterior y dan una insignia.
 - Cada ejercicio tiene **tres pistas**: una pregunta, un dibujo y un paso resuelto. Después se muestra la solución explicada y un ejercicio parecido para practicar.
 - Ante un error, la app reconoce errores típicos y responde con un mensaje específico: suma sin llevar, resta del menor al mayor, operación equivocada, tabla vecina, residuo ignorado o conteo.
+- **Vibración:** el celular vibra una sola vez, corto (35 ms), **solo cuando hay un error**, como aviso de «revisa». Los aciertos no vibran. Se apaga en **Ajustes → Vibración**. En iPhone, la vibración depende del sistema (iOS 18 o posterior).
+- **Paso a paso:** si un estudiante se equivoca dos veces en el mismo ejercicio, la app le ofrece resolverlo paso a paso: 1) elegir qué pasa en el problema (juntar, quitar, repetir grupos o repartir), 2) ver la operación con un dibujo y 3) responder. Puede saltarlo si prefiere.
+- **Escribir con el dedo (1.º):** en algunos ejercicios de los niveles 1 a 55, el niño responde escribiendo el número con el dedo, una cifra por casilla. Si la app duda entre dos cifras, le pregunta «¿Es 7 o 1?». Siempre puede pasar al teclado.
 - **Semillas, planta e insignias** premian la constancia, no la velocidad. No hay clasificaciones entre estudiantes ni cronómetros.
 - **Silo de la escuela:** reúne las semillas de todos los perfiles del celular. Cuando se llena, hay una celebración colectiva.
 - **Reto en pareja:** dos estudiantes de grados cercanos (máximo un grado de diferencia) resuelven por turnos los pasos de un problema en el mismo celular.
 
 **Cambiar de grado:** en **Ajustes → Cambiar grado**, un adulto resuelve una multiplicación sencilla para confirmar. El progreso de cada grado se guarda por separado.
 
-## 4. Panel docente
+## 4. Apoyo extra (aprendizaje a otro ritmo)
+
+Para estudiantes que necesitan más tiempo o más apoyo. Se activa por perfil, de dos maneras: en el **panel docente** (columna «Apoyo extra») o en **Ajustes → Apoyo extra**, donde un adulto confirma con una multiplicación. Con el apoyo activo:
+
+- los números son **más pequeños**, dentro de la misma unidad: el estudiante sigue la misma ruta y se aprueba igual;
+- hay **solo dos opciones** para elegir: la correcta y la más parecida;
+- el **dibujo de ayuda** (pista 2) se ve desde el inicio y no cuenta como pista usada;
+- el enunciado aparece **una frase por renglón**, con los números resaltados. Al tocar una frase, la app la lee; con «Escuchar frase por frase», ilumina cada frase mientras la lee. La voz va más despacio;
+- el **paso a paso** se abre desde el inicio;
+- los mensajes de error son **más cortos**, con una sola idea, y el elogio destaca el esfuerzo;
+- la letra tiene un poco más de espacio entre letras y renglones.
+
+La app **no muestra ninguna etiqueta** al estudiante ni a sus compañeros. En el panel y en el Resumen CSV aparecen las columnas `apoyo_extra` y `paso_a_paso` (cuántos ejercicios resolvió con el paso a paso).
+
+## 5. Taller de números (1.º)
+
+En **Aprender → Taller de números** (para 1.º y para quien tenga apoyo extra), el niño aprende a escribir las cifras del 0 al 9:
+
+1. **Mira:** la cifra se dibuja sola, trazo por trazo, y la voz explica cómo se hace («El tres: una barriguita arriba y otra barriguita abajo»).
+2. **Repasa:** traza con el dedo encima de los puntitos, empezando en el punto verde. Si se sale de la guía, la guía parpadea y el celular vibra corto.
+3. **Escribe solo:** la app reconoce la cifra. Si la escribió bien, aparecen esa cantidad de objetos de la finca (y, con la realidad aumentada activa, puede verlos sobre la cámara). Si no, después de dos intentos vuelve a mostrar cómo se hace.
+
+Cada cifra guarda hasta 3 estrellas. El reconocimiento funciona sin internet y dentro del celular.
+
+## 6. Realidad aumentada (cámara)
+
+Viene **apagada**. Un adulto la activa en **Ajustes → Realidad aumentada (usa la cámara)**, resolviendo una multiplicación. Con ella activa:
+
+- En los ejercicios con objetos (contar, juntar, quitar), aparece el botón **«Verlo en mi finca»**: la cámara muestra lo que hay frente al celular y encima aparecen los huevos, naranjas o mazorcas del problema para tocarlos, meterlos en la canasta o sacarlos.
+- En el Taller, **«Contar cosas de verdad»**: el niño apunta la cámara a huevos, frutas o piedras reales y toca cada una para ponerle un número encima.
+- En celulares Android compatibles con ARCore aparece **«Ponerlos en el piso»**: los objetos quedan quietos sobre el piso o la mesa aunque se mueva el celular.
+
+**Privacidad:** la imagen de la cámara solo se muestra en pantalla; **no se graba, no se guarda y no se envía**. La cámara se apaga al cerrar la escena. Si no hay cámara o no se da el permiso, la escena usa un fondo dibujado y funciona igual. Informe a las familias sobre el uso de la cámara junto con el consentimiento informado.
+
+## 7. Panel docente
 
 1. En la pantalla de inicio o en «¿Quién va a jugar?», **mantenga presionado el logo durante 3 segundos**.
 2. La primera vez, **cree un PIN** de 4 a 6 cifras y repítalo. Las siguientes veces se pide ese PIN.
@@ -51,18 +88,19 @@ Las familias crean su propio perfil con **«Soy papá, mamá o cuidador»**. Enc
    - código y grado;
    - nivel máximo alcanzado y estrellas;
    - porcentaje de aciertos por operación (suma, resta, multiplicación, división), con el número de ejercicios entre paréntesis;
-   - los tipos de error más frecuentes.
+   - los tipos de error más frecuentes;
+   - si tiene **apoyo extra** (se activa o desactiva ahí mismo) y cuántos ejercicios resolvió paso a paso.
 4. En la misma tabla puede **reiniciar** un perfil (borra niveles, semillas y registro) o **eliminarlo**. Ambas acciones piden confirmación.
 
 Si olvida el PIN, restaure una copia de seguridad o borre los datos del sitio en Chrome. Al borrar los datos se pierden los avances.
 
-## 5. Modo investigación
+## 8. Modo investigación
 
-- Viene **desactivado**. Al activarlo, la app guarda un registro detallado de cada ejercicio: fecha, nivel, plantilla, operación, si fue correcto, intentos, pistas usadas, tipo de error y tiempo. Guarda como máximo 3.000 registros por perfil y borra los más antiguos.
+- Viene **desactivado**. Al activarlo, la app guarda un registro detallado de cada ejercicio: fecha, nivel, plantilla, operación, si fue correcto, intentos, pistas usadas, tipo de error, tiempo y si usó el paso a paso. Guarda como máximo 3.000 registros por perfil y borra los más antiguos.
 - **Actívelo solo con el consentimiento informado firmado por las familias**, como lo exige la tesis.
 - Con el modo apagado, la app guarda solo los resúmenes agregados que muestra la tabla.
 
-## 6. Exportar los datos
+## 9. Exportar los datos
 
 En el panel docente, **«Exportar datos»** descarga archivos al celular, sin internet:
 
@@ -72,14 +110,14 @@ En el panel docente, **«Exportar datos»** descarga archivos al celular, sin in
 
 Los archivos usan **códigos, nunca apodos ni nombres**. Quedan en la carpeta *Descargas* del celular; desde ahí puede pasarlos al computador por cable o Bluetooth.
 
-## 7. Copia de seguridad
+## 10. Copia de seguridad
 
 En **Ajustes → Copia de seguridad**:
 
 - **Exportar copia** guarda un archivo `.json` con todos los perfiles y avances del celular. Hágalo con frecuencia, por ejemplo cada semana.
 - **Importar copia** (requiere confirmación de un adulto) **reemplaza** los datos del celular por los de la copia. Sirve si se cambia de celular o se borraron los datos.
 
-## 8. Videos de ayuda
+## 11. Videos de ayuda
 
 Cada lección trae un video corto de YouTube en español, y las familias tienen una guía de videos en *Cuaderno de la finca → Videos para acompañar en casa*. En los ejercicios, el video aparece cuando el niño pide dos o más pistas o ve la solución.
 
@@ -87,7 +125,7 @@ Cada lección trae un video corto de YouTube en español, y las familias tienen 
 - Se pueden apagar en **Ajustes → Videos de ayuda de YouTube** (por ejemplo, durante el pilotaje o si el colegio lo prefiere).
 - La lista completa, con enlaces y una columna para marcar la revisión, está en [VIDEOS.md](VIDEOS.md). Revíselos antes de usarlos con los niños: son de terceros y pueden cambiar.
 
-## 9. Recomendaciones de uso
+## 12. Recomendaciones de uso
 
 - Sesiones cortas, de 10 a 20 minutos, con el teléfono en vertical.
 - En el aula multigrado, organice turnos y anime a los estudiantes a ayudarse: el reto en pareja está pensado para eso.

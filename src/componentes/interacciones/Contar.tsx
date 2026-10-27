@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DibujoObjeto, nombreObjeto } from '../Ilustraciones';
 import Opciones from './Opciones';
+import { PizarraNumero } from './Escribir';
 import type { PropsInteraccion } from './tipos';
 import { sonar } from '../../servicios/sonido';
 import { useApp } from '../../estado';
@@ -35,7 +36,16 @@ export default function Contar({ ej, bloqueado, onResponder, fallidas, correcta 
           );
         })}
       </div>
-      <Opciones opciones={i.opciones} bloqueado={bloqueado} fallidas={fallidas} correcta={correcta} onElegir={onResponder} etiqueta="¿Cuántos hay?" />
+      {i.escribir ? (
+        <>
+          <p className="instruccion" style={{ alignSelf: 'center' }}>
+            Escribe cuántos hay
+          </p>
+          <PizarraNumero cifras={2} bloqueado={bloqueado} correcta={typeof correcta === 'number' ? correcta : null} reinicio={fallidas.length} onListo={onResponder} />
+        </>
+      ) : (
+        <Opciones opciones={i.opciones} bloqueado={bloqueado} fallidas={fallidas} correcta={correcta} onElegir={onResponder} etiqueta="¿Cuántos hay?" />
+      )}
     </div>
   );
 }

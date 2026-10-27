@@ -1,6 +1,6 @@
 // Ruta del grado: 101 niveles en 7 unidades de complejidad creciente, cada una con su lección.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useApp } from '../estado';
 import Celebracion from '../componentes/Celebracion';
 import Historia, { Medidor } from '../componentes/Historia';
@@ -35,10 +35,11 @@ export default function Mapa() {
     const estado = progreso.niveles[n];
     const bloqueado = n > actual;
     const esActual = n === actual;
-    const offset = Math.round(Math.sin(n * 0.9) * 30);
+    // Zigzag del camino: de -1 a 1; el CSS lo convierte en un desplazamiento que nunca se sale de la tarjeta.
+    const zigzag = Math.round(Math.sin(n * 0.9) * 100) / 100;
     const etiqueta = `Nivel ${n}${esCosecha(n) ? ', nivel de cosecha' : ''}${bloqueado ? ', bloqueado' : ''}${estado?.completado ? `, ${estado.estrellas} estrellas` : ''}${esActual ? ', nivel actual' : ''}`;
     return (
-      <div key={n} className="nodo-fila" style={{ transform: `translateX(${offset}%)` }}>
+      <div key={n} className="nodo-fila" style={{ '--zigzag': zigzag } as CSSProperties}>
         <button
           ref={esActual ? refActual : undefined}
           type="button"

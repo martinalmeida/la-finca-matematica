@@ -103,6 +103,9 @@ body.sin-scroll .pestanas {
   display: flex;
   flex-direction: column;
   position: relative;
+  /* Una app no se desplaza de lado. En el body no basta: Chrome de Android ensancha
+     igual la página y aleja el zoom. «clip» (y no «hidden») no rompe position: sticky. */
+  overflow-x: clip;
 }
 
 h1,
@@ -888,23 +891,20 @@ button {
 }
 
 .historias-fila {
+  /* Sin carrusel lateral: las lecciones se acomodan en filas de hasta 4, centradas. */
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 6px 4px 8px;
-  margin: 0 -16px;
-  padding-left: 16px;
-  padding-right: 16px;
-  scrollbar-width: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 8px;
+  padding: 6px 0 8px;
 }
 
-.historias-fila::-webkit-scrollbar {
-  display: none;
+.historias-fila > * {
+  flex: 0 0 min(74px, calc((100% - 24px) / 4));
+  min-width: 0;
 }
 
 .historia-burbuja {
-  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -912,7 +912,7 @@ button {
   border: none;
   background: none;
   padding: 0;
-  width: 74px;
+  width: 100%;
   transition: transform 0.3s var(--resorte);
 }
 
@@ -924,8 +924,8 @@ button {
   position: relative;
   display: grid;
   place-items: center;
-  width: 70px;
-  height: 70px;
+  width: min(70px, 100%);
+  aspect-ratio: 1;
   border-radius: 50%;
   padding: 3px;
 }
@@ -971,9 +971,13 @@ button {
 }
 
 .historia-nombre {
-  font-size: 0.72rem;
+  max-width: 100%;
+  /* Tope para que «Unidad 7» quepa entera aun con letra muy grande. */
+  font-size: min(0.72rem, 14px);
   font-weight: 700;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tarjeta-ruta {
@@ -1538,6 +1542,9 @@ button {
 }
 
 .nodo {
+  /* Zigzag: se mueve el botón, no la fila, para que la fila nunca se salga de la tarjeta.
+     El nivel actual (78 px) con su onda cabe entero aun en el extremo. */
+  left: calc(var(--zigzag, 0) * (50% - 64px));
   width: 62px;
   height: 62px;
   border-radius: 50%;
@@ -1662,7 +1669,7 @@ button {
 .segmentos {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   padding: 4px;
   border-radius: 18px;
 }
@@ -1686,10 +1693,25 @@ button {
   border: none;
   background: none;
   min-height: 44px;
+  padding: 6px 4px;
   font-weight: 700;
   font-size: 0.88rem;
+  line-height: 1.15;
   border-radius: 14px;
   color: var(--tinta-suave);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Con letra grande o pantalla angosta, el ícono va encima del texto para no cortarlo. */
+@media (max-width: 400px) {
+  .segmento {
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.82rem;
+  }
 }
 
 .segmento.activo {
@@ -3004,4 +3026,560 @@ button:active .icono [class*='a-'] {
 :root[data-efectos='ligeros'] .velo-video,
 :root[data-efectos='ligeros'] .hoja-video {
   animation: none;
+}
+
+/* ---------- Escribir números con el dedo ---------- */
+
+.lienzo {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px dashed rgba(16, 32, 24, 0.22);
+  border-radius: 18px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: var(--brillo-interno), 0 6px 16px -10px rgba(28, 40, 80, 0.35);
+}
+
+.lienzo.avisar {
+  animation: parpadeo-guia 0.3s ease-in-out 3;
+}
+
+.lienzo.deshabilitado {
+  border-style: solid;
+}
+
+@keyframes parpadeo-guia {
+  50% {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.3);
+  }
+}
+
+.casillas-cifras {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.casilla-cifra {
+  flex: 0 1 150px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.casilla-cifra.duda .lienzo {
+  border-color: var(--naranja);
+  border-style: solid;
+}
+
+.lectura-cifra {
+  position: relative;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cifra-leida {
+  font-size: 1.6rem;
+  color: var(--verde-oscuro);
+}
+
+.boton.chip-cifra {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 10px;
+  font-size: 1.3rem;
+}
+
+.boton.icono.pequeno-borrar {
+  position: absolute;
+  right: 0;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 4px;
+}
+
+/* ---------- Apoyo extra ---------- */
+
+:root[data-apoyo='1'] .enunciado,
+:root[data-apoyo='1'] .frase,
+:root[data-apoyo='1'] .retro,
+:root[data-apoyo='1'] .pista-caja {
+  letter-spacing: 0.02em;
+  word-spacing: 0.06em;
+  line-height: 1.55;
+}
+
+.frases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.frase {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 650;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-left: 4px solid transparent;
+  border-radius: 10px;
+  padding: 4px 8px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+button.frase:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.frase.leyendo {
+  background: rgba(254, 243, 199, 0.95);
+  border-left-color: var(--naranja);
+}
+
+.num-destacado {
+  display: inline-block;
+  font-size: 1.15em;
+  font-weight: 850;
+  color: var(--verde-oscuro);
+  background: rgba(220, 252, 231, 0.9);
+  border-radius: 8px;
+  padding: 0 5px;
+}
+
+.paso-a-paso {
+  padding: 16px;
+  gap: 12px;
+  border: 2px solid rgba(20, 184, 166, 0.45);
+}
+
+.acciones-paso {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.opcion.accion-paso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 64px;
+}
+
+.opcion.accion-paso.sugerida {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.3);
+  animation: latido 1.2s ease-in-out infinite;
+}
+
+.operacion-grande {
+  margin: 0;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.operacion-grande .signo {
+  color: var(--naranja);
+}
+
+.zona-respuesta.en-espera {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(0.4);
+}
+
+.boton.boton-paso {
+  animation: pop 0.4s var(--resorte);
+}
+
+.boton.enlace-paso {
+  align-self: center;
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  font-weight: 600;
+  text-decoration: underline;
+  min-height: var(--toque);
+}
+
+/* ---------- Realidad aumentada ---------- */
+
+.boton.boton-camara {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(204, 251, 241, 0.95));
+}
+
+.escena-ra {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #0b1a12;
+  overflow: hidden;
+  color: var(--tinta);
+}
+
+.escena-ra.sin-camara {
+  background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 38%, #a3e635 38.5%, #65a30d 70%, #4d7c0f 100%);
+}
+
+.escena-ra.con-xr {
+  background: transparent;
+}
+
+.video-ra {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.escena-ra.sin-camara .video-ra {
+  display: none;
+}
+
+.capa-ra {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.barra-ra {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.4);
+  z-index: 3;
+}
+
+.aviso-ra {
+  position: absolute;
+  top: calc(80px + env(safe-area-inset-top));
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--aviso-fondo);
+  color: var(--aviso);
+  border-radius: 14px;
+  z-index: 3;
+}
+
+.aviso-ra .enlace {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.canasta-ra {
+  position: absolute;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  border: 3px dashed rgba(255, 255, 255, 0.95);
+  border-radius: 28px 28px 50% 50% / 28px 28px 40% 40%;
+  background: rgba(183, 121, 63, 0.38);
+  box-shadow: inset 0 -10px 24px rgba(107, 63, 29, 0.35);
+}
+
+.objeto-ra {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.35));
+  animation: aparecer-ra 0.45s var(--resorte) backwards;
+  touch-action: none;
+  z-index: 2;
+}
+
+.objeto-ra svg {
+  width: 100%;
+  height: 100%;
+}
+
+.objeto-ra.marcado {
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.95)) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.3));
+}
+
+.objeto-ra .marca,
+.objeto-ra.marca-real {
+  display: grid;
+  place-items: center;
+  font-weight: 850;
+  color: #fff;
+  background: #16a34a;
+  border-radius: 999px;
+}
+
+.objeto-ra .marca {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 5px;
+  font-size: 0.85rem;
+  animation: pop 0.4s var(--resorte);
+}
+
+.objeto-ra.marca-real {
+  border: 3px solid #fff;
+  font-size: 1.2rem;
+}
+
+.objeto-ra.marca-real .marca {
+  position: static;
+  min-width: 0;
+  height: auto;
+  background: none;
+  font-size: 1.2rem;
+}
+
+.escena-ra.con-xr .objeto-ra {
+  animation: none;
+}
+
+.marca-piso {
+  position: absolute;
+  transform: translate(-50%, -50%) scaleY(0.45);
+  border: 4px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.8);
+  pointer-events: none;
+}
+
+@keyframes aparecer-ra {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20%) scale(0.4);
+  }
+}
+
+.pie-ra {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9) 30%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.pie-ra > * {
+  pointer-events: auto;
+}
+
+.mensaje-ra {
+  margin: 0;
+  text-align: center;
+  font-weight: 750;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  padding: 8px 12px;
+}
+
+.contador-ra {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--verde-oscuro);
+  color: #fff;
+  font-weight: 850;
+  font-size: 1.15rem;
+}
+
+:root[data-efectos='ligeros'] .objeto-ra {
+  filter: none;
+  animation: none;
+}
+
+/* ---------- Taller de números ---------- */
+
+.tarjeta-taller {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  border-radius: var(--radio-grande);
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.92), rgba(220, 252, 231, 0.92));
+}
+
+.icono-taller {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.rejilla-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 10px;
+}
+
+.boton-cifra {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  font: inherit;
+  color: inherit;
+}
+
+.cifra-grande {
+  font-size: 2.6rem;
+  font-weight: 850;
+  line-height: 1.1;
+  color: var(--verde-oscuro);
+}
+
+.estrellitas span {
+  color: rgba(16, 32, 24, 0.2);
+  font-size: 1rem;
+}
+
+.estrellitas span.llena {
+  color: #f59e0b;
+}
+
+.pasos-taller {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pasos-taller li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--tinta-suave);
+}
+
+.pasos-taller li.actual {
+  background: var(--verde);
+  color: #fff;
+}
+
+.pasos-taller li.hecho {
+  color: var(--verde-oscuro);
+}
+
+.numero-paso {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--verde-oscuro);
+}
+
+.cifra-animada {
+  width: min(200px, 60vw);
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.guia-cifra,
+.trazo-cifra {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.guia-cifra {
+  stroke: rgba(16, 32, 24, 0.12);
+  stroke-width: 9;
+}
+
+.trazo-cifra {
+  stroke: var(--verde-oscuro);
+  stroke-width: 7;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: trazar-cifra linear forwards;
+}
+
+@keyframes trazar-cifra {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.inicio-cifra {
+  fill: var(--verde);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
+.numero-trazo {
+  font-size: 7px;
+  font-weight: 800;
+  fill: #fff;
+}
+
+.objetos-logrados {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.objetos-logrados > span {
+  animation: pop 0.45s var(--resorte) backwards;
 }

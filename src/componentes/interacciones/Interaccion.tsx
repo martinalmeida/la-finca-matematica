@@ -3,6 +3,7 @@ import Arrastrar from './Arrastrar';
 import Arreglo from './Arreglo';
 import Bloques from './Bloques';
 import Contar from './Contar';
+import Escribir from './Escribir';
 import Numerica from './Numerica';
 import Opciones from './Opciones';
 import Razonable from './Razonable';
@@ -34,5 +35,7 @@ export default function Interaccion(props: PropsInteraccion) {
       return <Razonable {...props} />;
     case 'tabla':
       return <Tabla {...props} />;
+    case 'escribir':
+      return <Escribir {...props} />;
   }
 }

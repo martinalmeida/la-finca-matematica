@@ -675,6 +675,54 @@ const iconos: Record<string, (u: U) => ReactElement> = {
       <circle cx="24" cy="18" r="2" fill={u('y')} />
     </>
   ),
+  camara: (u) => (
+    <>
+      <path d="M16 11.5 18.5 7h11l2.5 4.5Z" fill={u('d')} />
+      <Volumen u={u} c="d" d={rect(4, 11, 40, 29, 7)} />
+      {reflejo(u, 'M11 11h26a7 7 0 0 1 7 7v2H4v-2a7 7 0 0 1 7-7Z')}
+      <circle cx="24" cy="25.5" r="10" fill={u('g')} />
+      <g className="a-latir">
+        <circle cx="24" cy="25.5" r="6.8" fill={u('a')} />
+        <circle cx="24" cy="25.5" r="6.8" fill={u('e')} />
+        <circle cx="21.5" cy="23" r="1.8" fill="#fff" fillOpacity=".85" />
+      </g>
+      <circle cx="37" cy="17" r="1.8" fill={medio('y')} />
+    </>
+  ),
+  lapiz: (u) => (
+    <>
+      <g className="a-balanceo">
+        <Volumen u={u} c="y" d="M30.5 6.5 41.5 17.5 18 41 7 41 7 30Z" />
+        {reflejo(u, 'M30.5 6.5 34 10 10.5 33.5 7 30Z')}
+        <path d="M30.5 6.5 34.5 2.5a3.5 3.5 0 0 1 5 0l6 6a3.5 3.5 0 0 1 0 5l-4 4Z" fill={u('r')} />
+        <path d="M7 30 18 41H7Z" fill={u('p')} />
+        <path d="M7 36.5 11.5 41H7Z" fill={oscuro('d')} />
+      </g>
+      <path d="M24 44.5h18" stroke={medio('a')} strokeWidth="2.6" strokeLinecap="round" className="a-trazo" strokeDasharray="60" />
+    </>
+  ),
+  pasos: (u) => (
+    <>
+      <Volumen u={u} c="v" d={rect(3, 32, 13, 12, 3.5)} />
+      <Volumen u={u} c="t" d={rect(17.5, 21, 13, 23, 3.5)} />
+      <Volumen u={u} c="a" d={rect(32, 10, 13, 34, 3.5)} />
+      {reflejo(u, 'M6.5 32h6a3.5 3.5 0 0 1 3.5 3.5V37H3v-1.5A3.5 3.5 0 0 1 6.5 32Z')}
+      <g className="a-rebote">
+        <path d={ESTRELLA} transform="translate(30.5 -3.5) scale(.38)" fill={u('y')} />
+      </g>
+      <text x="9.5" y="41.5" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff">1</text>
+      <text x="24" y="37" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff">2</text>
+      <text x="38.5" y="31" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff">3</text>
+    </>
+  ),
+  apoyo: (u) => (
+    <g className="a-latir">
+      <Volumen u={u} c="p" d="M4 30.5c4-2.5 8.5-2.5 12.5-.5l7.5 3.5h7a3 3 0 0 1 0 6H22.5l9.5 1 9-5.5a3 3 0 0 1 3.2 5l-11 7.5H17L4 44Z" borde={oscuro('p')} />
+      <g transform="translate(11 0) scale(.56)">
+        <Volumen u={u} c="r" d={CORAZON} esfera />
+      </g>
+    </g>
+  ),
 };
 
 function Operador({ u, c, d, children }: { u: U; c: string; d: string; children?: ReactElement[] }) {

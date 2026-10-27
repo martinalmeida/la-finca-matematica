@@ -55,7 +55,8 @@ const contar: Plantilla = {
       respuesta: n,
       unidad: p.plural,
       distractores: distr,
-      interaccion: { tipo: 'contar', objeto: p.objeto, cantidad: n, opciones: mezclarOpciones(rng, n, distr) },
+      // Con «escribir», la mitad de las veces se responde escribiendo el número con el dedo.
+      interaccion: { tipo: 'contar', objeto: p.objeto, cantidad: n, opciones: mezclarOpciones(rng, n, distr), ...(pb(ctx, 'escribir') && rng.azar(0.5) ? { escribir: true } : {}) },
       calculo: { op: 'conteo', a: n, b: 0 },
       pistas: [
         '¿Ya tocaste cada uno una sola vez? Los que tocas quedan marcados.',
@@ -603,19 +604,19 @@ export const g1: DefinicionPista = {
       inicio: 1,
       fin: 15,
       titulo: 'Conteo y comparación hasta 20',
-      usos: [u(contar, { max: 20 }), u(comparar, { max: 20 }), u(siguiente, { max: 20 }), u(sumaRecta, { max: 20, maxSalto: 3 }), u(comparaDiferencia, { max: 10 }), u(tablaCosecha, { max: 20, modo: 'mayor' })],
+      usos: [u(contar, { max: 20, escribir: true }), u(comparar, { max: 20 }), u(siguiente, { max: 20 }), u(sumaRecta, { max: 20, maxSalto: 3 }), u(comparaDiferencia, { max: 10 }), u(tablaCosecha, { max: 20, modo: 'mayor' })],
     },
     {
       inicio: 16,
       fin: 35,
       titulo: 'Sumas hasta 10 y luego hasta 20',
-      usos: [u(sumaCalculo, { max: 10 }), u(sumaCalculo, { max: 20 }), u(sumaRecta, { max: 20 }), u(sumaCambio, { max: 20 }), u(sumaJuntar, { max: 20 }), u(contar, { max: 20 }), u(tablaCosecha, { max: 20 })],
+      usos: [u(sumaCalculo, { max: 10, escribir: true }), u(sumaCalculo, { max: 20, escribir: true }), u(sumaRecta, { max: 20 }), u(sumaCambio, { max: 20, escribir: true }), u(sumaJuntar, { max: 20 }), u(contar, { max: 20, escribir: true }), u(tablaCosecha, { max: 20 })],
     },
     {
       inicio: 36,
       fin: 55,
       titulo: 'Restas hasta 20; completar a 10',
-      usos: [u(sumaCalculo, { max: 20, op: 'resta' }), u(sumaRecta, { max: 20, op: 'resta' }), u(restaQuitar, { max: 20 }), u(comparaDiferencia, { max: 20 }), u(completar, { total: 10 }), u(tablaCosecha, { max: 20, modo: 'diferencia' })],
+      usos: [u(sumaCalculo, { max: 20, op: 'resta', escribir: true }), u(sumaRecta, { max: 20, op: 'resta' }), u(restaQuitar, { max: 20 }), u(comparaDiferencia, { max: 20 }), u(completar, { total: 10, escribir: true }), u(tablaCosecha, { max: 20, modo: 'diferencia' })],
     },
     {
       inicio: 56,
