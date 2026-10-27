@@ -1,9 +1,9 @@
 // Almacenamiento: funciona en memoria si localStorage no existe; copia de seguridad y migración.
 import { describe, expect, it } from 'vitest';
-import { almacenamientoDisponible } from '../src/almacenamiento/almacen';
-import { guardarPerfil, leerProgreso, listarPerfiles, guardarProgreso, eliminarPerfil, registrar, leerRegistro, guardarDocente, MAX_REGISTRO } from '../src/almacenamiento/datos';
+import { almacenamientoDisponible, borrar, clavesApp, escribirTexto, leerTexto } from '../src/almacenamiento/almacen';
+import { bandaDePerfil, guardarPerfil, guardarPruebas, leerProgreso, listarPerfiles, guardarProgreso, eliminarPerfil, necesitaDiagnostica, registrar, leerRegistro, guardarDocente, MAX_REGISTRO } from '../src/almacenamiento/datos';
 import { crearCopia, restaurarCopia } from '../src/almacenamiento/copia';
-import { migrar, versionGuardada } from '../src/almacenamiento/migraciones';
+import { migrar, VERSION_ACTUAL, versionGuardada } from '../src/almacenamiento/migraciones';
 import { crearPerfil, generarCodigo } from '../src/juego/perfil';
 
 describe('almacenamiento', () => {
@@ -30,7 +30,32 @@ describe('almacenamiento', () => {
   });
   it('migración marca la versión', () => {
     migrar();
-    expect(versionGuardada()).toBe(1);
+    expect(versionGuardada()).toBe(VERSION_ACTUAL);
+  });
+  it('migración v1 → v2: conserva perfiles sin «apoyo» y borra el progreso de 101 niveles', () => {
+    for (const k of clavesApp()) borrar(k);
+    escribirTexto('fincaMat:version', '1');
+    escribirTexto('fincaMat:v1:perfiles', JSON.stringify([{ id: 'p1', codigo: 'FM-2-ABCD', apodo: 'Mazorca', avatar: 'loro', rol: 'estudiante', grado: 2, creado: '', apoyo: true }]));
+    escribirTexto('fincaMat:v1:progreso:p1:g2', JSON.stringify({ nivelMaximoDesbloqueado: 57 }));
+    escribirTexto('fincaMat:v1:tutorialVisto:p1', 'true');
+    migrar();
+    expect(versionGuardada()).toBe(2);
+    const [perfil] = listarPerfiles();
+    expect(perfil.codigo).toBe('FM-2-ABCD');
+    expect('apoyo' in perfil).toBe(false);
+    expect(leerTexto('fincaMat:v1:progreso:p1:g2')).toBeNull();
+    expect(leerTexto('fincaMat:v1:tutorialVisto:p1')).toBeNull();
+    expect(necesitaDiagnostica(perfil)).toBe(true);
+  });
+  it('las pruebas se guardan por grado e Inclusión no hace diagnóstica', () => {
+    const p = crearPerfil('estudiante', 3, 'loro', []);
+    expect(necesitaDiagnostica(p)).toBe(true);
+    guardarPruebas(p, { diagnostica: { fecha: '', pista: 'g3', porTema: Array(10).fill(true), aciertos: 9, total: 10, ms: 0 } });
+    expect(necesitaDiagnostica(p)).toBe(false);
+    expect(bandaDePerfil(p)).toBe('avanzado');
+    expect(necesitaDiagnostica({ ...p, grado: 4 })).toBe(true);
+    expect(necesitaDiagnostica({ ...p, grado: 'inclusion' })).toBe(false);
+    expect(generarCodigo('inclusion')).toMatch(/^FM-I-/);
   });
   it('el registro detallado solo se guarda en modo investigación y se recorta a 3000', () => {
     const p = crearPerfil('estudiante', 1, 'gallina', []);

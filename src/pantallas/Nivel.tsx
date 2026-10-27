@@ -1,38 +1,71 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../estado';
 import Ejercicio, { type ResultadoEjercicio } from '../componentes/Ejercicio';
-import Tutorial from '../componentes/Tutorial';
-import { generarNivel, esCosecha, tramoDe } from '../juego/motor';
+import { generarNivel, NIVEL_MAXIMO, temaDe } from '../juego/motor';
 import { aplicarResultado, type ResultadoNivel } from '../juego/progresion';
-import {
-  guardarProgreso,
-  leerProgreso,
-  leerResumen,
-  marcarTutorialVisto,
-  pistaDePerfil,
-  registrar,
-  sumarAlResumen,
-  tutorialVisto,
-} from '../almacenamiento/datos';
+import { bandaDePerfil, guardarProgreso, leerProgreso, leerResumen, pistaDePerfil, registrar, sumarAlResumen } from '../almacenamiento/datos';
 import { sonar } from '../servicios/sonido';
 import Icono from '../componentes/Icono';
-import { unidadDe } from '../juego/complejidad';
 import { videoDeLeccion } from '../contenido/videos';
+import { useLecturaAutomatica } from '../servicios/voz';
+
+/** Inclusión: antes de empezar se muestra qué va a pasar (rutina predecible). */
+function Agenda({ tema, alEmpezar }: { tema: string; alEmpezar: () => void }) {
+  const texto = `Primero: ${tema}. 10 actividades, una por una. Después: ¡una planta nueva en tu finca!`;
+  useLecturaAutomatica(`agenda-${tema}`, texto);
+  return (
+    <section className="vidrio tarjeta columna agenda" aria-label="Lo que vamos a hacer">
+      <div className="agenda-paso">
+        <span className="agenda-etiqueta">Primero</span>
+        <span>
+          <Icono nombre="lapiz" tamano={32} anim="no" /> {tema}
+        </span>
+        <span className="pequeno suave">10 actividades, una por una</span>
+      </div>
+      <div className="agenda-paso">
+        <span className="agenda-etiqueta">Después</span>
+        <span>
+          <Icono nombre="brote" tamano={32} anim="no" /> ¡Tu planta crece!
+        </span>
+      </div>
+      <button type="button" className="boton principal" onClick={alEmpezar}>
+        Empezar <Icono nombre="siguiente" tamano={24} />
+      </button>
+    </section>
+  );
+}
+
+/** Inclusión: un descanso tranquilo en cualquier momento. */
+function Pausa({ alSeguir }: { alSeguir: () => void }) {
+  useLecturaAutomatica('pausa', 'Descansamos. Respira despacio. Cuando quieras, seguimos.');
+  return (
+    <div className="pausa" role="dialog" aria-modal="true" aria-label="Pausa">
+      <div className="pausa-circulo" aria-hidden="true" />
+      <p style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Descansamos</p>
+      <p style={{ margin: 0 }}>Respira despacio. Cuando quieras, seguimos.</p>
+      <button type="button" className="boton principal" onClick={alSeguir}>
+        Seguir <Icono nombre="siguiente" tamano={24} />
+      </button>
+    </div>
+  );
+}
 
 export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolean }) {
   const { perfil, ir, ajustes } = useApp();
   const p = perfil!;
   const pista = pistaDePerfil(p);
-  const adulto = p.rol === 'familia';
+  const banda = bandaDePerfil(p);
+  const inclusion = pista === 'inclusion';
   const progreso = useMemo(() => leerProgreso(p.id, pista), [p.id, pista]);
   const intento = (progreso.niveles[nivel]?.intentos ?? 0) + 1;
-  // Los ejercicios del nivel se generan al entrar a él.
-  const apoyo = !!p.apoyo;
-  const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso, apoyo }), [p.codigo, pista, nivel, intento, repaso, apoyo]);
-  const video = videoDeLeccion(pista, unidadDe(pista, Math.max(nivel, 1)).indice);
-  const [verTutorial, setVerTutorial] = useState(nivel === 0 && !tutorialVisto(p.id));
+  // Las 10 preguntas del nivel se generan al entrar a él.
+  const ejercicios = useMemo(() => generarNivel({ codigo: p.codigo, pista, nivel, intento, repaso, banda }), [p.codigo, pista, nivel, intento, repaso, banda]);
+  const video = videoDeLeccion(pista, nivel - 1);
+  const tema = temaDe(pista, nivel);
   const [indice, setIndice] = useState(0);
   const [resultados, setResultados] = useState<ResultadoEjercicio[]>([]);
+  const [agenda, setAgenda] = useState(inclusion);
+  const [pausa, setPausa] = useState(false);
 
   const terminarEjercicio = (r: ResultadoEjercicio) => {
     const ej = ejercicios[indice];
@@ -67,6 +100,7 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
       intento,
       repaso,
       semillas: todos.reduce((s, x) => s + x.semillas, 0),
+      banda,
     };
     const efecto = aplicarResultado(leerProgreso(p.id, pista), resultado, leerResumen(p.id).diasJugados.length);
     guardarProgreso(p.id, pista, efecto.progreso);
@@ -82,36 +116,36 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
         </button>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '1.1rem', margin: 0 }}>
-            Nivel {nivel} de 100 {esCosecha(nivel) && <Icono nombre="canasta" tamano={26} etiqueta="Nivel de cosecha" />}
+            Nivel {nivel} de {NIVEL_MAXIMO}
           </h1>
           <div className="pequeno suave">
             {repaso ? 'Repaso con pistas · ' : ''}
-            {esCosecha(nivel) ? 'Nivel de cosecha' : tramoDe(pista, nivel).titulo}
+            {tema.titulo}
           </div>
         </div>
+        {inclusion && !agenda && (
+          <button type="button" className="boton icono" onClick={() => setPausa(true)} aria-label="Pausa">
+            <Icono nombre="pausa" tamano={24} anim="no" />
+          </button>
+        )}
       </header>
 
-      {verTutorial ? (
-        <Tutorial
-          adulto={adulto}
-          alTerminar={() => {
-            marcarTutorialVisto(p.id);
-            setVerTutorial(false);
-          }}
-        />
+      {agenda ? (
+        <Agenda tema={tema.titulo} alEmpezar={() => setAgenda(false)} />
       ) : (
         <>
           <div className="progreso-nivel" role="progressbar" aria-valuemin={1} aria-valuemax={ejercicios.length} aria-valuenow={indice + 1} aria-label={`Ejercicio ${indice + 1} de ${ejercicios.length}`}>
             {ejercicios.map((_, k) => (
-              <span key={k} className={`punto ${k < indice ? (resultados[k]?.correcto ? 'hecho' : 'fallado') : k === indice ? 'actual' : ''}`} />
+              <span key={k} className={`punto ${k < indice ? (resultados[k]?.correcto || inclusion ? 'hecho' : 'fallado') : k === indice ? 'actual' : ''}`} />
             ))}
             <span className="pequeno" style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
               {indice + 1} de {ejercicios.length}
             </span>
           </div>
-          <Ejercicio key={ejercicios[indice].id} ej={ejercicios[indice]} onTerminar={terminarEjercicio} pistaVisible={repaso} video={video} />
+          <Ejercicio key={ejercicios[indice].id} ej={ejercicios[indice]} onTerminar={terminarEjercicio} pistaVisible={repaso} video={video} modo={inclusion ? 'inclusion' : 'nivel'} />
         </>
       )}
+      {pausa && <Pausa alSeguir={() => setPausa(false)} />}
     </main>
   );
 }

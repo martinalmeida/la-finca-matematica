@@ -4,7 +4,8 @@
 
 import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Plantilla, Uso, Visual } from '../../juego/tipos';
 import { adulto, articulosTienda, dosPersonas, mayus, nombresFincas, num, persona, pesos } from '../contexto';
-import { conCifras, dif, distractores, lerp, mezclarOpciones, modoRespuesta, parResta, parSuma, pb, pn, pt, redondear } from './util';
+import { divisionResiduo, repartoResiduo, comprobarDivision, viajes, interpretarResiduo } from './g4';
+import { conCifras, factorTabla, dif, distractores, lerp, mezclarOpciones, modoRespuesta, parResta, parSuma, pb, pn, pt, redondear } from './util';
 
 const LIMITE = 10000;
 
@@ -312,7 +313,7 @@ const arregloSurcos: Plantilla = {
   generar(ctx): EjercicioBase {
     const { rng } = ctx;
     const maxTabla = pn(ctx, 'maxTabla', lerp(5, 10, dif(ctx)));
-    const f = rng.entero(2, maxTabla);
+    const f = factorTabla(ctx, maxTabla);
     const c = rng.entero(2, Math.min(10, maxTabla + 1));
     const respuesta = f * c;
     const quien = persona(rng);
@@ -349,7 +350,7 @@ const tablas: Plantilla = {
   generar(ctx): EjercicioBase {
     const { rng } = ctx;
     const maxTabla = pn(ctx, 'maxTabla', lerp(5, 10, dif(ctx)));
-    const a = rng.entero(2, maxTabla);
+    const a = factorTabla(ctx, maxTabla);
     const b = rng.entero(2, 10);
     const respuesta = a * b;
     const v = rng.elegir([
@@ -384,7 +385,7 @@ const surcosProblema: Plantilla = {
   generar(ctx): EjercicioBase {
     const { rng } = ctx;
     const maxTabla = pn(ctx, 'maxTabla', 10);
-    const f = rng.entero(2, maxTabla);
+    const f = factorTabla(ctx, maxTabla);
     const c = rng.entero(2, 10);
     const total = f * c;
     const quien = persona(rng);
@@ -430,7 +431,7 @@ const gruposIguales: Plantilla = {
     const { rng } = ctx;
     const maxTabla = pn(ctx, 'maxTabla', lerp(5, 10, dif(ctx)));
     const k = rng.entero(2, 10);
-    const n = rng.entero(2, maxTabla);
+    const n = factorTabla(ctx, maxTabla);
     const respuesta = k * n;
     const quien = adulto(rng);
     const v = rng.elegir([
@@ -462,7 +463,7 @@ const algoritmoMult: Plantilla = {
   descripcion: 'Multiplicación de 2 y 3 cifras por 1 cifra',
   generar(ctx): EjercicioBase {
     const { rng } = ctx;
-    const cifras = dif(ctx) < 0.45 ? 2 : 3;
+    const cifras = pn(ctx, 'cifras', dif(ctx) < 0.45 ? 2 : 3);
     const a = conCifras(rng, cifras);
     const b = rng.entero(2, 9);
     const respuesta = a * b;
@@ -497,20 +498,22 @@ const multProblema: Plantilla = {
   generar(ctx): EjercicioBase {
     const { rng } = ctx;
     const d = dif(ctx);
+    // cifras = 2 o 3 fija el tamaño del número que se repite; si no, depende de d.
+    const grande = pn(ctx, 'cifras', d < 0.5 ? 2 : 3) >= 3;
     const b = rng.entero(2, 9);
     const sobra = datoQueSobra(ctx);
     const extra = sobra?.texto ?? '';
     const v = rng.elegir([
       () => {
-        const a = rng.entero(60, 99);
+        const a = grande ? rng.entero(100, 199) : rng.entero(60, 99);
         return { a, t: `La mula de don Ramiro carga ${a} kilos de cacao en cada viaje. Hizo ${b} viajes hasta la carretera.${extra} ¿Cuántos kilos llevó?`, u: 'kilos' };
       },
       () => {
-        const a = d < 0.5 ? rng.entero(20, 60) : rng.entero(100, 250);
+        const a = !grande ? rng.entero(20, 60) : rng.entero(100, 250);
         return { a, t: `Cada árbol de mandarina de la finca ${rng.elegir(nombresFincas)} dio ${a} mandarinas. Hay ${b} árboles.${extra} ¿Cuántas mandarinas dieron?`, u: 'mandarinas' };
       },
       () => {
-        const a = d < 0.5 ? rng.entero(12, 48) : rng.entero(120, 360);
+        const a = !grande ? rng.entero(12, 48) : rng.entero(120, 360);
         return { a, t: `Una cubeta grande trae ${a} huevos. En la tienda de la vereda compraron ${b} cubetas.${extra} ¿Cuántos huevos compraron?`, u: 'huevos' };
       },
     ])();
@@ -1010,7 +1013,7 @@ function contraer(texto: string): string {
   return texto.replace(/\b([Dd])e el\b/g, '$1el').replace(/\b([Aa]) el\b/g, '$1l');
 }
 
-// Se aplica en el mismo objeto para que los tramos y generarParecido usen la misma versión.
+// Se aplica en el mismo objeto para que los temas y generarParecido usen la misma versión (también en 2.º).
 for (const p of plantillasBase) {
   const generar = p.generar;
   p.generar = (ctx) => {
@@ -1020,80 +1023,65 @@ for (const p of plantillasBase) {
   };
 }
 
-const plantillas = plantillasBase;
-
 const u = (plantilla: Plantilla, params?: Uso['params']): Uso => ({ plantilla, params });
 
 export const g3: DefinicionPista = {
   pista: 'g3',
   limite: LIMITE,
-  plantillas,
-  tramos: [
+  plantillas: [...plantillasBase, divisionResiduo, repartoResiduo, comprobarDivision, viajes, interpretarResiduo],
+  temas: [
     {
-      inicio: 0,
-      fin: 0,
-      titulo: 'Tutorial y repaso de 2.º',
-      usos: [u(valorPosicional, { max: 999 }), u(algoritmoSuma, { cifras: 3 }), u(problemaSumaResta, { cifras: 3 }), u(gruposIguales, { maxTabla: 5 }), u(tablaDatos, { cifras: 3 })],
-    },
-    {
-      inicio: 1,
-      fin: 15,
-      titulo: 'Suma y resta de 4 cifras, ceros en el minuendo',
+      titulo: 'Repaso: tablas, sumas y restas',
       usos: [
+        u(tablas),
+        u(arregloSurcos),
+        u(gruposIguales),
+        u(algoritmoMult, { cifras: 2 }),
+        u(multProblema, { cifras: 2 }),
         u(valorPosicional),
         u(rectaCentena),
         u(algoritmoSuma, { cifras: 4 }),
         u(algoritmoResta, { cifras: 4, ceros: true }),
-        u(problemaSumaResta, { cifras: 4, ceros: true, incognita: true, sobran: true }),
-        u(tablaDatos, { modo: 'total' }),
-        u(tablaDatos, { modo: 'diferencia' }),
-        u(tienda, { op: 'vuelto' }),
       ],
     },
     {
-      inicio: 16,
-      fin: 35,
-      titulo: 'Tablas del 2 al 10 desde arreglos de surcos',
-      usos: [u(arregloSurcos), u(tablas), u(surcosProblema, { incognita: true, sobran: true }), u(gruposIguales), u(tienda, { op: 'mult' }), u(tablaDatos, { modo: 'mult' })],
+      titulo: 'Repartir en partes iguales',
+      usos: [u(reparto), u(produccion, { op: 'div' })],
     },
     {
-      inicio: 36,
-      fin: 55,
-      titulo: 'Multiplicación de 2 y 3 cifras por 1 cifra',
-      usos: [u(razonable, { op: 'mult' }), u(arregloSurcos, { maxTabla: 10 }), u(algoritmoMult), u(multProblema, { sobran: true }), u(produccion, { op: 'mult' }), u(tienda, { op: 'mult' })],
+      titulo: 'Agrupar: ¿cuántos grupos salen?',
+      usos: [u(agrupacion), u(surcosProblema, { incognita: true })],
     },
     {
-      inicio: 56,
-      fin: 75,
-      titulo: 'División exacta como reparto y como agrupación',
-      usos: [u(relacionDivision), u(divisionCalculo), u(reparto), u(agrupacion), u(produccion, { op: 'div' }), u(tienda, { op: 'div' })],
+      titulo: 'Multiplicar y dividir son parientes',
+      usos: [u(relacionDivision), u(surcosProblema, { incognita: true })],
     },
     {
-      inicio: 76,
-      fin: 90,
-      titulo: 'Problemas de dos pasos y estimación',
-      usos: [u(razonable), u(rectaCentena), u(algoritmoMult), u(algoritmoResta, { cifras: 4, ceros: true }), u(dosPasos, { sobran: true }), u(problemaSumaResta, { cifras: 4, incognita: true, sobran: true }), u(tienda, { op: 'dosPasos' }), u(tablaDatos, { modo: 'diferencia' })],
+      titulo: 'Dividir con la tabla',
+      usos: [u(divisionCalculo), u(tienda, { op: 'div' }), u(produccion, { op: 'div' })],
     },
     {
-      inicio: 91,
-      fin: 100,
-      titulo: 'Retos mixtos de 3.º',
-      usos: [
-        u(razonable),
-        u(valorPosicional),
-        u(relacionDivision),
-        u(algoritmoSuma, { cifras: 4 }),
-        u(algoritmoResta, { cifras: 4, ceros: true }),
-        u(algoritmoMult),
-        u(divisionCalculo),
-        u(dosPasos, { sobran: true }),
-        u(surcosProblema, { incognita: true, sobran: true }),
-        u(agrupacion),
-        u(multProblema, { sobran: true }),
-        u(tienda, { op: 'dosPasos' }),
-        u(produccion, { op: 'div' }),
-        u(tablaDatos, { modo: 'total' }),
-      ],
+      titulo: 'División con residuo',
+      usos: [u(divisionResiduo), u(repartoResiduo)],
+    },
+    {
+      titulo: 'Dividir 2 y 3 cifras entre 1 cifra',
+      usos: [u(comprobarDivision), u(divisionResiduo), u(divisionCalculo)],
+    },
+    {
+      titulo: '¿Qué hago con el residuo?',
+      usos: [u(interpretarResiduo), u(viajes)],
+    },
+    {
+      titulo: 'Problemas de dos pasos',
+      usos: [u(dosPasos, { sobran: true }), u(problemaSumaResta, { cifras: 4, incognita: true, sobran: true }), u(razonable), u(tienda, { op: 'dosPasos' })],
+    },
+    {
+      titulo: 'Problemas de la tienda y la cosecha',
+      usos: [u(tablaDatos, { modo: 'total' }), u(tienda, { op: 'vuelto' }), u(tienda, { op: 'div' }), u(produccion, { op: 'mult' }), u(tablaDatos, { modo: 'diferencia' }), u(multProblema, { sobran: true })],
     },
   ],
 };
+
+/** Plantillas de 3.º que también usa 2.º (multiplicación). */
+export const plantillasG3 = { tablas, arregloSurcos, gruposIguales, surcosProblema, algoritmoMult, multProblema, razonable, produccion, tienda, tablaDatos };

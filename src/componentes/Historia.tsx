@@ -85,7 +85,7 @@ type Props = {
   leccion: Leccion;
   unidad: Unidad;
   adulto: boolean;
-  /** Si la unidad está desbloqueada, el último paso lleva a practicar en su primer nivel. */
+  /** Si el nivel del tema está desbloqueado, el último paso lleva a practicarlo. */
   alPracticar?: () => void;
   alCerrar: () => void;
 };
@@ -106,7 +106,7 @@ export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCe
             <IconoEmoji emoji={l.emoji} tamano={96} anim="siempre" />
           </span>
           <span className="chip">
-            Unidad {unidad.indice + 1} · {unidad.complejidad.nombre} <Medidor barras={unidad.complejidad.barras} />
+            Nivel {unidad.inicio} · {unidad.complejidad.nombre} <Medidor barras={unidad.complejidad.barras} />
           </span>
           <h2 className="historia-titulo">{l.titulo}</h2>
           <p className="suave">{unidad.titulo}</p>
@@ -183,8 +183,8 @@ export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCe
           <h2 className="historia-titulo">{tu('¡Ya sabes cómo se hace!', '¡Listo!')}</h2>
           <p>
             {alPracticar
-              ? tu(`Ahora practica en los niveles ${unidad.inicio} a ${unidad.fin} de tu ruta.`, `Ahora practique en los niveles ${unidad.inicio} a ${unidad.fin}.`)
-              : tu('Esta unidad se abre cuando avances en tu ruta. ¡Vas muy bien!', 'Esta unidad se abre cuando avance en su ruta.')}
+              ? tu(`Ahora practica en el nivel ${unidad.inicio} de tu ruta.`, `Ahora practique en el nivel ${unidad.inicio}.`)
+              : tu('Este nivel se abre cuando avances en tu ruta. ¡Vas muy bien!', 'Este nivel se abre cuando avance en su ruta.')}
           </p>
           {alPracticar && (
             <button

@@ -3,6 +3,7 @@
 // interpretación del residuo, doble/triple/cuádruple y problemas con dinero.
 
 import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Plantilla, Uso, Visual } from '../../juego/tipos';
+import { divDos, divProblema, residuoContexto } from './g5';
 import { adulto, articulosTienda, cuantos, dosPersonas, mayus, nombresFincas, num, persona, pesos } from '../contexto';
 import {
   conCifras,
@@ -1037,101 +1038,78 @@ const variasOperaciones: Plantilla = {
   },
 };
 
-const plantillas = [
-  valorPosicional,
-  compararGrandes,
-  redondeo,
-  razonable,
-  sumaGrande,
-  restaGrande,
-  problemaSumaResta,
-  multiplicar1,
-  multiplicar2,
-  surcos,
-  divisionResiduo,
-  repartoResiduo,
-  comprobarDivision,
-  viajes,
-  interpretarResiduo,
-  veces,
-  tablaProduccion,
-  dinero,
-  variasOperaciones,
-];
-
 const u = (plantilla: Plantilla, params?: Uso['params']): Uso => ({ plantilla, params });
 
 export const g4: DefinicionPista = {
   pista: 'g4',
   limite: 1000000,
-  plantillas,
-  tramos: [
+  plantillas: [
+    valorPosicional,
+    compararGrandes,
+    redondeo,
+    razonable,
+    sumaGrande,
+    restaGrande,
+    problemaSumaResta,
+    multiplicar1,
+    multiplicar2,
+    surcos,
+    divisionResiduo,
+    repartoResiduo,
+    comprobarDivision,
+    viajes,
+    interpretarResiduo,
+    veces,
+    tablaProduccion,
+    dinero,
+    variasOperaciones,
+    divDos,
+    divProblema,
+    residuoContexto,
+  ],
+  temas: [
     {
-      inicio: 0,
-      fin: 0,
-      titulo: 'Tutorial y repaso de 3.º',
-      usos: [u(valorPosicional, { cifras: 4 }), u(sumaGrande, { cifras: 4 }), u(multiplicar1, { cifras: 2 }), u(problemaSumaResta, { cifras: 3 }), u(tablaProduccion, { modo: 'total' })],
+      titulo: 'Repaso: sumar y restar números grandes',
+      usos: [u(sumaGrande), u(restaGrande), u(valorPosicional), u(compararGrandes), u(redondeo), u(problemaSumaResta), u(razonable, { op: 'suma' })],
     },
     {
-      inicio: 1,
-      fin: 15,
-      titulo: 'Números hasta 6 cifras; suma y resta con estimación',
-      usos: [
-        u(valorPosicional),
-        u(compararGrandes),
-        u(redondeo),
-        u(razonable, { op: 'suma' }),
-        u(sumaGrande),
-        u(restaGrande),
-        u(problemaSumaResta),
-        u(tablaProduccion, { modo: 'mixta' }),
-        u(dinero, { modo: 'total' }),
-      ],
+      titulo: 'Repaso: multiplicar por 1 y 2 cifras',
+      usos: [u(multiplicar2), u(multiplicar1), u(surcos), u(razonable, { op: 'multiplicacion' })],
     },
     {
-      inicio: 16,
-      fin: 35,
-      titulo: 'Multiplicación por 1 y 2 cifras',
-      usos: [u(razonable, { op: 'multiplicacion' }), u(multiplicar1), u(multiplicar2), u(surcos), u(problemaSumaResta, { cifras: 5 }), u(tablaProduccion, { modo: 'producto' }), u(dinero, { modo: 'total' })],
+      titulo: 'Repaso: división con residuo',
+      usos: [u(divisionResiduo), u(repartoResiduo)],
     },
     {
-      inicio: 36,
-      fin: 55,
-      titulo: 'División con residuo, divisor de 1 cifra',
-      usos: [u(comprobarDivision), u(divisionResiduo), u(multiplicar2), u(repartoResiduo), u(surcos, { op: 'mixta' }), u(dinero, { modo: 'unidad' }), u(tablaProduccion, { modo: 'producto' })],
+      titulo: 'Dividir números grandes entre 1 cifra',
+      usos: [u(divDos, { divCifras: 1 }), u(divProblema, { divCifras: 1 }), u(surcos, { op: 'mixta' })],
     },
     {
-      inicio: 56,
-      fin: 75,
-      titulo: 'Interpretar el residuo; doble, triple y cuádruple',
-      usos: [u(comprobarDivision), u(redondeo), u(divisionResiduo), u(multiplicar1), u(viajes), u(veces), u(interpretarResiduo), u(tablaProduccion, { modo: 'mixta' })],
+      titulo: 'Dividir entre 2 cifras',
+      usos: [u(divDos), u(divProblema, { maxPesos: 1000000 })],
     },
     {
-      inicio: 76,
-      fin: 90,
-      titulo: 'Problemas con varias operaciones y dinero',
-      usos: [u(razonable, { op: 'mixta' }), u(valorPosicional, { cifras: 6 }), u(multiplicar2), u(restaGrande), u(variasOperaciones), u(veces), u(dinero, { modo: 'mixta' }), u(tablaProduccion, { modo: 'mixta' })],
+      titulo: 'Comprobar la división',
+      usos: [u(comprobarDivision), u(divisionResiduo)],
     },
     {
-      inicio: 91,
-      fin: 100,
-      titulo: 'Retos mixtos de 4.º',
-      usos: [
-        u(razonable, { op: 'mixta' }),
-        u(compararGrandes),
-        u(comprobarDivision),
-        u(sumaGrande),
-        u(multiplicar2),
-        u(divisionResiduo),
-        u(variasOperaciones),
-        u(viajes),
-        u(veces),
-        u(problemaSumaResta),
-        u(surcos, { op: 'mixta' }),
-        u(interpretarResiduo),
-        u(dinero, { modo: 'mixta' }),
-        u(tablaProduccion, { modo: 'mixta' }),
-      ],
+      titulo: 'El residuo: viajes y empaques',
+      usos: [u(interpretarResiduo), u(viajes), u(residuoContexto)],
+    },
+    {
+      titulo: 'Doble, triple y mitad',
+      usos: [u(veces), u(multiplicar1)],
+    },
+    {
+      titulo: 'Problemas con varias operaciones',
+      usos: [u(variasOperaciones), u(problemaSumaResta), u(dinero, { modo: 'mixta' })],
+    },
+    {
+      titulo: 'Problemas con tablas y dinero',
+      usos: [u(tablaProduccion, { modo: 'mixta' }), u(dinero, { modo: 'total' }), u(dinero, { modo: 'unidad' }), u(tablaProduccion, { modo: 'producto' })],
     },
   ],
 };
+
+/** Plantillas de división de 4.º que también usa 3.º. */
+export { divisionResiduo, repartoResiduo, comprobarDivision, viajes, interpretarResiduo };

@@ -1,82 +1,60 @@
-// Motor de niveles: elige plantillas según el tramo, calcula la dificultad d,
-// mezcla las cuatro dimensiones y arma los niveles de cosecha (10, 20, … 100).
+// Motor de niveles: cada ruta tiene 10 temas (niveles 1 a 10) y cada nivel trae 10 preguntas
+// de su tema. La dificultad d sube de pregunta en pregunta dentro del rango de la banda.
+// También arma las pruebas diagnóstica y final: una pregunta por tema, con d fija.
 
-import { crearRng, semillaNivel, type Rng } from './rng';
-import type { DefinicionPista, Dimension, Ejercicio, Pista, Respuesta, Tramo, Uso } from './tipos';
+import { crearRng, hashTexto, semillaNivel, type Rng } from './rng';
+import type { Banda, DefinicionPista, Dimension, Ejercicio, Pista, Respuesta, Tema, Uso } from './tipos';
 import { definiciones } from '../contenido/pistas';
 import { igualNumero } from '../contenido/plantillas/util';
-import { FACTOR_DIFICULTAD_APOYO, reducirOpciones } from './apoyo';
+import { reducirOpciones } from './apoyo';
 
-export const NIVEL_MAXIMO = 100;
+export const NIVEL_MAXIMO = 10;
+export const PREGUNTAS_POR_NIVEL = 10;
+/** Dificultad de las preguntas de las pruebas (diagnóstica y final). */
+export const D_PRUEBA = 0.5;
 
-/** Límites de los tramos (iguales para las seis pistas). */
-export const LIMITES_TRAMOS: [number, number][] = [
-  [0, 0],
-  [1, 15],
-  [16, 35],
-  [36, 55],
-  [56, 75],
-  [76, 90],
-  [91, 100],
-];
+export const BANDAS: Record<Banda, { nombre: string; desde: number; hasta: number; aprobar: number; descripcion: string }> = {
+  refuerzo: { nombre: 'Refuerzo', desde: 0, hasta: 0.5, aprobar: 7, descripcion: 'Números más pequeños, dos opciones y ayudas a la vista.' },
+  basico: { nombre: 'Básico', desde: 0.2, hasta: 0.8, aprobar: 8, descripcion: 'Números de la medida justa para el grado.' },
+  avanzado: { nombre: 'Avanzado', desde: 0.5, hasta: 1, aprobar: 9, descripcion: 'Números más grandes y retos más exigentes.' },
+};
 
-export function esCosecha(nivel: number): boolean {
-  return nivel > 0 && nivel % 10 === 0;
+export const BANDA_POR_DEFECTO: Banda = 'basico';
+
+export function esFamilia(pista: Pista): boolean {
+  return pista === 'familia' || pista.startsWith('fam-');
 }
 
-export function cantidadEjercicios(pista: Pista): number {
-  return pista === 'g1' ? 4 : 5;
-}
+/** Rutas de padres que asigna la diagnóstica de familias. */
+export const RUTAS_FAMILIA: Pista[] = ['fam-basica', 'fam-intermedia', 'fam-avanzada'];
 
-/** Aciertos mínimos para aprobar: 4 de 5 (80 %) y, en 1.º, 3 de 4 (se permite un fallo). */
-export function aciertosParaAprobar(pista: Pista): number {
-  return cantidadEjercicios(pista) - 1;
+/** Aciertos mínimos para aprobar un nivel. En Inclusión nunca se pierde. */
+export function aciertosParaAprobar(pista: Pista, banda: Banda = BANDA_POR_DEFECTO): number {
+  return pista === 'inclusion' ? 0 : BANDAS[banda].aprobar;
 }
 
 export function definicion(pista: Pista): DefinicionPista {
   return definiciones[pista];
 }
 
-export function indiceTramo(nivel: number): number {
-  return LIMITES_TRAMOS.findIndex(([a, b]) => nivel >= a && nivel <= b);
+/** Tema de un nivel (1 a 10). */
+export function temaDe(pista: Pista, nivel: number): Tema {
+  const temas = definicion(pista).temas;
+  return temas[Math.min(temas.length, Math.max(1, nivel)) - 1];
 }
 
-export function tramoDe(pista: Pista, nivel: number): Tramo {
-  return definicion(pista).tramos[indiceTramo(nivel)];
-}
-
-/** d = (nivel − inicioTramo) / (finTramo − inicioTramo), entre 0 y 1. */
-export function dificultadEnTramo(nivel: number): number {
-  const [a, b] = LIMITES_TRAMOS[indiceTramo(nivel)];
-  return b === a ? 0 : (nivel - a) / (b - a);
-}
-
-/** Índice global de dificultad (no decrece): tramo + d. */
-export function indiceDificultad(nivel: number): number {
-  return indiceTramo(nivel) + dificultadEnTramo(nivel);
+/** Dificultad de la pregunta i (0..total−1): sube de forma pareja dentro del rango de la banda. */
+export function dificultadPregunta(banda: Banda, i: number, total = PREGUNTAS_POR_NIVEL): number {
+  const { desde, hasta } = BANDAS[banda];
+  return total <= 1 ? desde : desde + ((hasta - desde) * i) / (total - 1);
 }
 
 type Candidato = { uso: Uso; d: number; nivel: number };
 
-function candidatosNivel(pista: Pista, nivel: number): Candidato[] {
-  if (esCosecha(nivel)) {
-    // Repaso mezclado de la decena anterior.
-    const lista: Candidato[] = [];
-    for (let n = nivel - 9; n < nivel; n++) {
-      for (const uso of tramoDe(pista, n).usos) lista.push({ uso, d: dificultadEnTramo(n), nivel: n });
-    }
-    return lista;
-  }
-  const d = dificultadEnTramo(nivel);
-  return tramoDe(pista, nivel).usos.map((uso) => ({ uso, d, nivel }));
-}
-
-function construir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: string, nivelReal: number, apoyo = false): Ejercicio {
+function construir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: string, apoyo = false): Ejercicio {
   const p = c.uso.plantilla;
   const params = c.uso.params ?? {};
-  // Con apoyo extra, la dificultad baja dentro de la misma unidad (los números se achican).
-  const d = apoyo ? c.d * FACTOR_DIFICULTAD_APOYO : c.d;
-  const base = p.generar({ rng, d, nivel: nivelReal, pista, repaso, params });
+  const base = p.generar({ rng, d: c.d, nivel: c.nivel, pista, repaso, params });
   const respuesta = base.respuesta;
   const validar =
     base.validar ??
@@ -97,67 +75,78 @@ function construir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: st
   return apoyo ? reducirOpciones(ej) : ej;
 }
 
+/** Construye y, si el enunciado ya salió, lo intenta de nuevo (hasta 12 veces). */
+function construirSinRepetir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: string, apoyo: boolean, enunciados: Set<string>): Ejercicio {
+  let ej = construir(pista, c, rng, repaso, id, apoyo);
+  for (let r = 0; r < 12 && enunciados.has(ej.enunciado); r++) ej = construir(pista, c, rng, repaso, id, apoyo);
+  enunciados.add(ej.enunciado);
+  return ej;
+}
+
 export type OpcionesNivel = {
   codigo: string;
   pista: Pista;
   nivel: number;
   intento: number;
   repaso?: boolean;
-  /** Apoyo extra del perfil. */
-  apoyo?: boolean;
+  banda?: Banda;
 };
 
-/** Genera los ejercicios de un nivel (4 en 1.º, 5 en los demás). */
-export function generarNivel({ codigo, pista, nivel, intento, repaso = false, apoyo = false }: OpcionesNivel): Ejercicio[] {
+/** Genera las 10 preguntas de un nivel: mezcla los usos del tema (y sus dimensiones) y sube la dificultad. */
+export function generarNivel({ codigo, pista, nivel, intento, repaso = false, banda = BANDA_POR_DEFECTO }: OpcionesNivel): Ejercicio[] {
   const rng = crearRng(semillaNivel(codigo, pista, nivel, intento) ^ (repaso ? 0x5f3759df : 0));
-  const total = cantidadEjercicios(pista);
-  const candidatos = candidatosNivel(pista, nivel);
+  const usos = temaDe(pista, nivel).usos;
+  const apoyo = banda === 'refuerzo' && pista !== 'inclusion';
 
-  // Agrupar por dimensión para mezclar las cuatro.
-  const porDimension = new Map<Dimension, Candidato[]>();
-  for (const c of candidatos) {
-    const dim = c.uso.plantilla.dimension;
+  // Agrupar por dimensión para alternarlas.
+  const porDimension = new Map<Dimension, Uso[]>();
+  for (const uso of usos) {
+    const dim = uso.plantilla.dimension;
     if (!porDimension.has(dim)) porDimension.set(dim, []);
-    porDimension.get(dim)!.push(c);
+    porDimension.get(dim)!.push(uso);
   }
   const dimensiones = rng.barajar([...porDimension.keys()]);
-  const usadas = new Map<string, number>();
+  const usadas = new Map<Uso, number>();
   const enunciados = new Set<string>();
   const ejercicios: Ejercicio[] = [];
 
-  for (let i = 0; i < total; i++) {
-    const dim = dimensiones[i % dimensiones.length];
-    const grupo = porDimension.get(dim)!;
-    // Preferir plantillas aún no usadas en este nivel.
-    const minimo = Math.min(...grupo.map((c) => usadas.get(c.uso.plantilla.id) ?? 0));
-    const opciones = grupo.filter((c) => (usadas.get(c.uso.plantilla.id) ?? 0) === minimo);
-    const elegido = rng.elegir(opciones);
-    usadas.set(elegido.uso.plantilla.id, minimo + 1);
-
-    let ej = construir(pista, elegido, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, nivel, apoyo);
-    for (let r = 0; r < 12 && enunciados.has(ej.enunciado); r++) {
-      ej = construir(pista, elegido, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, nivel, apoyo);
-    }
-    enunciados.add(ej.enunciado);
-    ejercicios.push(ej);
+  for (let i = 0; i < PREGUNTAS_POR_NIVEL; i++) {
+    const grupo = porDimension.get(dimensiones[i % dimensiones.length])!;
+    // Preferir los usos menos repetidos en este nivel.
+    const minimo = Math.min(...grupo.map((u) => usadas.get(u) ?? 0));
+    const uso = rng.elegir(grupo.filter((u) => (usadas.get(u) ?? 0) === minimo));
+    usadas.set(uso, minimo + 1);
+    const d = pista === 'inclusion' ? dificultadPregunta('basico', i) : dificultadPregunta(banda, i);
+    ejercicios.push(construirSinRepetir(pista, { uso, d, nivel }, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, apoyo, enunciados));
   }
   return ejercicios;
+}
+
+export type TipoPrueba = 'diagnostica' | 'final';
+
+/** Prueba diagnóstica o final: una pregunta por tema, con la misma dificultad.
+ *  La final es una forma paralela (mismos usos, otra semilla). */
+export function generarPrueba({ codigo, pista, tipo, intento = 1 }: { codigo: string; pista: Pista; tipo: TipoPrueba; intento?: number }): Ejercicio[] {
+  const rng = crearRng(hashTexto(`${codigo}|${pista}|prueba-${tipo}|${intento}`));
+  const enunciados = new Set<string>();
+  return definicion(pista).temas.map((tema, k) =>
+    construirSinRepetir(pista, { uso: tema.prueba ?? tema.usos[0], d: D_PRUEBA, nivel: k + 1 }, rng, false, `${pista}-${tipo}-${intento}-${k}`, false, enunciados),
+  );
 }
 
 /** Ejercicio parecido (misma plantilla y dificultad) para practicar tras ver la solución. */
 export function generarParecido(ej: Ejercicio, semilla: number): Ejercicio {
   const def = definicion(ej.pista);
   const plantilla = def.plantillas.find((p) => p.id === ej.plantilla)!;
-  const origen = ej.origen ?? { params: {}, d: 0, nivel: 0 };
+  const origen = ej.origen ?? { params: {}, d: 0, nivel: 1 };
   const rng = crearRng(semilla);
-  let nuevo = construir(ej.pista, { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel }, rng, true, ej.id + '-p', origen.nivel, ej.apoyo);
-  for (let i = 0; i < 8 && nuevo.enunciado === ej.enunciado; i++) {
-    nuevo = construir(ej.pista, { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel }, rng, true, ej.id + '-p', origen.nivel, ej.apoyo);
-  }
+  const c = { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel };
+  let nuevo = construir(ej.pista, c, rng, true, ej.id + '-p', ej.apoyo);
+  for (let i = 0; i < 8 && nuevo.enunciado === ej.enunciado; i++) nuevo = construir(ej.pista, c, rng, true, ej.id + '-p', ej.apoyo);
   return nuevo;
 }
 
 /** Generación de un ejercicio concreto (para pruebas y depuración). */
 export function generarConUso(pista: Pista, uso: Uso, d: number, nivel: number, semilla: number, repaso = false, apoyo = false): Ejercicio {
-  return construir(pista, { uso, d, nivel }, crearRng(semilla), repaso, `prueba-${semilla}`, nivel, apoyo);
+  return construir(pista, { uso, d, nivel }, crearRng(semilla), repaso, `prueba-${semilla}`, apoyo);
 }

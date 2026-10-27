@@ -1,8 +1,10 @@
 # Catálogo de plantillas
 
-Total: **112 plantillas** en seis pistas.
+Total: **120 plantillas distintas** en 10 rutas (algunas se comparten entre grados).
 
-Generado automáticamente desde `src/contenido/plantillas` (`npx tsx scripts/catalogo-plantillas.ts`).
+Generado automáticamente desde `src/contenido/plantillas` (`npm run catalogo`).
+
+Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas. La columna «Prueba» es la plantilla de la pregunta de ese tema en la prueba diagnóstica y en la final.
 
 ## 1.º grado (14 plantillas, números hasta 100)
 
@@ -23,17 +25,20 @@ Generado automáticamente desde `src/contenido/plantillas` (`npx tsx scripts/cat
 | `g1-tabla` | aplicacion | suma | Leer una tabla sencilla de la cosecha |
 | `g1-razonable` | comprension | suma | ¿Es razonable? Estimar sumas hasta 99 |
 
-| Niveles | Tramo | Plantillas usadas |
-| --- | --- | --- |
-| 0 | Tutorial y conteo hasta 10 | g1-contar, g1-comparar, g1-juntar, g1-calculo, g1-tabla |
-| 1–15 | Conteo y comparación hasta 20 | g1-contar, g1-comparar, g1-siguiente, g1-recta, g1-diferencia, g1-tabla |
-| 16–35 | Sumas hasta 10 y luego hasta 20 | g1-calculo, g1-recta, g1-suma-cambio, g1-juntar, g1-contar, g1-tabla |
-| 36–55 | Restas hasta 20; completar a 10 | g1-calculo, g1-recta, g1-quitar, g1-diferencia, g1-completar, g1-tabla |
-| 56–75 | Decenas y unidades; suma y resta hasta 50 sin reagrupar | g1-decenas, g1-calculo, g1-suma-cambio, g1-diferencia, g1-completar, g1-tabla |
-| 76–90 | Juntar, quitar y comparar hasta 99; repartos en 2 o 3 partes | g1-suma-cambio, g1-diferencia, g1-calculo, g1-decenas, g1-razonable, g1-reparto, g1-tabla |
-| 91–100 | Retos mixtos de 1.º | g1-suma-cambio, g1-quitar, g1-diferencia, g1-calculo, g1-decenas, g1-razonable, g1-completar, g1-reparto, g1-tabla |
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Contar hasta 10 | g1-contar, g1-comparar, g1-tabla | g1-contar |
+| 2 | Contar y comparar hasta 20 | g1-contar, g1-comparar, g1-diferencia, g1-tabla | g1-comparar |
+| 3 | Anterior, siguiente y la recta | g1-siguiente, g1-recta | g1-siguiente |
+| 4 | Sumar hasta 10 | g1-calculo, g1-juntar, g1-suma-cambio, g1-recta | g1-juntar |
+| 5 | Sumar hasta 20 | g1-calculo, g1-suma-cambio, g1-juntar, g1-recta, g1-tabla | g1-suma-cambio |
+| 6 | Restar hasta 20 | g1-calculo, g1-quitar, g1-recta, g1-diferencia, g1-tabla | g1-quitar |
+| 7 | Completar a 10: ¿cuántos faltan? | g1-completar, g1-diferencia | g1-completar |
+| 8 | Decenas y unidades hasta 99 | g1-decenas, g1-razonable | g1-decenas |
+| 9 | Sumar y restar hasta 99 sin llevar | g1-calculo, g1-suma-cambio, g1-tabla, g1-razonable | g1-calculo |
+| 10 | Problemas de juntar, quitar y comparar | g1-suma-cambio, g1-diferencia, g1-quitar, g1-reparto, g1-tabla | g1-suma-cambio |
 
-## 2.º grado (19 plantillas, números hasta 1.000)
+## 2.º grado (29 plantillas, números hasta 10.000)
 
 | Plantilla | Dimensión | Operación | Descripción |
 | --- | --- | --- | --- |
@@ -56,18 +61,31 @@ Generado automáticamente desde `src/contenido/plantillas` (`npx tsx scripts/cat
 | `g2-reparto` | aplicacion | division | Reparto equitativo arrastrando o con números |
 | `g2-razonable` | comprension | suma | ¿Es razonable? Estimar a la centena más cercana |
 | `g2-tabla` | aplicacion | suma | Leer una tabla de tres días de cosecha |
+| `g3-tablas` | procedimiento | multiplicacion | Tablas de multiplicar del 2 al 10 en contexto |
+| `g3-arreglo` | comprension | multiplicacion | Formar arreglos de surcos (filas × columnas) y contar |
+| `g3-grupos` | problemas | multiplicacion | Grupos iguales: canastillas, cubetas y bultos |
+| `g3-surcos` | problemas | multiplicacion | Problemas de surcos: total, o cuántos por surco (incógnita en un factor) |
+| `g3-algoritmo-mult` | procedimiento | multiplicacion | Multiplicación de 2 y 3 cifras por 1 cifra |
+| `g3-mult-problema` | problemas | multiplicacion | Problemas de multiplicación con 2 y 3 cifras por 1 cifra |
+| `g3-razonable` | comprension | mixta | ¿Es razonable? Estimar sumas y productos |
+| `g3-produccion` | aplicacion | mixta | Producción de la finca: árboles, costales y lotes |
+| `g3-tienda` | aplicacion | mixta | Compras en la tienda de la vereda: total, precio por unidad y vueltas |
+| `g3-tabla` | aplicacion | mixta | Leer una tabla de la cosecha y la cooperativa |
 
-| Niveles | Tramo | Plantillas usadas |
-| --- | --- | --- |
-| 0 | Tutorial y repaso hasta 99 | g2-bloques, g2-comparar, g2-calculo, g2-suma-problema, g2-tabla |
-| 1–15 | Valor posicional hasta 999 | g2-bloques, g2-cifra, g2-comparar, g2-recta, g2-empaque, g2-dinero |
-| 16–35 | Suma sin y con reagrupación | g2-algoritmo-suma, g2-calculo, g2-suma-problema, g2-razonable, g2-tabla, g2-dinero |
-| 36–55 | Resta sin y con desagrupación | g2-algoritmo-resta, g2-calculo, g2-recta, g2-resta-problema, g2-comparacion, g2-razonable, g2-vueltas, g2-tabla |
-| 56–75 | Problemas de cambio, combinación y comparación; dinero | g2-suma-problema, g2-resta-problema, g2-comparacion, g2-calculo, g2-razonable, g2-dinero, g2-vueltas |
-| 76–90 | Grupos iguales y suma repetida (×2, ×5, ×10); reparto equitativo | g2-arreglo, g2-suma-repetida, g2-grupos, g2-reparto, g2-tabla |
-| 91–100 | Retos mixtos de 2.º | g2-algoritmo-suma, g2-algoritmo-resta, g2-suma-problema, g2-resta-problema, g2-comparacion, g2-grupos, g2-arreglo, g2-suma-repetida, g2-razonable, g2-bloques, g2-vueltas, g2-reparto, g2-tabla |
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Repaso: sumar y restar hasta 999 | g2-algoritmo-suma, g2-algoritmo-resta, g2-bloques, g2-cifra, g2-comparar, g2-recta, g2-calculo, g2-suma-problema, g2-resta-problema, g2-comparacion, g2-empaque, g2-razonable, g2-tabla | g2-algoritmo-suma |
+| 2 | Grupos iguales y suma repetida | g2-suma-repetida, g2-grupos, g2-arreglo | g2-suma-repetida |
+| 3 | Arreglos de surcos | g3-arreglo, g2-arreglo | g3-arreglo |
+| 4 | Tablas del 2, del 5 y del 10 | g3-tablas, g2-grupos, g3-grupos, g3-arreglo | g3-tablas |
+| 5 | Tablas del 3 y del 4 | g3-tablas, g2-grupos, g3-grupos, g3-arreglo | g3-tablas |
+| 6 | Tablas del 6 al 9 | g3-tablas, g3-arreglo, g3-grupos, g3-surcos | g3-tablas |
+| 7 | Problemas de grupos iguales | g3-grupos, g3-surcos, g2-grupos, g2-reparto, g2-tabla | g3-grupos |
+| 8 | Multiplicar 2 cifras por 1 cifra | g3-algoritmo-mult, g3-mult-problema, g3-razonable | g3-algoritmo-mult |
+| 9 | Multiplicar 3 cifras por 1 cifra | g3-algoritmo-mult, g3-mult-problema, g3-produccion | g3-algoritmo-mult |
+| 10 | Multiplicar en la tienda y la finca | g3-tienda, g2-dinero, g2-vueltas, g3-mult-problema, g3-tabla | g3-tienda |
 
-## 3.º grado (20 plantillas, números hasta 10.000)
+## 3.º grado (25 plantillas, números hasta 10.000)
 
 | Plantilla | Dimensión | Operación | Descripción |
 | --- | --- | --- | --- |
@@ -91,18 +109,26 @@ Generado automáticamente desde `src/contenido/plantillas` (`npx tsx scripts/cat
 | `g3-tabla` | aplicacion | mixta | Leer una tabla de la cosecha y la cooperativa |
 | `g3-tienda` | aplicacion | mixta | Compras en la tienda de la vereda: total, precio por unidad y vueltas |
 | `g3-produccion` | aplicacion | mixta | Producción de la finca: árboles, costales y lotes |
+| `g4-division-residuo` | procedimiento | division | División con residuo, divisor de 1 cifra: cociente o residuo |
+| `g4-empacar` | problemas | division | Empacar o repartir con residuo: bolsas completas, sobrantes, reparto |
+| `g4-comprobar-division` | comprension | mixta | Relación dividendo = divisor × cociente + residuo |
+| `g4-viajes` | problemas | division | Interpretar el residuo: viajes o paquetes necesarios (redondear hacia arriba) |
+| `g4-interpretar-residuo` | aplicacion | division | ¿Qué hacer con el residuo? Completos, necesarios o sobrantes |
 
-| Niveles | Tramo | Plantillas usadas |
-| --- | --- | --- |
-| 0 | Tutorial y repaso de 2.º | g3-valor, g3-algoritmo-suma, g3-problema-kilos, g3-grupos, g3-tabla |
-| 1–15 | Suma y resta de 4 cifras, ceros en el minuendo | g3-valor, g3-recta-centena, g3-algoritmo-suma, g3-algoritmo-resta, g3-problema-kilos, g3-tabla, g3-tienda |
-| 16–35 | Tablas del 2 al 10 desde arreglos de surcos | g3-arreglo, g3-tablas, g3-surcos, g3-grupos, g3-tienda, g3-tabla |
-| 36–55 | Multiplicación de 2 y 3 cifras por 1 cifra | g3-razonable, g3-arreglo, g3-algoritmo-mult, g3-mult-problema, g3-produccion, g3-tienda |
-| 56–75 | División exacta como reparto y como agrupación | g3-relacion-division, g3-division-calculo, g3-reparto, g3-agrupacion, g3-produccion, g3-tienda |
-| 76–90 | Problemas de dos pasos y estimación | g3-razonable, g3-recta-centena, g3-algoritmo-mult, g3-algoritmo-resta, g3-dos-pasos, g3-problema-kilos, g3-tienda, g3-tabla |
-| 91–100 | Retos mixtos de 3.º | g3-razonable, g3-valor, g3-relacion-division, g3-algoritmo-suma, g3-algoritmo-resta, g3-algoritmo-mult, g3-division-calculo, g3-dos-pasos, g3-surcos, g3-agrupacion, g3-mult-problema, g3-tienda, g3-produccion, g3-tabla |
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Repaso: tablas, sumas y restas | g3-tablas, g3-arreglo, g3-grupos, g3-algoritmo-mult, g3-mult-problema, g3-valor, g3-recta-centena, g3-algoritmo-suma, g3-algoritmo-resta | g3-tablas |
+| 2 | Repartir en partes iguales | g3-reparto, g3-produccion | g3-reparto |
+| 3 | Agrupar: ¿cuántos grupos salen? | g3-agrupacion, g3-surcos | g3-agrupacion |
+| 4 | Multiplicar y dividir son parientes | g3-relacion-division, g3-surcos | g3-relacion-division |
+| 5 | Dividir con la tabla | g3-division-calculo, g3-tienda, g3-produccion | g3-division-calculo |
+| 6 | División con residuo | g4-division-residuo, g4-empacar | g4-division-residuo |
+| 7 | Dividir 2 y 3 cifras entre 1 cifra | g4-comprobar-division, g4-division-residuo, g3-division-calculo | g4-comprobar-division |
+| 8 | ¿Qué hago con el residuo? | g4-interpretar-residuo, g4-viajes | g4-interpretar-residuo |
+| 9 | Problemas de dos pasos | g3-dos-pasos, g3-problema-kilos, g3-razonable, g3-tienda | g3-dos-pasos |
+| 10 | Problemas de la tienda y la cosecha | g3-tabla, g3-tienda, g3-produccion, g3-mult-problema | g3-tabla |
 
-## 4.º grado (19 plantillas, números hasta 1.000.000)
+## 4.º grado (22 plantillas, números hasta 1.000.000)
 
 | Plantilla | Dimensión | Operación | Descripción |
 | --- | --- | --- | --- |
@@ -125,18 +151,24 @@ Generado automáticamente desde `src/contenido/plantillas` (`npx tsx scripts/cat
 | `g4-tabla` | aplicacion | mixta | Leer una tabla de producción de la vereda |
 | `g4-tienda` | aplicacion | mixta | Compras en la tienda de la vereda: total, vueltos y precio por unidad |
 | `g4-varias-operaciones` | problemas | mixta | Problemas de dos pasos con varias operaciones |
+| `g5-division` | procedimiento | division | División exacta con divisor de 2 cifras |
+| `g5-division-problema` | problemas | division | Problemas de división exacta |
+| `g5-residuo` | problemas | division | Interpretar el residuo en contexto |
 
-| Niveles | Tramo | Plantillas usadas |
-| --- | --- | --- |
-| 0 | Tutorial y repaso de 3.º | g4-valor-posicional, g4-suma, g4-multiplicar-1cifra, g4-problema-cosecha, g4-tabla |
-| 1–15 | Números hasta 6 cifras; suma y resta con estimación | g4-valor-posicional, g4-comparar, g4-redondeo, g4-razonable, g4-suma, g4-resta, g4-problema-cosecha, g4-tabla, g4-tienda |
-| 16–35 | Multiplicación por 1 y 2 cifras | g4-razonable, g4-multiplicar-1cifra, g4-multiplicar-2cifras, g4-surcos, g4-problema-cosecha, g4-tabla, g4-tienda |
-| 36–55 | División con residuo, divisor de 1 cifra | g4-comprobar-division, g4-division-residuo, g4-multiplicar-2cifras, g4-empacar, g4-surcos, g4-tienda, g4-tabla |
-| 56–75 | Interpretar el residuo; doble, triple y cuádruple | g4-comprobar-division, g4-redondeo, g4-division-residuo, g4-multiplicar-1cifra, g4-viajes, g4-doble-triple, g4-interpretar-residuo, g4-tabla |
-| 76–90 | Problemas con varias operaciones y dinero | g4-razonable, g4-valor-posicional, g4-multiplicar-2cifras, g4-resta, g4-varias-operaciones, g4-doble-triple, g4-tienda, g4-tabla |
-| 91–100 | Retos mixtos de 4.º | g4-razonable, g4-comparar, g4-comprobar-division, g4-suma, g4-multiplicar-2cifras, g4-division-residuo, g4-varias-operaciones, g4-viajes, g4-doble-triple, g4-problema-cosecha, g4-surcos, g4-interpretar-residuo, g4-tienda, g4-tabla |
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Repaso: sumar y restar números grandes | g4-suma, g4-resta, g4-valor-posicional, g4-comparar, g4-redondeo, g4-problema-cosecha, g4-razonable | g4-suma |
+| 2 | Repaso: multiplicar por 1 y 2 cifras | g4-multiplicar-2cifras, g4-multiplicar-1cifra, g4-surcos, g4-razonable | g4-multiplicar-2cifras |
+| 3 | Repaso: división con residuo | g4-division-residuo, g4-empacar | g4-division-residuo |
+| 4 | Dividir números grandes entre 1 cifra | g5-division, g5-division-problema, g4-surcos | g5-division |
+| 5 | Dividir entre 2 cifras | g5-division, g5-division-problema | g5-division |
+| 6 | Comprobar la división | g4-comprobar-division, g4-division-residuo | g4-comprobar-division |
+| 7 | El residuo: viajes y empaques | g4-interpretar-residuo, g4-viajes, g5-residuo | g4-interpretar-residuo |
+| 8 | Doble, triple y mitad | g4-doble-triple, g4-multiplicar-1cifra | g4-doble-triple |
+| 9 | Problemas con varias operaciones | g4-varias-operaciones, g4-problema-cosecha, g4-tienda | g4-varias-operaciones |
+| 10 | Problemas con tablas y dinero | g4-tabla, g4-tienda | g4-tabla |
 
-## 5.º grado (18 plantillas, números hasta 10.000.000)
+## 5.º grado (24 plantillas, números hasta 10.000.000)
 
 | Plantilla | Dimensión | Operación | Descripción |
 | --- | --- | --- | --- |
@@ -158,51 +190,164 @@ Generado automáticamente desde `src/contenido/plantillas` (`npx tsx scripts/cat
 | `g5-valor-unitario` | aplicacion | multiplicacion | Precios por kilo: total, precio unitario y regla de tres |
 | `g5-tabla-sacos` | aplicacion | mixta | Leer una tabla de recibos de cacao y empacar en sacos |
 | `g5-compuesto-tabla` | aplicacion | mixta | Problemas compuestos con tabla de producción y precios |
+| `g5-decimal-leer` | comprension | mixta | Décimas y centésimas: leer y armar números decimales |
+| `g5-decimal-comparar` | comprension | mixta | Comparar y ordenar números decimales |
+| `g5-decimal-suma-resta` | procedimiento | mixta | Sumar y restar números decimales (alinear la coma) |
+| `g5-decimal-mult` | procedimiento | multiplicacion | Multiplicar un decimal por un natural, por 10 y por 100 |
+| `g5-decimal-division` | procedimiento | division | Dividir con resultado decimal (repartir kilos y litros) y dividir entre 10 |
+| `g5-decimal-problema` | problemas | mixta | Problemas con decimales: precio por kilo, compras y sobrantes |
 
-| Niveles | Tramo | Plantillas usadas |
-| --- | --- | --- |
-| 0 | Tutorial y repaso de 4.º | g5-valor-posicional, g5-algoritmo-mult, g5-division-problema, g5-redondeo, g5-valor-unitario |
-| 1–15 | Números grandes; doble, mitad y propiedad distributiva | g5-valor-posicional, g5-distributiva, g5-doble-mitad, g5-comparacion-mult, g5-redondeo |
-| 16–35 | Multiplicación de varias cifras | g5-algoritmo-mult, g5-mult-varias, g5-mult-problema, g5-razonable, g5-distributiva, g5-valor-unitario |
-| 36–55 | División con divisor de 2 cifras | g5-division, g5-division-problema, g5-razonable, g5-valor-unitario |
-| 56–75 | Residuo en contexto; datos en tablas | g5-residuo, g5-tabla-sacos, g5-division, g5-razonable, g5-division-problema |
-| 76–90 | Proporcionalidad simple; fracciones como reparto | g5-proporcion, g5-dos-pasos, g5-valor-unitario, g5-fraccion, g5-mult-varias |
-| 91–100 | Problemas compuestos con tablas | g5-compuesto-tabla, g5-tabla-sacos, g5-dos-pasos, g5-proporcion, g5-residuo, g5-fraccion, g5-razonable, g5-mult-varias, g5-division |
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Números grandes y redondeo | g5-redondeo, g5-valor-posicional, g5-doble-mitad, g5-distributiva | g5-redondeo |
+| 2 | Multiplicar varias cifras | g5-mult-varias, g5-algoritmo-mult, g5-mult-problema, g5-razonable, g5-comparacion-mult, g5-distributiva | g5-mult-varias |
+| 3 | Dividir entre 2 cifras | g5-division, g5-division-problema, g5-razonable, g5-residuo | g5-division |
+| 4 | Problemas con las cuatro operaciones | g5-dos-pasos, g5-proporcion, g5-valor-unitario, g5-fraccion, g5-tabla-sacos, g5-compuesto-tabla | g5-dos-pasos |
+| 5 | Décimas y centésimas | g5-decimal-leer | g5-decimal-leer |
+| 6 | Comparar y ordenar decimales | g5-decimal-comparar, g5-decimal-leer | g5-decimal-comparar |
+| 7 | Sumar y restar decimales | g5-decimal-suma-resta | g5-decimal-suma-resta |
+| 8 | Multiplicar decimales | g5-decimal-mult | g5-decimal-mult |
+| 9 | Dividir con resultado decimal | g5-decimal-division | g5-decimal-division |
+| 10 | Problemas con números decimales | g5-decimal-problema, g5-decimal-suma-resta, g5-decimal-mult, g5-decimal-division | g5-decimal-problema |
 
-## Familia (22 plantillas, números hasta 100.000.000)
+## Inclusión (6 plantillas, números hasta 20)
+
+| Plantilla | Dimensión | Operación | Descripción |
+| --- | --- | --- | --- |
+| `g1-contar` | comprension | suma | Contar tocando objetos de la finca |
+| `g1-comparar` | comprension | resta | Comparar dos cantidades: ¿quién tiene más o menos? |
+| `g1-juntar` | problemas | suma | Juntar arrastrando frutas a una canasta |
+| `g1-quitar` | problemas | resta | Quitar arrastrando: la mula se lleva mazorcas |
+| `inc-trazar` | procedimiento | suma | Repasar una cifra con el dedo sobre la guía punteada |
+| `inc-emparejar` | comprension | suma | Número y cantidad: tocar el grupo que tiene ese número de dibujos |
+
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Mirar y tocar: 1, 2 y 3 | g1-contar | g1-contar |
+| 2 | Contar hasta 5 | g1-contar, inc-emparejar | g1-contar |
+| 3 | Escribir del 0 al 4 | inc-trazar | inc-trazar |
+| 4 | Escribir del 5 al 9 | inc-trazar | inc-trazar |
+| 5 | Contar hasta 10 | g1-contar | g1-contar |
+| 6 | Número y cantidad | inc-emparejar | inc-emparejar |
+| 7 | ¿Dónde hay más? | g1-comparar | g1-comparar |
+| 8 | Juntar en la canasta | g1-juntar | g1-juntar |
+| 9 | Quitar de la canasta | g1-quitar | g1-quitar |
+| 10 | Repaso: contar, escribir y juntar | g1-contar, inc-trazar, inc-emparejar, g1-juntar | g1-contar |
+
+## Familias: prueba de entrada y final (9 plantillas, números hasta 100.000.000)
 
 | Plantilla | Dimensión | Operación | Descripción |
 | --- | --- | --- | --- |
 | `fam-calculo-mental` | procedimiento | mixta | Cálculo mental con dinero: sumar, restar y multiplicar precios redondos |
-| `fam-estimar-compra` | comprension | suma | ¿Es razonable el cobro de la tienda? Estimar al millar |
+| `fam-vueltas` | problemas | resta | Vueltos al pagar con un billete |
+| `fam-compra-varios` | problemas | multiplicacion | Comprar varias unidades del mismo producto o cuántas alcanzan |
+| `fam-bultos` | procedimiento | division | Empacar en bultos de 50 kilos y viajes de la mula |
+| `fam-presupuesto` | aplicacion | suma | Presupuesto semanal en una tabla |
+| `fam-porcentaje-calculo` | procedimiento | division | Calcular el 10, el 25 o el 50 % de una cantidad |
+| `fam-proporcion` | problemas | mixta | Proporcionalidad simple: valor por unidad |
+| `fam-arrobas` | procedimiento | multiplicacion | Convertir arrobas (12,5 kg) a kilos y kilos a arrobas |
+| `fam-ganancia` | problemas | mixta | Ingresos, gastos y ganancia de una venta de cacao |
+
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Sumar y restar plata | fam-calculo-mental | fam-calculo-mental |
+| 2 | Vueltos | fam-vueltas | fam-vueltas |
+| 3 | Multiplicar precios | fam-calculo-mental | fam-calculo-mental |
+| 4 | Cuántas unidades alcanzan | fam-compra-varios | fam-compra-varios |
+| 5 | Bultos y viajes | fam-bultos | fam-bultos |
+| 6 | Presupuesto semanal | fam-presupuesto | fam-presupuesto |
+| 7 | Porcentajes | fam-porcentaje-calculo | fam-porcentaje-calculo |
+| 8 | Proporciones | fam-proporcion | fam-proporcion |
+| 9 | Unidades: arrobas y kilos | fam-arrobas | fam-arrobas |
+| 10 | Ganancia de una venta | fam-ganancia | fam-ganancia |
+
+## Familias: cuaderno básico (9 plantillas, números hasta 100.000.000)
+
+| Plantilla | Dimensión | Operación | Descripción |
+| --- | --- | --- | --- |
+| `fam-calculo-mental` | procedimiento | mixta | Cálculo mental con dinero: sumar, restar y multiplicar precios redondos |
 | `fam-recta-dinero` | comprension | suma | Ubicar en la recta numérica una suma de dinero |
 | `fam-vueltas` | problemas | resta | Vueltos al pagar con un billete |
 | `fam-compra-varios` | problemas | multiplicacion | Comprar varias unidades del mismo producto o cuántas alcanzan |
+| `fam-bultos` | procedimiento | division | Empacar en bultos de 50 kilos y viajes de la mula |
+| `fam-jornales` | aplicacion | multiplicacion | Pago de jornales por trabajadores y días |
 | `fam-presupuesto` | aplicacion | suma | Presupuesto semanal en una tabla |
+| `fam-estimar-compra` | comprension | suma | ¿Es razonable el cobro de la tienda? Estimar al millar |
+| `fam-venta-mercado` | problemas | multiplicacion | Ventas en el mercado del pueblo (uno o dos productos) |
+
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Sumar y restar plata | fam-calculo-mental, fam-recta-dinero | fam-calculo-mental |
+| 2 | Vueltos | fam-vueltas | fam-vueltas |
+| 3 | Multiplicar precios | fam-calculo-mental | fam-calculo-mental |
+| 4 | Cuántas unidades alcanzan | fam-compra-varios | fam-compra-varios |
+| 5 | Repartir en bultos iguales | fam-bultos | fam-bultos |
+| 6 | Bultos y viajes de la mula | fam-bultos | fam-bultos |
+| 7 | Pago de jornales | fam-jornales | fam-jornales |
+| 8 | Presupuesto semanal | fam-presupuesto | fam-presupuesto |
+| 9 | ¿Es razonable el cobro? | fam-estimar-compra | fam-estimar-compra |
+| 10 | Cuentas de la casa | fam-calculo-mental, fam-vueltas, fam-compra-varios, fam-presupuesto, fam-venta-mercado | fam-calculo-mental |
+
+## Familias: cuaderno intermedio (14 plantillas, números hasta 100.000.000)
+
+| Plantilla | Dimensión | Operación | Descripción |
+| --- | --- | --- | --- |
+| `fam-calculo-mental` | procedimiento | mixta | Cálculo mental con dinero: sumar, restar y multiplicar precios redondos |
+| `fam-recta-dinero` | comprension | suma | Ubicar en la recta numérica una suma de dinero |
+| `fam-compra-varios` | problemas | multiplicacion | Comprar varias unidades del mismo producto o cuántas alcanzan |
+| `fam-estimar-compra` | comprension | suma | ¿Es razonable el cobro de la tienda? Estimar al millar |
 | `fam-venta-mercado` | problemas | multiplicacion | Ventas en el mercado del pueblo (uno o dos productos) |
 | `fam-rendimiento` | problemas | multiplicacion | Producción por árbol: mazorcas, café y aguacate |
 | `fam-bultos` | procedimiento | division | Empacar en bultos de 50 kilos y viajes de la mula |
 | `fam-jornales` | aplicacion | multiplicacion | Pago de jornales por trabajadores y días |
+| `fam-presupuesto` | aplicacion | suma | Presupuesto semanal en una tabla |
 | `fam-porcentaje-concepto` | comprension | division | Qué significa el 10, el 25 y el 50 % |
 | `fam-porcentaje-calculo` | procedimiento | division | Calcular el 10, el 25 o el 50 % de una cantidad |
-| `fam-secado` | problemas | resta | Pérdida de peso del cacao al secarse (porcentaje del ejercicio) |
 | `fam-descuento` | aplicacion | resta | Precio final con descuento del 10, 25 o 50 % |
+| `fam-ganancia` | problemas | mixta | Ingresos, gastos y ganancia de una venta de cacao |
+| `fam-razonable-cosecha` | comprension | multiplicacion | ¿Es razonable el cálculo de una venta grande? Estimación |
+
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Cálculo mental con plata | fam-calculo-mental, fam-recta-dinero | fam-calculo-mental |
+| 2 | Compras de varios productos | fam-compra-varios, fam-estimar-compra | fam-compra-varios |
+| 3 | Ventas en el mercado | fam-venta-mercado | fam-venta-mercado |
+| 4 | Producción por árbol | fam-rendimiento | fam-rendimiento |
+| 5 | Bultos y viajes | fam-bultos | fam-bultos |
+| 6 | Pago de jornales | fam-jornales | fam-jornales |
+| 7 | Presupuesto con saldo | fam-presupuesto | fam-presupuesto |
+| 8 | Qué es el 10, el 25 y el 50 % | fam-porcentaje-concepto | fam-porcentaje-concepto |
+| 9 | Calcular porcentajes | fam-porcentaje-calculo, fam-descuento | fam-porcentaje-calculo |
+| 10 | Ganancia de una venta | fam-ganancia, fam-razonable-cosecha | fam-ganancia |
+
+## Familias: cuaderno avanzado (13 plantillas, números hasta 100.000.000)
+
+| Plantilla | Dimensión | Operación | Descripción |
+| --- | --- | --- | --- |
+| `fam-porcentaje-calculo` | procedimiento | division | Calcular el 10, el 25 o el 50 % de una cantidad |
+| `fam-porcentaje-concepto` | comprension | division | Qué significa el 10, el 25 y el 50 % |
+| `fam-descuento` | aplicacion | resta | Precio final con descuento del 10, 25 o 50 % |
+| `fam-secado` | problemas | resta | Pérdida de peso del cacao al secarse (porcentaje del ejercicio) |
 | `fam-arrobas` | procedimiento | multiplicacion | Convertir arrobas (12,5 kg) a kilos y kilos a arrobas |
 | `fam-gramos` | procedimiento | division | Kilos, gramos y libras: empacar café molido |
 | `fam-hectarea` | aplicacion | multiplicacion | Hectáreas, metros cuadrados y árboles sembrados |
 | `fam-proporcion` | problemas | mixta | Proporcionalidad simple: valor por unidad |
 | `fam-comparar-unidades` | comprension | multiplicacion | Comparar pesos en arrobas, kilos y gramos |
 | `fam-ganancia` | problemas | mixta | Ingresos, gastos y ganancia de una venta de cacao |
-| `fam-plan-cosecha` | aplicacion | mixta | Planear la cosecha con una tabla de ingresos y gastos |
 | `fam-razonable-cosecha` | comprension | multiplicacion | ¿Es razonable el cálculo de una venta grande? Estimación |
+| `fam-plan-cosecha` | aplicacion | mixta | Planear la cosecha con una tabla de ingresos y gastos |
+| `fam-rendimiento` | problemas | multiplicacion | Producción por árbol: mazorcas, café y aguacate |
 
-| Niveles | Tramo | Plantillas usadas |
-| --- | --- | --- |
-| 0 | Bienvenida y cálculo mental básico | fam-calculo-mental, fam-recta-dinero, fam-vueltas, fam-presupuesto |
-| 1–15 | Cálculo mental y estimación con dinero | fam-calculo-mental, fam-estimar-compra, fam-recta-dinero, fam-vueltas, fam-compra-varios, fam-presupuesto |
-| 16–35 | Compras, ventas, vueltos y presupuesto semanal | fam-calculo-mental, fam-estimar-compra, fam-compra-varios, fam-vueltas, fam-venta-mercado, fam-presupuesto |
-| 36–55 | Producción: kilos por árbol, bultos y jornales | fam-rendimiento, fam-bultos, fam-jornales, fam-venta-mercado, fam-calculo-mental, fam-razonable-cosecha |
-| 56–75 | Porcentajes de 10, 25 y 50 %: descuentos y secado | fam-porcentaje-concepto, fam-porcentaje-calculo, fam-secado, fam-descuento, fam-razonable-cosecha |
-| 76–90 | Proporciones y unidades: g, kg, arroba y hectárea | fam-comparar-unidades, fam-arrobas, fam-gramos, fam-proporcion, fam-hectarea |
-| 91–100 | Planear la cosecha: costos, ingresos y ganancia | fam-ganancia, fam-plan-cosecha, fam-proporcion, fam-secado, fam-razonable-cosecha, fam-bultos, fam-descuento, fam-arrobas |
+| Nivel | Tema | Plantillas usadas | Prueba |
+| --- | --- | --- | --- |
+| 1 | Porcentajes | fam-porcentaje-calculo, fam-porcentaje-concepto | fam-porcentaje-calculo |
+| 2 | Descuentos | fam-descuento | fam-descuento |
+| 3 | Pérdida de peso al secar | fam-secado | fam-secado |
+| 4 | Arrobas y kilos | fam-arrobas | fam-arrobas |
+| 5 | Kilos, gramos y libras | fam-gramos | fam-gramos |
+| 6 | Hectáreas y siembra | fam-hectarea | fam-hectarea |
+| 7 | Proporciones | fam-proporcion | fam-proporcion |
+| 8 | Comparar unidades de peso | fam-comparar-unidades | fam-comparar-unidades |
+| 9 | Ingresos, gastos y ganancia | fam-ganancia, fam-razonable-cosecha | fam-ganancia |
+| 10 | Planear la cosecha | fam-plan-cosecha, fam-ganancia, fam-rendimiento | fam-plan-cosecha |
 

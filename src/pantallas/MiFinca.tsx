@@ -6,11 +6,12 @@ import { useApp } from '../estado';
 import { Avatar, Planta } from '../componentes/Ilustraciones';
 import { Medidor } from '../componentes/Historia';
 import { CabeceraVidrio } from '../componentes/Red';
-import { leerProgreso, listarPerfiles, pistaDePerfil } from '../almacenamiento/datos';
+import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, listarPerfiles, pistaDePerfil } from '../almacenamiento/datos';
+import Comparacion from '../componentes/Comparacion';
 import { catalogoInsignias, ETAPAS } from '../juego/progresion';
 import { estadoSilo } from '../juego/silo';
 import { RESUMEN_GRADO, unidadDe } from '../juego/complejidad';
-import { NIVEL_MAXIMO } from '../juego/motor';
+import { BANDAS, NIVEL_MAXIMO } from '../juego/motor';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
 const nombresEtapa = ['Semilla', 'Brote', 'Planta', 'Flor', 'Fruto', 'Cosecha'];
@@ -28,6 +29,8 @@ export default function MiFinca() {
   const estrellas = Object.values(prog.niveles).reduce((s, n) => s + n.estrellas, 0);
   const catalogo = catalogoInsignias();
   const hayPareja = listarPerfiles().filter((x) => x.rol === 'estudiante').length >= 2;
+  const pruebas = leerPruebas(p);
+  const adulto = p.rol === 'familia';
 
   return (
     <>
@@ -64,11 +67,14 @@ export default function MiFinca() {
           <div>
             <strong>{RESUMEN_GRADO[pista].nombre}</strong>
             <p className="pequeno" style={{ margin: '2px 0 0' }}>
-              {RESUMEN_GRADO[pista].foco}. Voy en la unidad {unidad.indice + 1}: {unidad.titulo}.
+              {RESUMEN_GRADO[pista].foco}. {adulto ? 'Va' : 'Voy'} en el nivel {unidad.inicio} de {NIVEL_MAXIMO}: {unidad.titulo}.
             </p>
-            <span className={`chip complejidad c-${unidad.complejidad.id}`} style={{ marginTop: 8 }}>
-              <Medidor barras={unidad.complejidad.barras} /> Complejidad: {unidad.complejidad.nombre}
-            </span>
+            <div className="fila" style={{ marginTop: 8 }}>
+              <span className={`chip complejidad c-${unidad.complejidad.id}`}>
+                <Medidor barras={unidad.complejidad.barras} /> Complejidad: {unidad.complejidad.nombre}
+              </span>
+              {haceDiagnostica(p) && !adulto && <span className="chip">Exigencia: {BANDAS[bandaDePerfil(p)].nombre}</span>}
+            </div>
           </div>
           <div className="fila">
             <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} onClick={() => ir({ nombre: 'quien' })}>
@@ -81,6 +87,19 @@ export default function MiFinca() {
             )}
           </div>
         </section>
+
+        {pruebas.diagnostica && pruebas.final && (
+          <section className="columna revelar" aria-label="Antes y después">
+            <h2 style={{ fontSize: '1.1rem', margin: 0 }}>{adulto ? 'Cómo entró y cómo terminó' : 'Cómo entré y cómo terminé'}</h2>
+            <Comparacion diagnostica={pruebas.diagnostica} final={pruebas.final} adulto={adulto} />
+          </section>
+        )}
+        {pruebas.diagnostica && !pruebas.final && (
+          <p className="tarjeta pequeno" style={{ margin: 0 }}>
+            <Icono nombre="medalla" tamano={20} /> {adulto ? 'Prueba de entrada' : 'Mi prueba de entrada'}: {pruebas.diagnostica.aciertos} de {pruebas.diagnostica.total}.{' '}
+            {adulto ? 'Al terminar los 10 niveles podrá comparar con la prueba final.' : 'Al terminar los 10 niveles harás la prueba final para ver cuánto aprendiste.'}
+          </p>
+        )}
 
         <div className="segmentos vidrio" role="tablist" aria-label="Secciones del perfil" style={{ ['--activo' as string]: ['insignias', 'planta', 'silo'].indexOf(pestana) }}>
           <span className="segmento-indicador" aria-hidden="true" />

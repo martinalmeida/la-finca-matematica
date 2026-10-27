@@ -1,14 +1,14 @@
-// Ruta del grado: 101 niveles en 7 unidades de complejidad creciente, cada una con su lección.
+// Ruta del grado: 10 niveles (un tema cada uno, con su lección) y, al final, la prueba final.
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../estado';
 import Celebracion from '../componentes/Celebracion';
 import Historia, { Medidor } from '../componentes/Historia';
 import { CabeceraVidrio } from '../componentes/Red';
-import { leerProgreso, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
-import { barrasGrado, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
+import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
+import { barrasBanda, barrasGrado, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
 import { lecciones } from '../contenido/lecciones';
-import { esCosecha, NIVEL_MAXIMO } from '../juego/motor';
+import { BANDAS, NIVEL_MAXIMO } from '../juego/motor';
 import { hayCosechaNueva } from '../juego/silo';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
@@ -24,6 +24,11 @@ export default function Mapa() {
   const [cosecha, setCosecha] = useState(false);
   const [abierta, setAbierta] = useState<Unidad | null>(null);
   const resumen = RESUMEN_GRADO[pista];
+  const banda = bandaDePerfil(p);
+  const conPruebas = haceDiagnostica(p);
+  const pruebas = useMemo(() => leerPruebas(p), [p.id]);
+  const rutaTerminada = !!progreso.niveles[NIVEL_MAXIMO]?.completado;
+  const finalPendiente = conPruebas && rutaTerminada && (!pruebas.final || pruebas.repetirFinal);
 
   useEffect(() => {
     // La ruta se desplaza sola hasta el nivel actual.
@@ -34,34 +39,25 @@ export default function Mapa() {
   const nodo = (n: number) => {
     const estado = progreso.niveles[n];
     const bloqueado = n > actual;
-    const esActual = n === actual;
-    // Zigzag del camino: de -1 a 1; el CSS lo convierte en un desplazamiento que nunca se sale de la tarjeta.
-    const zigzag = Math.round(Math.sin(n * 0.9) * 100) / 100;
-    const etiqueta = `Nivel ${n}${esCosecha(n) ? ', nivel de cosecha' : ''}${bloqueado ? ', bloqueado' : ''}${estado?.completado ? `, ${estado.estrellas} estrellas` : ''}${esActual ? ', nivel actual' : ''}`;
+    const esActual = n === actual && !rutaTerminada;
+    const etiqueta = `Jugar el nivel ${n}${bloqueado ? ', bloqueado' : ''}${estado?.completado ? `, ${estado.estrellas} estrellas` : ''}${esActual ? ', nivel actual' : ''}`;
     return (
-      <div key={n} className="nodo-fila" style={{ '--zigzag': zigzag } as CSSProperties}>
-        <button
-          ref={esActual ? refActual : undefined}
-          type="button"
-          className={`nodo ${bloqueado ? 'bloqueado' : ''} ${esActual ? 'actual' : ''} ${esCosecha(n) ? 'cosecha' : ''} ${estado?.completado ? 'completado' : ''}`}
-          disabled={bloqueado}
-          onClick={() => ir({ nombre: 'nivel', nivel: n })}
-          aria-label={etiqueta}
-        >
-          {bloqueado ? <Icono nombre="candado" tamano={26} anim="no" /> : <span>{n}</span>}
-          {esCosecha(n) && !bloqueado && (
-            <span className="nodo-cosecha">
-              <Icono nombre="canasta" tamano={24} />
-            </span>
-          )}
-          {estado?.completado && (
-            <span className="estrellas-mini" aria-hidden="true">
-              {'★'.repeat(estado.estrellas)}
-              {'☆'.repeat(3 - estado.estrellas)}
-            </span>
-          )}
-        </button>
-      </div>
+      <button
+        ref={esActual ? refActual : undefined}
+        type="button"
+        className={`nodo ${bloqueado ? 'bloqueado' : ''} ${esActual ? 'actual' : ''} ${estado?.completado ? 'completado' : ''}`}
+        disabled={bloqueado}
+        onClick={() => ir({ nombre: 'nivel', nivel: n })}
+        aria-label={etiqueta}
+      >
+        {bloqueado ? <Icono nombre="candado" tamano={26} anim="no" /> : <span>{n}</span>}
+        {estado?.completado && (
+          <span className="estrellas-mini" aria-hidden="true">
+            {'★'.repeat(estado.estrellas)}
+            {'☆'.repeat(3 - estado.estrellas)}
+          </span>
+        )}
+      </button>
     );
   };
 
@@ -69,32 +65,42 @@ export default function Mapa() {
     <>
       <CabeceraVidrio
         titulo={resumen.nombre}
-        subtitulo={`Nivel ${Math.min(actual, NIVEL_MAXIMO)} de 100 · ${rangoNumeros(pista)}`}
-        derecha={<Medidor barras={barrasGrado(pista)} etiqueta={`Complejidad del grado: ${barrasGrado(pista)} de 5`} />}
+        subtitulo={`Nivel ${Math.min(actual, NIVEL_MAXIMO)} de ${NIVEL_MAXIMO} · ${rangoNumeros(pista)}`}
+        derecha={
+          conPruebas && !adulto ? (
+            <span className="chip pequeno" title={BANDAS[banda].descripcion}>
+              {BANDAS[banda].nombre} <Medidor barras={barrasBanda(banda)} max={3} etiqueta={`Exigencia: ${BANDAS[banda].nombre}`} />
+            </span>
+          ) : (
+            <Medidor barras={barrasGrado(pista)} etiqueta={`Complejidad: ${barrasGrado(pista)} de 5`} />
+          )
+        }
       />
       <main className="pantalla" style={{ paddingTop: 8 }}>
-        <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: Math.min(actual, NIVEL_MAXIMO) })}>
-          <Icono nombre="jugar-simple" tamano={24} /> {adulto ? 'Continuar' : 'Jugar'} el nivel {Math.min(actual, NIVEL_MAXIMO)}
-        </button>
+        {finalPendiente ? (
+          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'prueba', tipo: 'final' })}>
+            <Icono nombre="medalla" tamano={26} /> {adulto ? 'Hacer la prueba final' : '¡Haz la prueba final!'}
+          </button>
+        ) : (
+          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: Math.min(actual, NIVEL_MAXIMO) })}>
+            <Icono nombre="jugar-simple" tamano={24} /> {adulto ? 'Continuar' : 'Jugar'} el nivel {Math.min(actual, NIVEL_MAXIMO)}
+          </button>
+        )}
         <div className="camino" aria-label="Ruta de niveles">
           {unidades.map((u) => {
             const abiertaU = u.inicio <= actual;
             const l = lecciones[pista][u.indice];
             return (
-              <section key={u.indice} className={`zona vidrio revelar zona-${u.indice} ${abiertaU ? '' : 'cerrada'}`} aria-label={`Unidad ${u.indice + 1}: ${u.titulo}`}>
+              <section key={u.indice} className={`zona tema vidrio revelar zona-${Math.floor(u.indice / 2)} ${abiertaU ? '' : 'cerrada'}`} aria-label={`Nivel ${u.inicio}: ${u.titulo}`}>
                 <header className="zona-cabecera">
-                  <span className="zona-numero" aria-hidden="true">
-                    {u.indice + 1}
-                  </span>
+                  {nodo(u.inicio)}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h3>{u.titulo}</h3>
                     <div className="fila pequeno">
                       <span className={`chip complejidad c-${u.complejidad.id}`}>
                         <Medidor barras={u.complejidad.barras} /> {u.complejidad.nombre}
                       </span>
-                      <span className="suave">
-                        {u.inicio === u.fin ? `Nivel ${u.inicio}` : `Niveles ${u.inicio}–${u.fin}`}
-                      </span>
+                      <span className="suave">10 preguntas</span>
                     </div>
                   </div>
                 </header>
@@ -110,10 +116,33 @@ export default function Mapa() {
                     <IconoEmoji emoji={l.emoji} tamano={28} /> {adulto ? 'Ver la lección' : 'Ver la lección antes de jugar'}
                   </button>
                 )}
-                <div className="nodos">{Array.from({ length: u.fin - u.inicio + 1 }, (_, j) => nodo(u.inicio + j))}</div>
               </section>
             );
           })}
+          {conPruebas && (
+            <section className={`zona vidrio revelar zona-final ${rutaTerminada ? '' : 'cerrada'}`} aria-label="Prueba final">
+              <header className="zona-cabecera">
+                <span className="zona-numero" aria-hidden="true">
+                  <Icono nombre="medalla" tamano={26} anim={finalPendiente ? 'siempre' : 'no'} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3>Prueba final</h3>
+                  <div className="pequeno suave">
+                    {pruebas.final && !pruebas.repetirFinal
+                      ? `${adulto ? 'Hecha' : 'Hecha'}: ${pruebas.final.aciertos} de ${pruebas.final.total} (al entrar: ${pruebas.diagnostica?.aciertos ?? '–'})`
+                      : rutaTerminada
+                        ? adulto ? 'Compare cómo terminó con cómo empezó.' : 'Mira cuánto aprendiste desde el comienzo.'
+                        : `Se abre al superar el nivel ${NIVEL_MAXIMO}.`}
+                  </div>
+                </div>
+              </header>
+              {rutaTerminada && (
+                <button type="button" className={`boton ${finalPendiente ? 'principal' : 'vidrio-boton'}`} onClick={() => ir({ nombre: 'prueba', tipo: 'final' })}>
+                  {finalPendiente ? <><Icono nombre="jugar-simple" tamano={22} /> Empezar la prueba final</> : <><Icono nombre="grafico" tamano={24} /> Ver antes y después</>}
+                </button>
+              )}
+            </section>
+          )}
         </div>
       </main>
       {abierta && lecciones[pista][abierta.indice] && (

@@ -1,4 +1,4 @@
-// Prueba de cada generador: 1.000 ejercicios por plantilla (uso) y nivel de muestra.
+// Prueba de cada generador: 1.000 ejercicios por plantilla (uso) y dificultad de muestra.
 import { describe, expect, it } from 'vitest';
 import { definiciones } from '../src/contenido/pistas';
 import { generarConUso } from '../src/juego/motor';
@@ -19,7 +19,9 @@ export function revisar(ej: Ejercicio, limite: number): string | null {
   }
   if (!ej.enunciado.trim()) return 'enunciado vacío';
   if (typeof r === 'number') {
-    if (!Number.isInteger(r)) return `respuesta no entera: ${r}`;
+    if (ej.decimales) {
+      if (Math.abs(r * 100 - Math.round(r * 100)) > 1e-9) return `respuesta con más de dos decimales: ${r}`;
+    } else if (!Number.isInteger(r)) return `respuesta no entera: ${r}`;
     if (r < 0) return `respuesta negativa: ${r}`;
     if (r > limite) return `respuesta fuera de rango: ${r} > ${limite}`;
   }
@@ -45,7 +47,7 @@ export function revisar(ej: Ejercicio, limite: number): string | null {
     if (c.a % c.b !== 0) return `división inexacta no prevista: ${c.a} ÷ ${c.b}`;
   }
   const i = ej.interaccion;
-  const opciones = i.tipo === 'opciones' || i.tipo === 'contar' || i.tipo === 'razonable' ? i.opciones : i.tipo === 'tabla' ? i.opciones : undefined;
+  const opciones = i.tipo === 'opciones' || i.tipo === 'contar' || i.tipo === 'razonable' || i.tipo === 'emparejar' ? i.opciones : i.tipo === 'tabla' ? i.opciones : undefined;
   if (opciones) {
     if (opciones.length < 2 || opciones.length > 4) return `cantidad de opciones: ${opciones.length}`;
     if (new Set(opciones.map(String)).size !== opciones.length) return `opciones repetidas: ${opciones.join(', ')}`;
@@ -87,6 +89,12 @@ export function revisar(ej: Ejercicio, limite: number): string | null {
     case 'escribir':
       if (typeof r !== 'number' || String(r).length > i.cifras) return `escribir: ${r} no cabe en ${i.cifras} casillas`;
       break;
+    case 'trazar':
+      if (i.cifra !== r || i.cifra < 0 || i.cifra > 9) return `trazar: cifra ${i.cifra}`;
+      break;
+    case 'emparejar':
+      if (i.opciones.some((o) => o < 1 || o > 10)) return `emparejar: grupo fuera de 1 a 10 (${i.opciones.join(', ')})`;
+      break;
     default:
       break;
   }
@@ -97,30 +105,26 @@ describe('generadores de ejercicios', () => {
   for (const pista of PISTAS) {
     const def = definiciones[pista];
     describe(pista, () => {
-      it('cada plantilla está registrada y se usa en algún tramo', () => {
-        const usadas = new Set(def.tramos.flatMap((t) => t.usos.map((u) => u.plantilla.id)));
+      it('cada plantilla está registrada y se usa en algún tema; hay 10 temas', () => {
+        const usadas = new Set(def.temas.flatMap((t) => [...t.usos, ...(t.prueba ? [t.prueba] : [])].map((u) => u.plantilla.id)));
         for (const p of def.plantillas) expect(usadas.has(p.id), p.id).toBe(true);
-        expect(def.plantillas.length).toBeGreaterThanOrEqual(12);
+        for (const id of usadas) expect(def.plantillas.some((p) => p.id === id), `${id} no está en plantillas`).toBe(true);
         expect(new Set(def.plantillas.map((p) => p.id)).size).toBe(def.plantillas.length);
+        expect(def.temas.length).toBe(10);
       });
 
-      it('cada tramo cubre los niveles 0 a 100 sin huecos', () => {
-        const limites = def.tramos.map((t) => [t.inicio, t.fin]);
-        expect(limites).toEqual([[0, 0], [1, 15], [16, 35], [36, 55], [56, 75], [76, 90], [91, 100]]);
-      });
-
-      def.tramos.forEach((tramo) => {
-        tramo.usos.forEach((uso, k) => {
-          const muestras = tramo.inicio === tramo.fin ? [tramo.inicio] : [tramo.inicio, Math.round((tramo.inicio + tramo.fin) / 2), tramo.fin];
-          for (const nivel of muestras) {
-            const d = tramo.fin === tramo.inicio ? 0 : (nivel - tramo.inicio) / (tramo.fin - tramo.inicio);
-            it(`${uso.plantilla.id} [uso ${k}] nivel ${nivel}`, () => {
+      def.temas.forEach((tema, t) => {
+        const nivel = t + 1;
+        const usos = [...tema.usos, ...(tema.prueba && !tema.usos.includes(tema.prueba) ? [tema.prueba] : [])];
+        usos.forEach((uso, k) => {
+          for (const d of [0, 0.5, 1]) {
+            it(`${uso.plantilla.id} [tema ${nivel}, uso ${k}] d=${d}`, () => {
               for (let s = 0; s < POR_MUESTRA; s++) {
-                // Una de cada 10 muestras con apoyo extra (menos opciones, números más pequeños).
-                const ej = generarConUso(pista, uso, d, nivel, s * 7919 + nivel, s % 5 === 0, s % 10 === 3);
+                // Una de cada 10 muestras con la ayuda de Refuerzo (menos opciones).
+                const ej = generarConUso(pista, uso, d, nivel, s * 7919 + nivel * 31 + k, s % 5 === 0, s % 10 === 3);
                 const error = revisar(ej, def.limite);
                 if (error) {
-                  throw new Error(`${uso.plantilla.id} nivel ${nivel} semilla ${s}: ${error}\n${ej.enunciado}\nrespuesta=${String(ej.respuesta)} datos=${JSON.stringify(ej.datos)} distractores=${JSON.stringify(ej.distractores)} interaccion=${JSON.stringify(ej.interaccion)}`);
+                  throw new Error(`${uso.plantilla.id} tema ${nivel} d=${d} semilla ${s}: ${error}\n${ej.enunciado}\nrespuesta=${String(ej.respuesta)} datos=${JSON.stringify(ej.datos)} distractores=${JSON.stringify(ej.distractores)} interaccion=${JSON.stringify(ej.interaccion)}`);
                 }
               }
             });

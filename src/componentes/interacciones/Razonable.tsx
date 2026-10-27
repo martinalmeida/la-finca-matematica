@@ -3,6 +3,7 @@ import Opciones from './Opciones';
 import type { PropsInteraccion } from './tipos';
 import { num } from '../../contenido/contexto';
 import Icono from '../Icono';
+import { esFamilia } from '../../juego/motor';
 
 /** ¿Es razonable? Elegir sí o no, y la mejor estimación. */
 export default function Razonable({ ej, bloqueado, onResponder, correcta }: PropsInteraccion) {
@@ -10,7 +11,7 @@ export default function Razonable({ ej, bloqueado, onResponder, correcta }: Prop
   const [sino, setSino] = useState<'si' | 'no' | null>(null);
   const [est, setEst] = useState<number | null>(null);
   if (i.tipo !== 'razonable') return null;
-  const adulto = ej.pista === 'familia';
+  const adulto = esFamilia(ej.pista);
   const correctaEst = typeof correcta === 'string' ? Number(correcta.split(':')[1]) : null;
   return (
     <div className="columna">

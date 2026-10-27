@@ -9,6 +9,7 @@ import { generarReto, gradosCercanos } from '../juego/pareja';
 import { num } from '../contenido/contexto';
 import type { Grado } from '../juego/tipos';
 import { retroError, sonar } from '../servicios/sonido';
+import { nombreGrado } from '../juego/complejidad';
 import Icono from '../componentes/Icono';
 
 function premiar(p: Perfil) {
@@ -61,7 +62,7 @@ export default function RetoPareja() {
               >
                 <Avatar id={p.avatar} />
                 <span>{p.apodo}</span>
-                <span className="pequeno">{p.grado}.º grado</span>
+                <span className="pequeno">{nombreGrado(p.grado)}</span>
               </button>
             );
           })}

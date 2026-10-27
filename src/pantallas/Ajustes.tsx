@@ -2,12 +2,13 @@ import { useRef, useState } from 'react';
 import { useApp } from '../estado';
 import { Barra, PinAdulto } from '../componentes/Comunes';
 import { BotonInstalar } from '../componentes/Instalar';
-import type { Ajustes as TAjustes } from '../almacenamiento/datos';
+import { bandaDePerfil, haceDiagnostica, type Ajustes as TAjustes } from '../almacenamiento/datos';
 import { crearCopia, descargar, fechaArchivo, restaurarCopia } from '../almacenamiento/copia';
 import { codigoConGrado } from '../juego/perfil';
-import type { Grado, Pista } from '../juego/tipos';
+import type { Grado } from '../juego/tipos';
+import { BANDAS } from '../juego/motor';
 import { Medidor } from '../componentes/Historia';
-import { RESUMEN_GRADO } from '../juego/complejidad';
+import { barrasGrado, nombreGrado, pistaDeGrado, RESUMEN_GRADO } from '../juego/complejidad';
 import { useVoz } from '../servicios/voz';
 import Icono from '../componentes/Icono';
 
@@ -15,7 +16,7 @@ export default function Ajustes() {
   const { ajustes, cambiarAjustes, perfil, actualizarPerfil, ir, avisar } = useApp();
   const voz = useVoz();
   const adulto = perfil?.rol === 'familia';
-  const [pin, setPin] = useState<null | 'grado' | 'importar' | 'ra' | 'apoyo'>(null);
+  const [pin, setPin] = useState<null | 'grado' | 'importar' | 'ra'>(null);
   const [eligiendoGrado, setEligiendoGrado] = useState(false);
   const archivo = useRef<HTMLInputElement>(null);
   const cambiar = <K extends keyof TAjustes>(k: K, v: TAjustes[K]) => cambiarAjustes({ ...ajustes, [k]: v });
@@ -29,18 +30,13 @@ export default function Ajustes() {
               ? 'Para cambiar el grado, un adulto debe resolver:'
               : pin === 'ra'
                 ? 'La realidad aumentada usa la cámara. Para activarla, un adulto debe resolver:'
-                : pin === 'apoyo'
-                  ? 'Para cambiar el apoyo extra, un adulto debe resolver:'
-                  : 'Para restaurar una copia, un adulto debe resolver:'
+                : 'Para restaurar una copia, un adulto debe resolver:'
           }
           alCancelar={() => setPin(null)}
           alAprobar={() => {
             if (pin === 'grado') setEligiendoGrado(true);
             else if (pin === 'ra') cambiar('realidadAumentada', true);
-            else if (pin === 'apoyo' && perfil) {
-              actualizarPerfil({ ...perfil, apoyo: !perfil.apoyo });
-              avisar(perfil.apoyo ? 'Apoyo extra desactivado' : 'Apoyo extra activado');
-            } else archivo.current?.click();
+            else archivo.current?.click();
             setPin(null);
           }}
         />
@@ -52,27 +48,27 @@ export default function Ajustes() {
     return (
       <main className="pantalla">
         <Barra titulo="Cambiar de grado" alVolver={() => setEligiendoGrado(false)} />
-        <p>Cada grado tiene su propia ruta y su propia complejidad. El progreso de cada grado se guarda por separado: al volver a un grado, el avance sigue ahí.</p>
-        {([1, 2, 3, 4, 5] as Grado[]).map((g) => (
+        <p>Cada grado tiene su propia ruta, su prueba de entrada y su exigencia. El avance de cada grado se guarda por separado: al volver a un grado, sigue ahí. Al llegar a un grado nuevo se hace su prueba de entrada.</p>
+        {([1, 2, 3, 4, 5, 'inclusion'] as Grado[]).map((g) => (
           <button
             key={g}
             type="button"
             className={`grado-boton ${perfil.grado === g ? 'seleccionado' : ''}`}
             onClick={() => {
-              if (!window.confirm(`¿Confirma el cambio a ${g}.º grado?`)) return;
+              if (!window.confirm(`¿Confirma el cambio a ${nombreGrado(g)}?`)) return;
               actualizarPerfil({ ...perfil, grado: g, codigo: codigoConGrado(perfil.codigo, g) });
               setEligiendoGrado(false);
-              avisar(`Grado cambiado a ${g}.º`);
+              avisar(`Grado cambiado a ${nombreGrado(g)}`);
             }}
           >
-            <span className="grado-numero">{g}</span>
+            <span className="grado-numero">{g === 'inclusion' ? <Icono nombre="corazon" tamano={26} anim="no" /> : g}</span>
             <span className="columna" style={{ flex: 1, textAlign: 'left', gap: 2 }}>
-              <span>{g}.º grado</span>
+              <span>{nombreGrado(g)}</span>
               <span className="pequeno suave" style={{ fontWeight: 500 }}>
-                {RESUMEN_GRADO[`g${g}` as Pista].foco}
+                {RESUMEN_GRADO[pistaDeGrado(g)].foco}
               </span>
             </span>
-            <Medidor barras={g} />
+            <Medidor barras={barrasGrado(pistaDeGrado(g))} />
           </button>
         ))}
       </main>
@@ -144,7 +140,7 @@ export default function Ajustes() {
             <span className="fila" style={{ flexWrap: 'nowrap' }}>
               <Icono nombre="camara" tamano={28} /> Realidad aumentada (usa la cámara)
             </span>
-            <span className="pequeno suave"> Los objetos de la finca aparecen sobre lo que ve la cámara. La imagen no se graba ni se envía. Para activarla se pide un adulto.</span>
+            <span className="pequeno suave"> Los objetos de la finca quedan puestos alrededor, sobre lo que ve la cámara, y se buscan girando el celular. No usa el GPS. La imagen no se graba ni se envía. Para activarla se pide un adulto.</span>
           </span>
           <input
             type="checkbox"
@@ -158,18 +154,15 @@ export default function Ajustes() {
         <section className="tarjeta columna">
           <h2>Grado</h2>
           <p style={{ margin: 0 }}>
-            Ahora: <strong>{perfil.grado}.º grado</strong> · Código {perfil.codigo}
+            Ahora: <strong>{nombreGrado(perfil.grado)}</strong> · Código {perfil.codigo}
           </p>
+          {haceDiagnostica(perfil) && (
+            <p className="pequeno" style={{ margin: 0 }}>
+              Exigencia: <strong>{BANDAS[bandaDePerfil(perfil)].nombre}</strong> (según la prueba de entrada; el docente puede cambiarla en el panel docente).
+            </p>
+          )}
           <button type="button" className="boton" onClick={() => setPin('grado')}>
             <Icono nombre="candado" tamano={26} /> Cambiar grado (adulto)
-          </button>
-          <h2>Apoyo extra</h2>
-          <p className="pequeno" style={{ margin: 0 }}>
-            Para quien aprende a su propio ritmo: números más pequeños, dos opciones, el dibujo de ayuda desde el inicio, lectura frase por frase y paso a paso.
-            Ahora: <strong>{perfil.apoyo ? 'activado' : 'desactivado'}</strong>
-          </p>
-          <button type="button" className="boton" onClick={() => setPin('apoyo')}>
-            <Icono nombre="apoyo" tamano={26} /> {perfil.apoyo ? 'Desactivar apoyo extra (adulto)' : 'Activar apoyo extra (adulto)'}
           </button>
         </section>
       )}

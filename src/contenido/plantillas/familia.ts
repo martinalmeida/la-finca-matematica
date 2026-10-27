@@ -1,7 +1,7 @@
 // Plantillas de la pista Familia: problemas del hogar y la producción, con trato de usted.
 // Precios, rendimientos y porcentajes son datos de ejemplo, no valores reales.
 
-import type { ContextoGeneracion, DefinicionPista, EjercicioBase, Interaccion, Plantilla, Uso } from '../../juego/tipos';
+import type { Pista, Tema, ContextoGeneracion, DefinicionPista, EjercicioBase, Interaccion, Plantilla, Uso } from '../../juego/tipos';
 import type { Rng } from '../../juego/rng';
 import { adulto, articulosTienda, mayus, num, pesos, type Genero } from '../contexto';
 import { restaMenorMayor } from '../../juego/errores';
@@ -1146,79 +1146,66 @@ const razonableCosecha: Plantilla = {
   },
 };
 
-const plantillas = [
-  calculoMental,
-  estimarCompra,
-  rectaDinero,
-  vueltas,
-  compraVarios,
-  presupuesto,
-  ventaMercado,
-  rendimiento,
-  bultos,
-  jornales,
-  porcentajeConcepto,
-  porcentajeCalculo,
-  secado,
-  descuento,
-  arrobas,
-  gramos,
-  hectarea,
-  proporcion,
-  compararUnidades,
-  ganancia,
-  planCosecha,
-  razonableCosecha,
-];
-
 const u = (plantilla: Plantilla, params?: Uso['params']): Uso => ({ plantilla, params });
 
-export const familia: DefinicionPista = {
-  pista: 'familia',
-  limite: 100000000,
-  plantillas,
-  tramos: [
-    {
-      inicio: 0,
-      fin: 0,
-      titulo: 'Bienvenida y cálculo mental básico',
-      usos: [u(calculoMental, { max: 10000, op: 'suma' }), u(rectaDinero, { max: 10000, paso: 500 }), u(vueltas), u(presupuesto, { max: 20000, filas: 2 })],
-    },
-    {
-      inicio: 1,
-      fin: 15,
-      titulo: 'Cálculo mental y estimación con dinero',
-      usos: [u(calculoMental, { max: 50000, op: 'mixta' }), u(estimarCompra), u(rectaDinero, { max: 20000, paso: 1000 }), u(vueltas), u(compraVarios), u(presupuesto, { max: 50000, filas: 3 })],
-    },
-    {
-      inicio: 16,
-      fin: 35,
-      titulo: 'Compras, ventas, vueltos y presupuesto semanal',
-      usos: [u(calculoMental, { op: 'mult' }), u(estimarCompra), u(compraVarios), u(vueltas), u(ventaMercado), u(presupuesto, { conSaldo: true })],
-    },
-    {
-      inicio: 36,
-      fin: 55,
-      titulo: 'Producción: kilos por árbol, bultos y jornales',
-      usos: [u(rendimiento), u(bultos, { modo: 'mixto' }), u(jornales), u(ventaMercado), u(calculoMental, { op: 'mult' }), u(razonableCosecha)],
-    },
-    {
-      inicio: 56,
-      fin: 75,
-      titulo: 'Porcentajes de 10, 25 y 50 %: descuentos y secado',
-      usos: [u(porcentajeConcepto), u(porcentajeCalculo), u(secado), u(descuento), u(razonableCosecha)],
-    },
-    {
-      inicio: 76,
-      fin: 90,
-      titulo: 'Proporciones y unidades: g, kg, arroba y hectárea',
-      usos: [u(compararUnidades), u(arrobas), u(gramos), u(proporcion), u(hectarea)],
-    },
-    {
-      inicio: 91,
-      fin: 100,
-      titulo: 'Planear la cosecha: costos, ingresos y ganancia',
-      usos: [u(ganancia), u(planCosecha), u(proporcion), u(secado), u(razonableCosecha), u(bultos, { modo: 'mixto' }), u(descuento), u(arrobas)],
-    },
-  ],
-};
+/** Plantillas usadas en una lista de temas, sin repetir. */
+function plantillasDe(temas: Tema[]): Plantilla[] {
+  return [...new Set(temas.flatMap((t) => [...t.usos, ...(t.prueba ? [t.prueba] : [])].map((x) => x.plantilla)))];
+}
+
+function ruta(pista: Pista, temas: Tema[]): DefinicionPista {
+  return { pista, limite: 100000000, plantillas: plantillasDe(temas), temas };
+}
+
+/** Prueba de entrada y salida de las familias: una pregunta por cada competencia. */
+export const familia = ruta('familia', [
+  { titulo: 'Sumar y restar plata', usos: [u(calculoMental, { max: 50000, op: 'mixta' })] },
+  { titulo: 'Vueltos', usos: [u(vueltas)] },
+  { titulo: 'Multiplicar precios', usos: [u(calculoMental, { op: 'mult' })] },
+  { titulo: 'Cuántas unidades alcanzan', usos: [u(compraVarios)] },
+  { titulo: 'Bultos y viajes', usos: [u(bultos, { modo: 'mixto' })] },
+  { titulo: 'Presupuesto semanal', usos: [u(presupuesto, { max: 50000, filas: 3 })] },
+  { titulo: 'Porcentajes', usos: [u(porcentajeCalculo)] },
+  { titulo: 'Proporciones', usos: [u(proporcion)] },
+  { titulo: 'Unidades: arrobas y kilos', usos: [u(arrobas)] },
+  { titulo: 'Ganancia de una venta', usos: [u(ganancia)] },
+]);
+
+export const famBasica = ruta('fam-basica', [
+  { titulo: 'Sumar y restar plata', usos: [u(calculoMental, { max: 20000, op: 'suma' }), u(calculoMental, { max: 20000, op: 'mixta' }), u(rectaDinero, { max: 10000, paso: 500 })] },
+  { titulo: 'Vueltos', usos: [u(vueltas)] },
+  { titulo: 'Multiplicar precios', usos: [u(calculoMental, { op: 'mult' })] },
+  { titulo: 'Cuántas unidades alcanzan', usos: [u(compraVarios)] },
+  { titulo: 'Repartir en bultos iguales', usos: [u(bultos, { modo: 'exacto' })] },
+  { titulo: 'Bultos y viajes de la mula', usos: [u(bultos, { modo: 'mixto' })] },
+  { titulo: 'Pago de jornales', usos: [u(jornales)] },
+  { titulo: 'Presupuesto semanal', usos: [u(presupuesto, { max: 50000, filas: 3 })] },
+  { titulo: '¿Es razonable el cobro?', usos: [u(estimarCompra)] },
+  { titulo: 'Cuentas de la casa', usos: [u(calculoMental, { op: 'mixta' }), u(vueltas), u(compraVarios), u(presupuesto, { max: 50000, filas: 2 }), u(ventaMercado)] },
+]);
+
+export const famIntermedia = ruta('fam-intermedia', [
+  { titulo: 'Cálculo mental con plata', usos: [u(calculoMental, { max: 50000, op: 'mixta' }), u(rectaDinero, { max: 20000, paso: 1000 })] },
+  { titulo: 'Compras de varios productos', usos: [u(compraVarios), u(estimarCompra)] },
+  { titulo: 'Ventas en el mercado', usos: [u(ventaMercado)] },
+  { titulo: 'Producción por árbol', usos: [u(rendimiento)] },
+  { titulo: 'Bultos y viajes', usos: [u(bultos, { modo: 'mixto' })] },
+  { titulo: 'Pago de jornales', usos: [u(jornales)] },
+  { titulo: 'Presupuesto con saldo', usos: [u(presupuesto, { conSaldo: true })] },
+  { titulo: 'Qué es el 10, el 25 y el 50 %', usos: [u(porcentajeConcepto)] },
+  { titulo: 'Calcular porcentajes', usos: [u(porcentajeCalculo), u(descuento)] },
+  { titulo: 'Ganancia de una venta', usos: [u(ganancia), u(razonableCosecha)] },
+]);
+
+export const famAvanzada = ruta('fam-avanzada', [
+  { titulo: 'Porcentajes', usos: [u(porcentajeCalculo), u(porcentajeConcepto)] },
+  { titulo: 'Descuentos', usos: [u(descuento)] },
+  { titulo: 'Pérdida de peso al secar', usos: [u(secado)] },
+  { titulo: 'Arrobas y kilos', usos: [u(arrobas)] },
+  { titulo: 'Kilos, gramos y libras', usos: [u(gramos)] },
+  { titulo: 'Hectáreas y siembra', usos: [u(hectarea)] },
+  { titulo: 'Proporciones', usos: [u(proporcion)] },
+  { titulo: 'Comparar unidades de peso', usos: [u(compararUnidades)] },
+  { titulo: 'Ingresos, gastos y ganancia', usos: [u(ganancia), u(razonableCosecha)] },
+  { titulo: 'Planear la cosecha', usos: [u(planCosecha), u(ganancia), u(rendimiento)] },
+]);

@@ -4,6 +4,7 @@ import { Planta } from '../componentes/Ilustraciones';
 import type { Efecto, ResultadoNivel } from '../juego/progresion';
 import { insignia } from '../juego/progresion';
 import { NIVEL_MAXIMO, aciertosParaAprobar } from '../juego/motor';
+import { haceDiagnostica, leerPruebas } from '../almacenamiento/datos';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
 const nombresEtapa = { semilla: 'semilla', brote: 'brote', planta: 'planta', flor: 'flor', fruto: 'fruto', cosecha: 'cosecha' };
@@ -15,17 +16,26 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
   const fallos = estado && !estado.completado ? estado.intentos : 0;
   const ofrecerRepaso = !e.aprobado && fallos >= 2;
   const crecio = e.progreso.etapaPlanta !== e.etapaAnterior;
+  const inclusion = r.pista === 'inclusion';
+  // Al superar el último nivel se ofrece la prueba final (si aún no la hizo).
+  const ofrecerFinal = e.aprobado && r.nivel === NIVEL_MAXIMO && !!perfil && haceDiagnostica(perfil) && (!leerPruebas(perfil).final || !!leerPruebas(perfil).repetirFinal);
 
   return (
     <main className="pantalla centro">
       <section className="vidrio tarjeta-resultado">
-      <h1 className="titulo-degradado">{e.aprobado ? (adulto ? '¡Nivel superado!' : '¡Nivel superado!') : adulto ? 'Casi lo logra' : '¡Buen intento!'}</h1>
-      <p style={{ margin: 0 }}>Nivel {r.nivel} de 100</p>
-      <Estrellas n={e.estrellas} />
-      <p>
-        {adulto ? 'Respondió bien' : 'Respondiste bien'} <strong>{r.aciertos}</strong> de {r.total}.
-        {!e.aprobado && ` ${adulto ? 'Necesita' : 'Necesitas'} ${aciertosParaAprobar(r.pista)} para pasar.`}
+      <h1 className="titulo-degradado">{e.aprobado ? (inclusion ? '¡Lo lograste!' : '¡Nivel superado!') : adulto ? 'Casi lo logra' : '¡Buen intento!'}</h1>
+      <p style={{ margin: 0 }}>
+        Nivel {r.nivel} de {NIVEL_MAXIMO}
       </p>
+      <Estrellas n={e.estrellas} />
+      {inclusion ? (
+        <p>Terminaste las {r.total} actividades. ¡Qué buen trabajo!</p>
+      ) : (
+        <p>
+          {adulto ? 'Respondió bien' : 'Respondiste bien'} <strong>{r.aciertos}</strong> de {r.total}.
+          {!e.aprobado && ` ${adulto ? 'Necesita' : 'Necesitas'} ${aciertosParaAprobar(r.pista, r.banda)} para pasar.`}
+        </p>
+      )}
       {!e.aprobado && (
         <p style={{ margin: 0 }}>
           {adulto
@@ -57,6 +67,11 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
         </div>
       )}
       <div className="columna" style={{ width: '100%' }}>
+        {ofrecerFinal && (
+          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'prueba', tipo: 'final' }, { reemplazar: true })}>
+            <Icono nombre="medalla" tamano={26} /> {adulto ? 'Hacer la prueba final' : '¡Haz la prueba final!'}
+          </button>
+        )}
         {e.aprobado && r.nivel < NIVEL_MAXIMO && (
           <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: r.nivel + 1 }, { reemplazar: true })}>
             Siguiente nivel <Icono nombre="siguiente" tamano={24} />
@@ -68,7 +83,7 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
           </button>
         )}
         <button type="button" className={`boton ${e.aprobado ? 'secundario' : 'principal'}`} onClick={() => ir({ nombre: 'nivel', nivel: r.nivel }, { reemplazar: true })}>
-          <Icono nombre="repetir" tamano={26} /> Repetir
+          <Icono nombre="repetir" tamano={26} /> {inclusion ? 'Hacerlo otra vez' : 'Repetir'}
         </button>
         <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'mapa' })}>
           <Icono nombre="mapa" tamano={26} /> Volver a la ruta

@@ -1,59 +1,31 @@
-// Taller de números (1.º y apoyo extra): aprender a escribir las cifras 0–9.
+// Taller de números (grado Inclusión): aprender a escribir las cifras 0–9.
 // 1) Mira: la cifra se dibuja sola y la voz dice cómo se hace.
 // 2) Repasa: trazar encima de la guía punteada, empezando en el punto verde.
 // 3) Escribe solo: la app reconoce la cifra y aparecen esos objetos (en la cámara, si está activada).
 
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useApp } from '../estado';
 import { Barra, Estrellas } from '../componentes/Comunes';
 import Lienzo from '../componentes/Lienzo';
-import EscenaRA, { type ConfigEscena } from '../componentes/EscenaRA';
+import type { ConfigEscena } from '../componentes/escenaConfig';
 import { cantidadObjeto, DibujoObjeto, esFemenino } from '../componentes/Ilustraciones';
 import Icono from '../componentes/Icono';
-import { ALTO_CIFRA, ANCHO_CIFRA, COMO_SE_ESCRIBE, FORMAS, NOMBRES_CIFRA, type Trazo } from '../contenido/cifras';
+import { COMO_SE_ESCRIBE, FORMAS, NOMBRES_CIFRA, type Trazo } from '../contenido/cifras';
+import CifraAnimada from '../componentes/CifraAnimada';
 import { cajaCifra, formaEnCaja, reconocerCifra, revisarRepaso, CONFIANZA_MINIMA } from '../juego/trazos';
 import { guardarCifraTaller, leerTaller } from '../almacenamiento/datos';
 import { retroError, sonar } from '../servicios/sonido';
 import { useVoz } from '../servicios/voz';
 import type { Objeto } from '../juego/tipos';
 
+// three.js y LocAR.js solo se descargan al abrir la cámara.
+const EscenaRA = lazy(() => import('../componentes/EscenaRA'));
+
 const ANCHO = 260;
 const ALTO = 320;
 const MARGEN = 34;
 const TOLERANCIA = 26;
 const OBJETOS: Objeto[] = ['gallina', 'huevo', 'naranja', 'mazorca', 'aguacate', 'mandarina', 'limon', 'platano', 'arepa', 'moneda'];
-
-/** La cifra se dibuja sola (trazo por trazo) con su punto de inicio. */
-function CifraAnimada({ cifra, vuelta }: { cifra: number; vuelta: number }) {
-  const forma = FORMAS[cifra][0];
-  const DURACION = 1.4;
-  return (
-    <svg key={vuelta} className="cifra-animada" viewBox={`-12 -12 ${ANCHO_CIFRA + 24} ${ALTO_CIFRA + 24}`} role="img" aria-label={`Cómo se escribe el ${cifra}`}>
-      {forma.map((t, k) => (
-        <polyline key={`g${k}`} points={t.map((q) => `${q.x},${q.y}`).join(' ')} className="guia-cifra" />
-      ))}
-      {forma.map((t, k) => (
-        <polyline
-          key={k}
-          points={t.map((q) => `${q.x},${q.y}`).join(' ')}
-          pathLength={1}
-          className="trazo-cifra"
-          style={{ animationDelay: `${0.4 + k * DURACION}s`, animationDuration: `${DURACION}s` }}
-        />
-      ))}
-      {forma.map((t, k) => (
-        <g key={`i${k}`}>
-          <circle cx={t[0].x} cy={t[0].y} r={5.5} className="inicio-cifra" />
-          {forma.length > 1 && (
-            <text x={t[0].x} y={t[0].y + 2.6} textAnchor="middle" className="numero-trazo">
-              {k + 1}
-            </text>
-          )}
-        </g>
-      ))}
-    </svg>
-  );
-}
 
 type Paso = 'mira' | 'repasa' | 'escribe' | 'logrado';
 
@@ -232,12 +204,14 @@ function Practica({ cifra, alVolver }: { cifra: number; alVolver: () => void }) 
       )}
 
       {verEscena && (
-        <EscenaRA
-          config={escena}
-          titulo={`El ${cifra} en mi finca`}
-          mensaje={`¡${cantidadObjeto(objeto, cifra)}! ${esFemenino(objeto) ? 'Tócalas para contarlas' : 'Tócalos para contarlos'}.`}
-          alCerrar={() => setVerEscena(false)}
-        />
+        <Suspense fallback={null}>
+          <EscenaRA
+            config={escena}
+            titulo={`El ${cifra} en mi finca`}
+            mensaje={`¡${cantidadObjeto(objeto, cifra)}! ${esFemenino(objeto) ? 'Tócalas para contarlas' : 'Tócalos para contarlos'}.`}
+            alCerrar={() => setVerEscena(false)}
+          />
+        </Suspense>
       )}
     </main>
   );
@@ -295,7 +269,11 @@ export default function Taller() {
         </section>
       )}
 
-      {verReal && <EscenaRA config={{ modo: 'real' }} titulo="Contar cosas de verdad" instruccion="Toca cada cosa para contarla." alCerrar={() => setVerReal(false)} />}
+      {verReal && (
+        <Suspense fallback={null}>
+          <EscenaRA config={{ modo: 'real' }} titulo="Contar cosas de verdad" instruccion="Toca cada cosa para contarla." alCerrar={() => setVerReal(false)} />
+        </Suspense>
+      )}
     </main>
   );
 }

@@ -26,6 +26,12 @@ export function pt(ctx: ContextoGeneracion, nombre: string, defecto: string): st
   return typeof v === 'string' ? v : defecto;
 }
 
+/** Factor de una tabla: de la lista «tablas» (p. ej. '3,4') si se da; si no, de 2 a maxTabla. */
+export function factorTabla(ctx: ContextoGeneracion, maxTabla: number): number {
+  const lista = pt(ctx, 'tablas', '').split(',').map(Number).filter((n) => n > 0);
+  return lista.length ? ctx.rng.elegir(lista) : ctx.rng.entero(2, maxTabla);
+}
+
 /** d efectivo: en repaso baja un poco la dificultad. */
 export function dif(ctx: ContextoGeneracion): number {
   return ctx.repaso ? Math.max(0, ctx.d - 0.35) : ctx.d;
@@ -196,6 +202,7 @@ export function redondear(n: number, a: number): number {
 export function igualNumero(respuesta: number) {
   return (r: Respuesta) => {
     const n = typeof r === 'number' ? r : Number(String(r).replace(/\./g, '').replace(',', '.'));
-    return n === respuesta;
+    // Tolerancia para decimales (2,5 calculado como 2,4999999…).
+    return Math.abs(n - respuesta) < 1e-6;
   };
 }

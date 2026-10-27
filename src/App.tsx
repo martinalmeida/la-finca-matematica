@@ -5,7 +5,9 @@ import {
   guardarAjustes,
   guardarPerfil,
   leerAjustes,
+  bandaDePerfil,
   listarPerfiles,
+  necesitaDiagnostica,
   obtenerPerfil,
   perfilActivo,
   type Ajustes,
@@ -42,6 +44,7 @@ const Familias = perezosa(() => import('./pantallas/Familias'));
 const PanelDocente = perezosa(() => import('./pantallas/PanelDocente'));
 const RetoPareja = perezosa(() => import('./pantallas/RetoPareja'));
 const Taller = perezosa(() => import('./pantallas/Taller'));
+const Prueba = perezosa(() => import('./pantallas/Prueba'));
 
 function precargarPantallas() {
   const ocioso = (window as { requestIdleCallback?: (f: () => void) => number }).requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 1200));
@@ -56,18 +59,20 @@ function pantallaInicial(): Pantalla {
 }
 
 function aplicarTamanoLetra(perfil: Perfil | null, ajustes: Ajustes, pantalla: Pantalla) {
-  // Base de 20 px en 1.º y 2.º, 18 px en los demás; ajustable en Ajustes.
-  const base = perfil?.grado && perfil.grado <= 2 ? 20 : 18;
+  // Base de 20 px en Inclusión, 1.º y 2.º; 18 px en los demás; ajustable en Ajustes.
+  const base = perfil?.grado && (perfil.grado === 'inclusion' || perfil.grado <= 2) ? 20 : 18;
   const extra = ajustes.tamanoLetra === 'grande' ? 2 : ajustes.tamanoLetra === 'muy-grande' ? 4 : 0;
   document.documentElement.style.setProperty('--fs-base', `${base + extra}px`);
   // Paleta propia (azul) en las pantallas de la sección de familias.
   const general = ['bienvenida', 'quien', 'docente', 'pareja'].includes(pantalla.nombre);
   const rol = pantalla.nombre === 'crear' ? pantalla.rol : general ? 'estudiante' : (perfil?.rol ?? 'estudiante');
   document.documentElement.dataset.rol = rol;
-  document.documentElement.dataset.efectos = ajustes.efectos;
+  // Inclusión: pantalla calmada, siempre con efectos ligeros.
+  document.documentElement.dataset.efectos = perfil?.grado === 'inclusion' && !general ? 'ligeros' : ajustes.efectos;
   document.documentElement.dataset.grado = perfil?.grado && !general ? String(perfil.grado) : '';
-  // Apoyo extra: letra más espaciada y renglones más amplios.
-  document.documentElement.dataset.apoyo = perfil?.apoyo && !general ? '1' : '';
+  // Banda Refuerzo e Inclusión: letra más espaciada y renglones más amplios.
+  const espaciado = perfil && (perfil.grado === 'inclusion' || (perfil.rol === 'estudiante' && bandaDePerfil(perfil) === 'refuerzo'));
+  document.documentElement.dataset.apoyo = espaciado && !general ? '1' : '';
 }
 
 export default function App() {
@@ -81,7 +86,14 @@ export default function App() {
   const [sinAlmacen, setSinAlmacen] = useState(!almacenamientoDisponible());
   const temporizador = useRef<number>(undefined);
 
-  const pantalla = pila[pila.length - 1];
+  // Sin prueba diagnóstica no se entra a la ruta: las pestañas y los niveles llevan a ella.
+  // La prueba queda en la pila, así su pantalla de resultado no desaparece al terminar.
+  const pedida = pila[pila.length - 1];
+  const debeDiagnostica = !!perfil && (esPestana(pedida) || pedida.nombre === 'nivel') && necesitaDiagnostica(perfil);
+  const pantalla: Pantalla = debeDiagnostica ? { nombre: 'prueba', tipo: 'diagnostica' } : pedida;
+  useEffect(() => {
+    if (debeDiagnostica) setPila([{ nombre: 'prueba', tipo: 'diagnostica' }]);
+  }, [debeDiagnostica]);
 
   const avisar = useCallback((texto: string) => {
     setAviso(texto);
@@ -164,7 +176,7 @@ export default function App() {
       </Suspense>
       {perfil && esPestana(pantalla) && <Pestanas />}
       {/* No interrumpe un nivel en curso: se ofrece en las pantallas de entrada y en las pestañas. */}
-      <InvitacionInstalar permitida={!['nivel', 'resultado', 'pareja', 'crear', 'taller'].includes(pantalla.nombre)} />
+      <InvitacionInstalar permitida={!['nivel', 'resultado', 'pareja', 'crear', 'taller', 'prueba'].includes(pantalla.nombre)} />
       {aviso && (
         <div className="aviso" role="status" aria-live="polite">
           {aviso}
@@ -207,5 +219,7 @@ function Contenido({ pantalla, perfil }: { pantalla: Pantalla; perfil: Perfil | 
       return <RetoPareja />;
     case 'taller':
       return <Taller />;
+    case 'prueba':
+      return <Prueba key={`${perfil!.id}-${pantalla.tipo}`} tipo={pantalla.tipo} />;
   }
 }

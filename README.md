@@ -2,16 +2,18 @@
 
 Aplicación web progresiva (PWA) para practicar **suma, resta, multiplicación y división** con problemas de la vida rural de San Vicente de Chucurí (Santander, Colombia). Es la herramienta de intervención de la tesis de Maestría en Educación *Fortalecimiento del aprendizaje de las operaciones matemáticas básicas mediante una plataforma web contextualizada en la vida rural con estudiantes de primaria del modelo Escuela Nueva del Colegio Miradores de Llana Caliente*.
 
-- Estudiantes de 1.º a 5.º (aulas multigrado) y sección propia para familias.
-- 101 niveles (0 a 100) por pista, en seis pistas: 1.º, 2.º, 3.º, 4.º, 5.º y Familia (606 niveles), generados por código con **112 plantillas** (ver [docs/PLANTILLAS.md](docs/PLANTILLAS.md)).
+- Estudiantes de 1.º a 5.º (aulas multigrado), grado **Inclusión** y sección propia para familias.
+- **Prueba de entrada → 10 niveles → prueba final.** Cada ruta tiene 10 niveles, uno por tema, con 10 preguntas cada uno. La prueba de entrada (diagnóstica, que también hace de tutorial) asigna la exigencia —Refuerzo, Básico o Avanzado— y, en familias, uno de tres cuadernos. La prueba final repite los temas con otros números y se compara tema por tema con la de entrada (`src/juego/pruebas.ts`, `src/pantallas/Prueba.tsx`).
+- Rutas: 1.º a 5.º, Inclusión y tres cuadernos de familias, generadas por código con **120 plantillas** (ver [docs/PLANTILLAS.md](docs/PLANTILLAS.md)); 5.º incluye números decimales (`src/contenido/plantillas/decimales.ts`).
 - **100 % sin conexión** después de la primera carga: sin APIs, CDN, fuentes externas, analítica ni anuncios. Todo va empaquetado.
 - **Videos de ayuda opcionales** (YouTube, en español): solo se cargan si alguien toca «Ver video» y hay internet; sin señal se avisa y lo demás sigue igual. Se apagan en Ajustes. Catálogo y revisión docente: [docs/VIDEOS.md](docs/VIDEOS.md).
 - Varios perfiles por celular, datos solo en `localStorage` del dispositivo; nada sale del celular.
-- **Inclusión:** «Apoyo extra» por perfil para quien aprende a otro ritmo (números más pequeños en la misma unidad, dos opciones, dibujo de ayuda visible, enunciado frase por frase con voz lenta, paso a paso). A cualquier estudiante se le ofrece el paso a paso tras dos errores (`src/juego/apoyo.ts`, `src/componentes/PasoAPaso.tsx`).
-- **Escribir números con el dedo (1.º):** Taller de números (mira, repasa, escribe solo) y respuestas escritas en la ruta. Reconocedor de cifras propio, sin librerías ni internet (nubes de puntos $P, `src/juego/trazos.ts`; trazos de las cifras en `src/contenido/cifras.ts`).
-- **Realidad aumentada opcional** (apagada por defecto, la activa un adulto): objetos de la finca sobre la imagen de la cámara para contar, juntar y quitar; con WebXR en Android con ARCore, los objetos quedan sobre el piso (`src/componentes/EscenaRA.tsx`, `src/servicios/xr.ts`). La imagen no se graba ni se envía.
+- **Grado Inclusión** (autismo y otras formas de aprender): sin pruebas y sin perder; agenda «Primero… Después…», pausa para respirar, pantalla calmada, trazar cifras, contar tocando, número y cantidad, juntar y quitar arrastrando (`src/contenido/plantillas/inclusion.ts`).
+- **Banda Refuerzo** (0–4 aciertos en la prueba de entrada): números más pequeños, dos opciones, dibujo de ayuda visible, enunciado frase por frase con voz lenta, paso a paso. A cualquier estudiante se le ofrece el paso a paso tras dos errores (`src/juego/apoyo.ts`, `src/componentes/PasoAPaso.tsx`).
+- **Escribir números con el dedo (Inclusión):** Taller de números (mira, repasa, escribe solo) y actividades de trazar en la ruta. Reconocedor de cifras propio, sin librerías ni internet (nubes de puntos $P, `src/juego/trazos.ts`; trazos de las cifras en `src/contenido/cifras.ts`).
+- **Realidad aumentada opcional** (apagada por defecto, la activa un adulto) con [LocAR.js](https://github.com/AR-js-org/locar.js) y three.js: la cámara (Webcam de LocAR), la orientación del celular (DeviceOrientationControls) y los objetos de la finca anclados alrededor del niño con `LocAR.add`, que se quedan en su sitio al girar el celular. Sin GPS: el origen es fijo (`fakeGps`). Se carga aparte, solo al abrir la cámara (`src/servicios/ra.ts`, `src/componentes/EscenaRA.tsx`). La imagen no se graba ni se envía.
 - **Vibración corta solo en los errores** (35 ms, `retroError` en `src/servicios/sonido.ts`).
-- Interfaz de vidrio tipo red social: muro de inicio con historias (42 mini-lecciones, una por unidad y grado, en `src/contenido/lecciones.ts`), reto del día y logros locales; pestañas Inicio, Ruta, Aprender y Perfil. Cada grado tiene su ruta de 7 unidades con complejidad creciente (Inicio → Básico → Intermedio → Avanzado → Reto; ver `src/juego/complejidad.ts`). En Ajustes, «Ligeros» quita transparencias y animaciones para celulares lentos.
+- Interfaz de vidrio tipo red social: muro de inicio con historias (una mini-lección por tema y ruta, en `src/contenido/lecciones.ts`), reto del día y logros locales; pestañas Inicio, Ruta, Aprender y Perfil. La complejidad de los temas sube de dos en dos (Inicio → Básico → Intermedio → Avanzado → Reto; ver `src/juego/complejidad.ts`). En Ajustes, «Ligeros» quita transparencias y animaciones para celulares lentos.
 
 > Antes de usarla con estudiantes, la plataforma debe pasar por la validación de expertos y el pilotaje previstos en la tesis (apartado 5.8).
 
@@ -27,7 +29,7 @@ npm install        # instala las dependencias (solo la primera vez, con internet
 npm run dev        # servidor de desarrollo en http://localhost:5173
 npm run build      # build de producción en dist/ (incluye el service worker)
 npm run preview    # sirve dist/ en http://localhost:4173 para probar la PWA
-npm test           # pruebas (Vitest): generadores, detector de errores, progresión, almacenamiento, apoyo, cifras, vibración
+npm test           # pruebas (Vitest): generadores, pruebas diagnóstica y final, detector de errores, progresión, almacenamiento, refuerzo, cifras, vibración
 npm run iconos     # vuelve a generar los íconos PNG (public/iconos)
 npm run catalogo   # vuelve a generar docs/PLANTILLAS.md
 ```
@@ -103,7 +105,7 @@ src/
   componentes/      teclado propio, ejercicio, pistas visuales, ilustraciones SVG, interacciones táctiles
   pantallas/        bienvenida, ¿quién juega?, crear perfil, mapa, nivel, resultado, mi finca, ajustes, familias, panel docente, reto en pareja, taller de números
   pwa/              registro del service worker e instalación
-  servicios/        sonidos (Web Audio), vibración, voz (speechSynthesis), cámara y WebXR
+  servicios/        sonidos (Web Audio), vibración, voz (speechSynthesis), realidad aumentada (LocAR.js)
 tests/              pruebas Vitest
 scripts/            generador de íconos y del catálogo de plantillas
 docs/               guía docente y catálogo de plantillas
@@ -111,11 +113,12 @@ docs/               guía docente y catálogo de plantillas
 
 ### Cómo funciona la generación
 
-- Cada pista define **7 tramos** (0, 1–15, 16–35, 36–55, 56–75, 76–90, 91–100) con una lista de *usos*: una plantilla con parámetros (rangos, operación, si hay incógnita, datos que sobran…).
-- Dentro del tramo, `d = (nivel − inicio) / (fin − inicio)` va de 0 a 1 y cada plantilla lo usa para subir el tamaño de los números, las reagrupaciones, los pasos, la posición de la incógnita, los datos que sobran, la cercanía de los distractores y la proporción de respuestas con teclado frente a opción múltiple.
-- Los niveles 10, 20, … 100 son **de cosecha**: mezclan usos de los nueve niveles anteriores.
+- Cada ruta define **10 temas** (niveles 1 a 10) con una lista de *usos*: una plantilla con parámetros (rangos, operación, tablas, si hay incógnita, datos que sobran…). Un tema puede marcar con `prueba` el uso de su pregunta en las pruebas; si no, se usa el primero. Las plantillas se comparten entre grados (por ejemplo, 2.º usa las de tablas de 3.º).
+- En un nivel, la pregunta *i* (0 a 9) tiene dificultad `d = desde + (hasta − desde) · i / 9`, con el rango de la banda: Refuerzo 0–0,5; Básico 0,2–0,8; Avanzado 0,5–1. Cada plantilla usa `d` para subir el tamaño de los números, las reagrupaciones, los pasos, la posición de la incógnita, los datos que sobran, la cercanía de los distractores y la proporción de respuestas con teclado frente a opción múltiple.
+- Para pasar se necesitan 7, 8 o 9 aciertos de 10 según la banda; en Inclusión siempre se pasa.
+- Las pruebas diagnóstica y final generan una pregunta por tema con `d = 0,5`; la final usa otra semilla (forma paralela).
 - La semilla del generador es `hash(códigoPerfil + pista + nivel + intento)` (mulberry32): cada intento trae ejercicios nuevos, reproducibles para depurar.
-- El motor reparte los ejercicios entre las cuatro dimensiones (comprensión, procedimiento, problemas, aplicación) y evita enunciados repetidos en un nivel.
+- El motor alterna las cuatro dimensiones (comprensión, procedimiento, problemas, aplicación) que haya en el tema y evita enunciados repetidos en un nivel.
 
 ## Cómo agregar una plantilla nueva
 
@@ -153,9 +156,9 @@ const cajonesFermentacion: Plantilla = {
 };
 ```
 
-2. Agréguela a la lista `plantillas` del archivo y úsela en uno o más tramos: `u(cajonesFermentacion, { maxCajones: 9 })`.
+2. Agréguela a la lista `plantillas` de la ruta y úsela en uno o más temas: `u(cajonesFermentacion, { maxCajones: 9 })`.
 3. Use nombres, lugares y productos de `src/contenido/contexto.ts` y respete las reglas de contenido: sin violencia, alcohol, armas ni marcas; números plausibles; ningún resultado negativo; divisiones exactas salvo que la plantilla trabaje el residuo (`permiteResiduo: true` o `calculo.redondearArriba`); precios marcados como de ejemplo.
-4. Ejecute `PISTAS=g3 npm test`: la prueba comprueba 1.000 ejercicios por uso y nivel de muestra (respuesta correcta, rango del grado, sin negativos, divisiones exactas y distractores distintos).
+4. Ejecute `PISTAS=g3 npm test`: la prueba comprueba 1.000 ejercicios por uso y dificultad de muestra (d = 0; 0,5; 1) (respuesta correcta, rango del grado, sin negativos, divisiones exactas y distractores distintos).
 5. `npm run catalogo` para actualizar docs/PLANTILLAS.md.
 
 ## Privacidad y ética

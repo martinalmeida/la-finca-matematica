@@ -4,6 +4,7 @@
 
 import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Plantilla, Uso } from '../../juego/tipos';
 import { adulto, mayus, num, persona, pesos } from '../contexto';
+import { plantillasDecimales } from './decimales';
 import { conCifras, dif, distractores, distractoresTipicos, lerp, mezclarOpciones, modoRespuesta, pn, pt, redondear } from './util';
 
 const LIMITE = 10_000_000;
@@ -502,7 +503,9 @@ const divProblema: Plantilla = {
       enunciado = `En el secadero hay ${num(b * q)} kilos de cacao seco. Se empacan en sacos de ${b} kilos.${sobra} ¿Cuántos sacos se llenan?`;
       unidad = 'sacos';
     } else if (variante === 1) {
-      q = rng.entero(20, 60) * 1000;
+      // Tope del total a repartir (en 4.º, hasta $1.000.000).
+      const tope = pn(ctx, 'maxPesos', LIMITE);
+      q = Math.min(rng.entero(20, 60), Math.floor(tope / b / 1000)) * 1000;
       enunciado = `${mayus(adulto(rng).nombre)} reparte ${pesos(b * q)} en partes iguales entre ${b} trabajadores de la cosecha.${sobra} ¿Cuántos pesos recibe cada uno?`;
       unidad = 'pesos';
     } else {
@@ -947,75 +950,83 @@ const compuestoTablaFinal: Plantilla = {
   },
 };
 
-const plantillas = [
-  valorPosicional,
-  distributiva,
-  fraccionReparto,
-  razonable,
-  dobleMitad,
-  multAlgoritmo,
-  multVarias,
-  divDos,
-  comparacionMult,
-  multProblema,
-  divProblema,
-  residuoContexto,
-  proporcionalidad,
-  dosPasos,
-  redondeo,
-  valorUnitario,
-  tablaSacos,
-  compuestoTablaFinal,
-];
+const { leer, comparar, sumaResta, multiplicar, dividir, problema } = plantillasDecimales;
 
 const u = (plantilla: Plantilla, params?: Uso['params']): Uso => ({ plantilla, params });
 
 export const g5: DefinicionPista = {
   pista: 'g5',
   limite: LIMITE,
-  plantillas,
-  tramos: [
+  plantillas: [
+    valorPosicional,
+    distributiva,
+    fraccionReparto,
+    razonable,
+    dobleMitad,
+    multAlgoritmo,
+    multVarias,
+    divDos,
+    comparacionMult,
+    multProblema,
+    divProblema,
+    residuoContexto,
+    proporcionalidad,
+    dosPasos,
+    redondeo,
+    valorUnitario,
+    tablaSacos,
+    compuestoTablaFinal,
+    leer,
+    comparar,
+    sumaResta,
+    multiplicar,
+    dividir,
+    problema,
+  ],
+  temas: [
     {
-      inicio: 0,
-      fin: 0,
-      titulo: 'Tutorial y repaso de 4.º',
-      usos: [u(valorPosicional, { cifras: 6 }), u(multAlgoritmo, { cifrasA: 3 }), u(divProblema, { divCifras: 1 }), u(redondeo, { cifras: 5 }), u(valorUnitario, { modo: 'mult' })],
+      titulo: 'Números grandes y redondeo',
+      usos: [u(redondeo), u(valorPosicional, { cifras: 7 }), u(dobleMitad), u(distributiva)],
     },
     {
-      inicio: 1,
-      fin: 15,
-      titulo: 'Números grandes; doble, mitad y propiedad distributiva',
-      usos: [u(valorPosicional, { cifras: 7 }), u(distributiva), u(dobleMitad), u(comparacionMult), u(redondeo)],
+      titulo: 'Multiplicar varias cifras',
+      usos: [u(multVarias), u(multAlgoritmo), u(multProblema), u(razonable), u(comparacionMult), u(distributiva, { tamano: 'grande' })],
     },
     {
-      inicio: 16,
-      fin: 35,
-      titulo: 'Multiplicación de varias cifras',
-      usos: [u(multAlgoritmo), u(multVarias), u(multProblema), u(razonable), u(distributiva, { tamano: 'grande' }), u(valorUnitario, { modo: 'mult' })],
+      titulo: 'Dividir entre 2 cifras',
+      usos: [u(divDos), u(divProblema), u(razonable, { op: 'division' }), u(residuoContexto)],
     },
     {
-      inicio: 36,
-      fin: 55,
-      titulo: 'División con divisor de 2 cifras',
-      usos: [u(divDos), u(divProblema), u(razonable, { op: 'division' }), u(valorUnitario, { modo: 'div' })],
+      titulo: 'Problemas con las cuatro operaciones',
+      usos: [u(dosPasos), u(proporcionalidad), u(valorUnitario), u(fraccionReparto), u(tablaSacos), u(compuestoTablaFinal)],
     },
     {
-      inicio: 56,
-      fin: 75,
-      titulo: 'Residuo en contexto; datos en tablas',
-      usos: [u(residuoContexto), u(tablaSacos), u(divDos), u(razonable, { op: 'division' }), u(divProblema)],
+      titulo: 'Décimas y centésimas',
+      usos: [u(leer)],
     },
     {
-      inicio: 76,
-      fin: 90,
-      titulo: 'Proporcionalidad simple; fracciones como reparto',
-      usos: [u(proporcionalidad), u(dosPasos), u(valorUnitario), u(fraccionReparto), u(multVarias)],
+      titulo: 'Comparar y ordenar decimales',
+      usos: [u(comparar), u(leer)],
+      prueba: u(comparar),
     },
     {
-      inicio: 91,
-      fin: 100,
-      titulo: 'Problemas compuestos con tablas',
-      usos: [u(compuestoTablaFinal), u(tablaSacos), u(dosPasos), u(proporcionalidad), u(residuoContexto), u(fraccionReparto), u(razonable), u(multVarias), u(divDos)],
+      titulo: 'Sumar y restar decimales',
+      usos: [u(sumaResta)],
+    },
+    {
+      titulo: 'Multiplicar decimales',
+      usos: [u(multiplicar)],
+    },
+    {
+      titulo: 'Dividir con resultado decimal',
+      usos: [u(dividir)],
+    },
+    {
+      titulo: 'Problemas con números decimales',
+      usos: [u(problema), u(sumaResta), u(multiplicar), u(dividir)],
     },
   ],
 };
+
+/** Plantillas de división de 5.º que también usa 4.º. */
+export { divDos, divProblema, residuoContexto };

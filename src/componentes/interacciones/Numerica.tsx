@@ -12,9 +12,10 @@ export default function Numerica({ ej, bloqueado, onResponder, correcta }: Props
       onCambio={setValor}
       deshabilitado={bloqueado}
       unidad={ej.unidad}
+      decimal={ej.decimales}
       maxCifras={Math.max(3, String(ej.respuesta).length + 2)}
       onListo={() => {
-        if (!valor) return;
+        if (!valor || valor.endsWith('.')) return;
         onResponder(Number(valor));
         setValor('');
       }}

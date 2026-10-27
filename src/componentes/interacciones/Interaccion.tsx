@@ -3,12 +3,14 @@ import Arrastrar from './Arrastrar';
 import Arreglo from './Arreglo';
 import Bloques from './Bloques';
 import Contar from './Contar';
+import Emparejar from './Emparejar';
 import Escribir from './Escribir';
 import Numerica from './Numerica';
 import Opciones from './Opciones';
 import Razonable from './Razonable';
 import Recta from './Recta';
 import Tabla from './Tabla';
+import Trazar from './Trazar';
 import type { PropsInteraccion } from './tipos';
 
 /** Elige el componente táctil según el tipo de interacción del ejercicio. */
@@ -37,5 +39,9 @@ export default function Interaccion(props: PropsInteraccion) {
       return <Tabla {...props} />;
     case 'escribir':
       return <Escribir {...props} />;
+    case 'trazar':
+      return <Trazar {...props} />;
+    case 'emparejar':
+      return <Emparejar {...props} />;
   }
 }

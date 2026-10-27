@@ -7,11 +7,18 @@ import type { Grado } from './tipos';
 export type PasoPareja = { pregunta: string; respuesta: number };
 export type ProblemaPareja = { contexto: string; pasos: [PasoPareja, PasoPareja] };
 
-function rango(g: Grado): number {
+type GradoNum = Exclude<Grado, 'inclusion'>;
+
+/** Grado numérico para el reto: Inclusión juega con los números de 1.º. */
+export function gradoNumerico(g: Grado): GradoNum {
+  return g === 'inclusion' ? 1 : g;
+}
+
+function rango(g: GradoNum): number {
   return [0, 20, 100, 1000, 10000, 100000][g];
 }
 
-function problema(rng: Rng, g: Grado): ProblemaPareja {
+function problema(rng: Rng, g: GradoNum): ProblemaPareja {
   const max = rango(g);
   const [x, y] = dosPersonas(rng);
   const p = rng.elegir(productos.filter((q) => q.objeto !== 'huevo' || g <= 2));
@@ -46,10 +53,10 @@ function problema(rng: Rng, g: Grado): ProblemaPareja {
 /** Tres problemas con números del grado menor de la pareja. */
 export function generarReto(gradoA: Grado, gradoB: Grado, semilla: number): ProblemaPareja[] {
   const rng = crearRng(semilla);
-  const g = Math.min(gradoA, gradoB) as Grado;
+  const g = Math.min(gradoNumerico(gradoA), gradoNumerico(gradoB)) as GradoNum;
   return [problema(rng, g), problema(rng, g), problema(rng, g)];
 }
 
 export function gradosCercanos(a: Grado, b: Grado): boolean {
-  return Math.abs(a - b) <= 1;
+  return Math.abs(gradoNumerico(a) - gradoNumerico(b)) <= 1;
 }

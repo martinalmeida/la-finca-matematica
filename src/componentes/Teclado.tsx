@@ -13,19 +13,33 @@ type Props = {
   /** Oculta la pantalla del número (cuando el valor se muestra en otro lugar, p. ej. el algoritmo). */
   sinPantalla?: boolean;
   textoListo?: string;
+  /** Muestra la tecla «,» (el valor usa «.» internamente). */
+  decimal?: boolean;
 };
 
-export default function Teclado({ valor, onCambio, onListo, deshabilitado, unidad, maxCifras = 9, sinPantalla, textoListo = 'Listo' }: Props) {
+/** Muestra el valor con puntos de mil y coma decimal, aunque termine en coma («2,»). */
+function mostrar(valor: string): string {
+  const [ent, dec] = valor.split('.');
+  return num(Number(ent || '0')) + (dec !== undefined ? ',' + dec : '');
+}
+
+export default function Teclado({ valor, onCambio, onListo, deshabilitado, unidad, maxCifras = 9, sinPantalla, textoListo = 'Listo', decimal }: Props) {
   const pulsar = (d: string) => {
     if (deshabilitado) return;
     if (valor.length >= maxCifras) return;
+    // Máximo dos cifras después de la coma.
+    if (valor.includes('.') && valor.split('.')[1].length >= 2) return;
     onCambio(valor === '0' ? d : valor + d);
+  };
+  const coma = () => {
+    if (deshabilitado || valor.includes('.')) return;
+    onCambio((valor || '0') + '.');
   };
   return (
     <div className="columna">
       {!sinPantalla && (
-        <div className="pantalla-numero" aria-live="polite" aria-label={valor ? `Tu respuesta: ${valor}` : 'Escribe tu respuesta con el teclado'}>
-          <span>{valor ? num(Number(valor)) : ''}</span>
+        <div className="pantalla-numero" aria-live="polite" aria-label={valor ? `Tu respuesta: ${mostrar(valor)}` : 'Escribe tu respuesta con el teclado'}>
+          <span>{valor ? mostrar(valor) : ''}</span>
           {!deshabilitado && <span className="cursor" aria-hidden="true" />}
           {unidad && valor && <span className="unidad">{unidad}</span>}
         </div>
@@ -39,9 +53,20 @@ export default function Teclado({ valor, onCambio, onListo, deshabilitado, unida
         <button type="button" className="tecla borrar" onClick={() => onCambio(valor.slice(0, -1))} disabled={deshabilitado || !valor} aria-label="Borrar">
           ⌫ Borrar
         </button>
-        <button type="button" className="tecla" onClick={() => pulsar('0')} disabled={deshabilitado}>
-          0
-        </button>
+        {decimal ? (
+          <div className="tecla-doble">
+            <button type="button" className="tecla" onClick={() => pulsar('0')} disabled={deshabilitado}>
+              0
+            </button>
+            <button type="button" className="tecla" onClick={coma} disabled={deshabilitado || valor.includes('.')} aria-label="Coma decimal">
+              ,
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="tecla" onClick={() => pulsar('0')} disabled={deshabilitado}>
+            0
+          </button>
+        )}
         <button type="button" className="tecla listo" onClick={onListo} disabled={deshabilitado || !valor}>
           <Icono nombre="check" tamano={24} /> {textoListo}
         </button>

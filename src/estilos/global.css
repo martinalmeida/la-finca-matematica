@@ -3238,10 +3238,6 @@ button.frase:active {
   background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 38%, #a3e635 38.5%, #65a30d 70%, #4d7c0f 100%);
 }
 
-.escena-ra.con-xr {
-  background: transparent;
-}
-
 .video-ra {
   position: absolute;
   inset: 0;
@@ -3299,91 +3295,27 @@ button.frase:active {
   text-decoration: underline;
 }
 
-.canasta-ra {
+.lienzo-ra {
   position: absolute;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 4px;
-  border: 3px dashed rgba(255, 255, 255, 0.95);
-  border-radius: 28px 28px 50% 50% / 28px 28px 40% 40%;
-  background: rgba(183, 121, 63, 0.38);
-  box-shadow: inset 0 -10px 24px rgba(107, 63, 29, 0.35);
-}
-
-.objeto-ra {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.35));
-  animation: aparecer-ra 0.45s var(--resorte) backwards;
-  touch-action: none;
-  z-index: 2;
-}
-
-.objeto-ra svg {
+  inset: 0;
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 
-.objeto-ra.marcado {
-  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.95)) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.3));
-}
-
-.objeto-ra .marca,
-.objeto-ra.marca-real {
-  display: grid;
-  place-items: center;
-  font-weight: 850;
-  color: #fff;
-  background: #16a34a;
-  border-radius: 999px;
-}
-
-.objeto-ra .marca {
+.permiso-ra {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 5px;
-  font-size: 0.85rem;
-  animation: pop 0.4s var(--resorte);
-}
-
-.objeto-ra.marca-real {
-  border: 3px solid #fff;
-  font-size: 1.2rem;
-}
-
-.objeto-ra.marca-real .marca {
-  position: static;
-  min-width: 0;
-  height: auto;
-  background: none;
-  font-size: 1.2rem;
-}
-
-.escena-ra.con-xr .objeto-ra {
-  animation: none;
-}
-
-.marca-piso {
-  position: absolute;
-  transform: translate(-50%, -50%) scaleY(0.45);
-  border: 4px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.8);
-  pointer-events: none;
-}
-
-@keyframes aparecer-ra {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -20%) scale(0.4);
-  }
+  left: 16px;
+  right: 16px;
+  top: calc(96px + env(safe-area-inset-top));
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  text-align: center;
 }
 
 .pie-ra {
@@ -3423,11 +3355,6 @@ button.frase:active {
   color: #fff;
   font-weight: 850;
   font-size: 1.15rem;
-}
-
-:root[data-efectos='ligeros'] .objeto-ra {
-  filter: none;
-  animation: none;
 }
 
 /* ---------- Taller de números ---------- */
@@ -3582,4 +3509,271 @@ button.frase:active {
 
 .objetos-logrados > span {
   animation: pop 0.45s var(--resorte) backwards;
+}
+
+/* ===================== Pruebas diagnóstica y final ===================== */
+.tarjeta-prueba {
+  padding: 22px 18px;
+  border-radius: var(--radio-grande);
+  text-align: center;
+}
+
+.icono-prueba {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--verde-claro);
+}
+
+.lista-prueba {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  align-self: stretch;
+}
+
+.lista-prueba li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.lista-prueba li svg {
+  flex-shrink: 0;
+  color: var(--verde);
+}
+
+.asi-se-responde {
+  padding: 18px 16px;
+  border-radius: var(--radio-grande);
+  border: 2px dashed rgba(22, 163, 74, 0.45);
+}
+
+/* Antes y después */
+.comparacion-totales {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.comparacion-totales > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.comparacion-totales strong {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.tabla-comparacion {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  table-layout: fixed;
+}
+
+.tabla-comparacion th,
+.tabla-comparacion td {
+  padding: 7px 4px;
+  border-bottom: 1px solid rgba(16, 32, 24, 0.1);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.tabla-comparacion th[scope='row'],
+.tabla-comparacion thead th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.tabla-comparacion thead th:not(:first-child) {
+  width: 64px;
+}
+
+.tabla-comparacion tr.mejoro {
+  background: var(--ok-fondo);
+}
+
+.tabla-comparacion tr.repasar th {
+  color: var(--aviso);
+}
+
+.marca-prueba {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.marca-prueba.bien {
+  background: var(--verde);
+  color: #fff;
+}
+
+.marca-prueba.falta {
+  background: rgba(16, 32, 24, 0.08);
+  color: var(--tinta-suave);
+}
+
+/* Ruta: cada tema es una tarjeta con su nivel; al final, la prueba final */
+.zona.tema .zona-cabecera .nodo {
+  flex-shrink: 0;
+  left: 0;
+}
+
+.zona-final .zona-numero {
+  background: var(--acento-naranja);
+}
+
+/* Teclado con coma decimal */
+.tecla-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Número y cantidad (Inclusión) */
+.emparejar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.grupo-emparejar {
+  min-height: 110px;
+  padding: 10px;
+  border-radius: var(--radio);
+  border: 2px solid var(--borde-vidrio);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 4px;
+}
+
+.grupo-emparejar.fallida {
+  opacity: 0.45;
+}
+
+.grupo-emparejar.correcta {
+  border-color: var(--verde);
+  background: var(--ok-fondo);
+}
+
+/* ===================== Grado Inclusión ===================== */
+.grado-inclusion .grado-numero {
+  background: linear-gradient(145deg, #a5b4fc, #93c5fd);
+}
+
+/* Colores suaves, sin brillos ni animaciones que distraigan. */
+:root[data-grado='inclusion'] {
+  --c1: #bfdbfe;
+  --c2: #c7d2fe;
+  --c3: #bbf7d0;
+  --c4: #e9d5ff;
+  --c5: #bae6fd;
+}
+
+:root[data-grado='inclusion'] .brillo::after,
+:root[data-grado='inclusion'] .nodo.actual::before {
+  display: none;
+}
+
+:root[data-grado='inclusion'] *,
+:root[data-grado='inclusion'] *::before,
+:root[data-grado='inclusion'] *::after {
+  animation-duration: 0s !important;
+  animation-iteration-count: 1 !important;
+}
+
+/* Lo que sí se mueve en Inclusión: la cifra que se dibuja sola y el círculo de la pausa. */
+:root[data-grado='inclusion'] .trazo-cifra {
+  animation-duration: 1.4s !important;
+}
+
+:root[data-grado='inclusion'] .pausa-circulo {
+  animation-duration: 8s !important;
+  animation-iteration-count: infinite !important;
+}
+
+:root[data-grado='inclusion'] .boton,
+:root[data-grado='inclusion'] .opcion,
+:root[data-grado='inclusion'] .tecla {
+  min-height: 60px;
+}
+
+.agenda {
+  padding: 18px 16px;
+  border-radius: var(--radio-grande);
+  gap: 14px;
+}
+
+.agenda-paso {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radio);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.agenda-paso > span:nth-child(2) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.agenda-etiqueta {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--azul);
+}
+
+.pausa {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 16px;
+  text-align: center;
+  background: rgba(239, 246, 255, 0.97);
+}
+
+.pausa-circulo {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #bfdbfe, #93c5fd);
+  animation: respirar 8s ease-in-out infinite;
+}
+
+@keyframes respirar {
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pausa-circulo {
+    animation: none;
+  }
 }

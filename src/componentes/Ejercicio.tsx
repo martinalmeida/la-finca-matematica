@@ -1,10 +1,10 @@
 // Un ejercicio: enunciado, ilustración, audio opcional, zona de respuesta,
 // tres niveles de pista, retroalimentación específica y solución explicada.
 
-import { useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useMemo, useRef, useState } from 'react';
 import type { Ejercicio as TEjercicio, Respuesta } from '../juego/tipos';
 import { detectarTipoError, mensajeError, type TipoError } from '../juego/errores';
-import { generarParecido } from '../juego/motor';
+import { esFamilia, generarParecido } from '../juego/motor';
 import Interaccion from './interacciones/Interaccion';
 import VisualPista from './VisualPista';
 import { DibujoObjeto, esFemenino } from './Ilustraciones';
@@ -19,7 +19,10 @@ import { BotonVideo } from './Video';
 import type { Video } from '../contenido/videos';
 import Enunciado from './Enunciado';
 import PasoAPaso, { tienePasoAPaso } from './PasoAPaso';
-import EscenaRA, { escenaDe } from './EscenaRA';
+import { escenaDe } from './escenaConfig';
+
+// three.js y LocAR.js solo se descargan al abrir la cámara.
+const EscenaRA = lazy(() => import('./EscenaRA'));
 
 export type ResultadoEjercicio = {
   correcto: boolean;
@@ -61,16 +64,23 @@ type Props = {
   onTerminar: (r: ResultadoEjercicio) => void;
   /** Muestra la primera pista desde el inicio (modo repaso); no cuenta como pista usada. */
   pistaVisible?: boolean;
-  /** Video de la lección de esta unidad: se ofrece cuando hacen falta varias pistas. */
+  /** Video de la lección de este tema: se ofrece cuando hacen falta varias pistas. */
   video?: Video | null;
   /** Ejercicio de práctica: no cuenta para el nivel. */
   practica?: boolean;
+  /** nivel: normal. prueba: un intento, sin pistas ni solución (diagnóstica y final).
+   *  inclusion: nunca se pierde; se ayuda con calma hasta lograrlo. */
+  modo?: 'nivel' | 'prueba' | 'inclusion';
 };
 
-export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, video }: Props) {
+const animosInclusion = ['Casi. Miremos el dibujo juntos.', 'Vamos otra vez, con calma.', 'Mira la ayuda y prueba de nuevo.'];
+
+export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, video, modo = 'nivel' }: Props) {
   const { ajustes } = useApp();
   const voz = useVoz();
-  const adulto = ej.pista === 'familia';
+  const adulto = esFamilia(ej.pista);
+  const prueba = modo === 'prueba';
+  const inclusion = modo === 'inclusion';
   const apoyo = !!ej.apoyo;
   const [errores, setErrores] = useState(0);
   // Pistas pedidas (las que se muestran gratis en repaso o con apoyo no cuentan).
@@ -104,6 +114,28 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
 
   const responder = (r: Respuesta) => {
     if (estado !== 'jugando') return;
+    if (prueba) {
+      // Un solo intento y sin decir si estuvo bien: la prueba no es una nota.
+      const correcto = ej.validar(r);
+      if (!correcto) setPrimerError(detectarTipoError(ej.calculo, ej.respuesta, r));
+      setEstado(correcto ? 'bien' : 'solucion');
+      const m = adulto ? 'Respuesta guardada. Sigamos.' : '¡Listo! Vamos con la siguiente.';
+      setMensaje(m);
+      decir(m);
+      sonar('toque', ajustes.sonido);
+      return;
+    }
+    if (inclusion && !ej.validar(r)) {
+      // Sin castigo: no vibra, no se marca error; aparece la ayuda y se vuelve a intentar.
+      const n = errores + 1;
+      setErrores(n);
+      setFallidas((f) => [...f, r]);
+      const m = n >= 3 ? `La respuesta es ${textoRespuesta(ej.respuesta)}. ¡Tú puedes!` : animosInclusion[(n - 1) % animosInclusion.length];
+      setMensaje(m);
+      decir(m);
+      if (pistas < 2) setPistas(2);
+      return;
+    }
     if (ej.validar(r)) {
       setEstado('bien');
       const base = apoyo && !adulto && errores > 0 ? elogiosEsfuerzo[hashTexto(ej.id) % elogiosEsfuerzo.length] : elogio;
@@ -148,13 +180,17 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
 
   const terminar = () => {
     const correcto = estado === 'bien';
+    if (prueba) {
+      onTerminar({ correcto, errores: correcto ? 0 : 1, pistas: 0, ms: Date.now() - inicio.current, tipoError: primerError, semillas: 0, pasoAPaso: false });
+      return;
+    }
     onTerminar({
       correcto,
       errores,
       pistas,
       ms: Date.now() - inicio.current,
       tipoError: primerError,
-      semillas: correcto ? 1 + (errores > 0 && pistas > 0 ? 1 : 0) : 0,
+      semillas: inclusion ? 1 : correcto ? 1 + (errores > 0 && pistas > 0 ? 1 : 0) : 0,
       pasoAPaso: paso === 'abierto' || paso === 'hecho',
     });
   };
@@ -190,7 +226,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
         </div>
         <div className="fila">
           <BotonEscuchar texto={lectura} clave={ej.id} etiqueta={adulto ? 'Escuchar de nuevo' : 'Escuchar otra vez'} />
-          {ajustes.realidadAumentada && escena && estado === 'jugando' && (
+          {ajustes.realidadAumentada && escena && estado === 'jugando' && !prueba && (
             <button type="button" className="boton boton-camara" onClick={() => setVerEscena(true)}>
               <Icono nombre="camara" tamano={28} /> {adulto ? 'Ver con la cámara' : 'Verlo en mi finca'}
             </button>
@@ -223,9 +259,9 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
       )}
 
       {mensaje && (
-        <div className={`retro ${estado === 'bien' ? 'bien' : 'casi'}`} role="status">
+        <div className={`retro ${estado === 'bien' || prueba ? 'bien' : 'casi'}`} role="status">
           <span className="icono-retro" aria-hidden="true">
-            <Icono nombre={estado === 'bien' ? 'check' : estado === 'solucion' ? 'solucion' : 'pensar'} tamano={28} />
+            <Icono nombre={estado === 'bien' || prueba ? 'check' : estado === 'solucion' ? 'solucion' : 'pensar'} tamano={28} />
           </span>
           <span>{mensaje}</span>
         </div>
@@ -237,7 +273,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
         </button>
       )}
 
-      {estado === 'solucion' && (
+      {estado === 'solucion' && !prueba && (
         <div className="tarjeta columna">
           <p style={{ margin: 0 }}>
             <strong>Respuesta:</strong> {textoRespuesta(ej.respuesta)}
@@ -253,21 +289,21 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
           ej={ej}
           bloqueado={estado !== 'jugando'}
           onResponder={responder}
-          fallidas={fallidas}
-          correcta={estado !== 'jugando' ? ej.respuesta : null}
+          fallidas={prueba || inclusion ? [] : fallidas}
+          correcta={estado !== 'jugando' && !prueba ? ej.respuesta : null}
         />
       </div>
 
-      {estado === 'jugando' && (
+      {estado === 'jugando' && !prueba && !(inclusion && pistasMostradas >= 3) && (
         <button type="button" className="boton secundario" onClick={pedirPista}>
           <Icono nombre={pistasMostradas < 3 ? 'bombillo' : 'solucion'} tamano={28} />
-          {pistasMostradas < 3 ? `${adulto ? 'Ver una pista' : 'Pedir una pista'} (${pistasMostradas}/3)` : 'Ver la solución'}
+          {inclusion ? 'Ayuda' : pistasMostradas < 3 ? `${adulto ? 'Ver una pista' : 'Pedir una pista'} (${pistasMostradas}/3)` : 'Ver la solución'}
         </button>
       )}
 
       {estado !== 'jugando' && (
         <div className="columna">
-          {estado === 'solucion' && !practica && (
+          {estado === 'solucion' && !practica && !prueba && (
             <button type="button" className="boton secundario" onClick={() => setParecido(generarParecido(ej, hashTexto(ej.id + Date.now())))}>
               <Icono nombre="repetir" tamano={26} /> Practicar uno parecido
             </button>
@@ -279,18 +315,20 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
       )}
 
       {verEscena && escena && (
-        <EscenaRA
-          config={escena}
-          titulo={adulto ? 'Con la cámara' : 'En mi finca'}
-          instruccion={
-            escena.modo === 'canasta'
-              ? escena.quitar
-                ? adulto ? 'Saque de la canasta los que se van.' : 'Arrastra fuera de la canasta los que se van.'
-                : adulto ? 'Meta todos en la canasta y cuente.' : 'Arrastra todos a la canasta y cuenta.'
-              : `${adulto ? 'Toque' : 'Toca'} ${escena.modo !== 'real' && esFemenino(escena.objeto) ? 'cada una para contarla' : 'cada uno para contarlo'}.`
-          }
-          alCerrar={() => setVerEscena(false)}
-        />
+        <Suspense fallback={null}>
+          <EscenaRA
+            config={escena}
+            titulo={adulto ? 'Con la cámara' : 'En mi finca'}
+            instruccion={
+              escena.modo === 'canasta'
+                ? escena.quitar
+                  ? adulto ? 'Toque los que se van para sacarlos de la canasta.' : 'Toca los que se van para sacarlos de la canasta.'
+                  : adulto ? 'Busque los que faltan y tóquelos para meterlos en la canasta.' : 'Busca los que faltan y tócalos para meterlos en la canasta.'
+                : `${adulto ? 'Busque y toque' : 'Busca y toca'} ${escena.modo !== 'real' && esFemenino(escena.objeto) ? 'cada una para contarla' : 'cada uno para contarlo'}.`
+            }
+            alCerrar={() => setVerEscena(false)}
+          />
+        </Suspense>
       )}
     </section>
   );

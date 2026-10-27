@@ -647,6 +647,7 @@ const iconos: Record<string, (u: U) => ReactElement> = {
     </g>
   ),
   'jugar-simple': () => <path d="M15 10v28l23-14Z" fill="currentColor" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />,
+  pausa: () => <path d="M18 12v24M30 12v24" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />,
   equis: (u) => (
     <>
       <Volumen u={u} c="r" d={circulo(24, 24, 20)} />
@@ -772,7 +773,7 @@ type Props = {
 };
 
 /** Iconos de línea: toman el color del texto y no llevan relieve. */
-const DE_LINEA = new Set(['cerrar', 'compartir', 'agregar', 'puntos', 'atras', 'siguiente', 'jugar-simple', 'corazon-vacio']);
+const DE_LINEA = new Set(['cerrar', 'compartir', 'agregar', 'puntos', 'atras', 'siguiente', 'jugar-simple', 'corazon-vacio', 'pausa']);
 
 export default function Icono({ nombre, tamano = 28, anim = 'una', etiqueta, className = '' }: Props) {
   const { id, u, usados } = useDegradados();

@@ -2,12 +2,14 @@ import { useApp } from '../estado';
 import { Avatar } from '../componentes/Ilustraciones';
 import { listarPerfiles, type Perfil } from '../almacenamiento/datos';
 import { LogoConPanel } from './Bienvenida';
+import { nombreGrado } from '../juego/complejidad';
 import Icono from '../componentes/Icono';
+import { gradoNumerico } from '../juego/pareja';
 
 export default function QuienJuega() {
   const { ir, elegirPerfil } = useApp();
   const perfiles = listarPerfiles();
-  const estudiantes = perfiles.filter((p) => p.rol === 'estudiante').sort((a, b) => (a.grado ?? 0) - (b.grado ?? 0));
+  const estudiantes = perfiles.filter((p) => p.rol === 'estudiante').sort((a, b) => gradoNumerico(a.grado ?? 1) - gradoNumerico(b.grado ?? 1));
   const familias = perfiles.filter((p) => p.rol === 'familia');
 
   const tarjeta = (p: Perfil) => (
@@ -24,7 +26,7 @@ export default function QuienJuega() {
         <Avatar id={p.avatar} tamano={72} />
       </span>
       <span className="perfil-apodo">{p.apodo}</span>
-      <span className="chip pequeno">{p.rol === 'familia' ? 'Familia' : `${p.grado}.º grado`}</span>
+      <span className="chip pequeno">{p.rol === 'familia' ? 'Familia' : nombreGrado(p.grado)}</span>
     </button>
   );
 

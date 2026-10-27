@@ -11,6 +11,7 @@ import { retroError, sonar } from '../servicios/sonido';
 import { useVoz } from '../servicios/voz';
 import VisualPista from './VisualPista';
 import Icono, { type NombreIcono } from './Icono';
+import { esFamilia } from '../juego/motor';
 
 const ICONO_ACCION: Record<Accion, NombreIcono> = { juntar: 'mas', quitar: 'menos', repetir: 'por', repartir: 'entre' };
 
@@ -32,7 +33,7 @@ export function tienePasoAPaso(ej: Ejercicio): boolean {
 export default function PasoAPaso({ ej, alTerminar }: { ej: Ejercicio; alTerminar: () => void }) {
   const { ajustes } = useApp();
   const voz = useVoz();
-  const adulto = ej.pista === 'familia';
+  const adulto = esFamilia(ej.pista);
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
   const accion = accionDe(ej.calculo)!;
   const [paso, setPaso] = useState<1 | 2>(1);

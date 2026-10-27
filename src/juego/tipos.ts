@@ -1,7 +1,10 @@
 import type { Rng } from './rng';
 
-export type Grado = 1 | 2 | 3 | 4 | 5;
-export type Pista = 'g1' | 'g2' | 'g3' | 'g4' | 'g5' | 'familia';
+export type Grado = 1 | 2 | 3 | 4 | 5 | 'inclusion';
+/** Rutas de juego. «familia» es la prueba diagnóstica de las familias; sus rutas son fam-*. */
+export type Pista = 'g1' | 'g2' | 'g3' | 'g4' | 'g5' | 'inclusion' | 'familia' | 'fam-basica' | 'fam-intermedia' | 'fam-avanzada';
+/** Exigencia del curso según la prueba diagnóstica. */
+export type Banda = 'refuerzo' | 'basico' | 'avanzado';
 export type Dimension = 'comprension' | 'procedimiento' | 'problemas' | 'aplicacion';
 export type Operacion = 'suma' | 'resta' | 'multiplicacion' | 'division' | 'mixta';
 
@@ -45,8 +48,12 @@ export type Interaccion =
   | { tipo: 'algoritmo'; operacion: 'suma' | 'resta' | 'multiplicacion'; a: number; b: number }
   | { tipo: 'razonable'; propuesto: number; esRazonable: boolean; opciones: number[] }
   | { tipo: 'tabla'; encabezados: string[]; filas: (string | number)[][]; opciones?: Respuesta[] }
-  /** Escribir el número con el dedo, una cifra por casilla (1.º). */
-  | { tipo: 'escribir'; cifras: number };
+  /** Escribir el número con el dedo, una cifra por casilla (Inclusión). */
+  | { tipo: 'escribir'; cifras: number }
+  /** Repasar una cifra sobre la guía punteada (Inclusión). */
+  | { tipo: 'trazar'; cifra: number }
+  /** Elegir el grupo de dibujos que tiene la cantidad pedida (Inclusión). */
+  | { tipo: 'emparejar'; objeto: Objeto; opciones: number[] };
 
 /** Cálculo principal del ejercicio: lo usa el detector de errores. */
 export type Calculo = {
@@ -82,8 +89,10 @@ export type Ejercicio = {
   permiteResiduo?: boolean;
   /** Para generar un ejercicio parecido. */
   origen?: { params: Parametros; d: number; nivel: number };
-  /** Generado con apoyo extra (números más pequeños y menos opciones). */
+  /** Banda Refuerzo: menos opciones, dibujo de ayuda y paso a paso visibles. */
   apoyo?: boolean;
+  /** La respuesta puede llevar coma decimal (muestra la tecla «,»). */
+  decimales?: boolean;
 };
 
 /** Lo que una plantilla devuelve; el motor completa id, pista y validar. */
@@ -116,17 +125,19 @@ export type Plantilla = {
 /** Uso de una plantilla dentro de un tramo, con parámetros. */
 export type Uso = { plantilla: Plantilla; params?: Parametros };
 
-export type Tramo = {
-  inicio: number;
-  fin: number;
+/** Un tema = un nivel de la ruta (10 preguntas). */
+export type Tema = {
   titulo: string;
   usos: Uso[];
+  /** Uso de la pregunta de este tema en la diagnóstica y en la final (por defecto, el primero). */
+  prueba?: Uso;
 };
 
 export type DefinicionPista = {
   pista: Pista;
   /** Mayor número permitido en datos y respuestas (prueba de rango). */
   limite: number;
-  tramos: Tramo[];
+  /** Los 10 temas (niveles 1 a 10). */
+  temas: Tema[];
   plantillas: Plantilla[];
 };

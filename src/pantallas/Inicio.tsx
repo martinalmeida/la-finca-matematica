@@ -9,7 +9,7 @@ import Celebracion from '../componentes/Celebracion';
 import Historia, { Medidor, MiniReto } from '../componentes/Historia';
 import { BarraHistorias, CabeceraVidrio, Publicacion } from '../componentes/Red';
 import { LogoConPanel } from './Bienvenida';
-import { historiasVistas, leerProgreso, listarPerfiles, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
+import { haceDiagnostica, historiasVistas, leerProgreso, leerPruebas, listarPerfiles, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
 import { leccionDisponible, nivelParaPracticar, RESUMEN_GRADO, unidadDe, unidadesDe, type Unidad } from '../juego/complejidad';
 import { lecciones } from '../contenido/lecciones';
 import { avatarDeAutor, consejosFamilia, datosCuriosos, indiceDelDia } from '../contenido/red';
@@ -39,7 +39,7 @@ export default function Inicio() {
     if (hayCosechaNueva()) setCosecha(true);
   }, []);
 
-  const disponible = useCallback((u: Unidad) => leccionDisponible(u, actual, unidades), [actual, unidades]);
+  const disponible = useCallback((u: Unidad) => leccionDisponible(u, actual), [actual]);
 
   const abrir = (u: Unidad) => {
     marcarHistoriaVista(p.id, `${u.indice}`);
@@ -48,7 +48,11 @@ export default function Inicio() {
   };
 
   const estrellas = Object.values(progreso.niveles).reduce((s, n) => s + n.estrellas, 0);
-  const avanceUnidad = Math.round(((actual - unidad.inicio) / Math.max(1, unidad.fin - unidad.inicio + 1)) * 100);
+  // Avance de la ruta: niveles superados de 10.
+  const superados = Object.values(progreso.niveles).filter((n) => n.completado).length;
+  const pruebas = leerPruebas(p);
+  const finalPendiente = haceDiagnostica(p) && !!progreso.niveles[NIVEL_MAXIMO]?.completado && (!pruebas.final || !!pruebas.repetirFinal);
+  const avanceUnidad = Math.round((superados / NIVEL_MAXIMO) * 100);
 
   // Reto del día: una unidad ya abierta, distinta cada día.
   const abiertas = unidades.filter((u) => u.inicio <= actual);
@@ -65,7 +69,7 @@ export default function Inicio() {
       const pr = x.id === p.id ? progreso : leerProgreso(x.id, px);
       return { perfil: x, pista: px, progreso: pr, estrellas: Object.values(pr.niveles).reduce((s, n) => s + n.estrellas, 0) };
     })
-    .filter((x) => x.progreso.nivelMaximoDesbloqueado > 0)
+    .filter((x) => Object.keys(x.progreso.niveles).length > 0)
     .sort((a, b) => b.progreso.nivelMaximoDesbloqueado - a.progreso.nivelMaximoDesbloqueado)
     .slice(0, 4);
 
@@ -100,7 +104,7 @@ export default function Inicio() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="pequeno suave">
-                {RESUMEN_GRADO[pista].nombre} · Unidad {unidad.indice + 1} de 7
+                {RESUMEN_GRADO[pista].nombre} · Nivel {unidad.inicio} de {NIVEL_MAXIMO}
               </div>
               <strong className="titulo-tarjeta">{unidad.titulo}</strong>
               <div className="fila pequeno" style={{ marginTop: 4 }}>
@@ -113,9 +117,15 @@ export default function Inicio() {
               </div>
             </div>
           </div>
-          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: actual })}>
-            <Icono nombre="jugar-simple" tamano={24} /> {tu('Jugar', 'Continuar')} el nivel {actual}
-          </button>
+          {finalPendiente ? (
+            <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'prueba', tipo: 'final' })}>
+              <Icono nombre="medalla" tamano={26} /> {tu('¡Haz la prueba final!', 'Hacer la prueba final')}
+            </button>
+          ) : (
+            <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'nivel', nivel: actual })}>
+              <Icono nombre="jugar-simple" tamano={24} /> {tu('Jugar', 'Continuar')} el nivel {actual}
+            </button>
+          )}
         </section>
 
         {/* Lección de la unidad actual */}
@@ -124,7 +134,7 @@ export default function Inicio() {
             id={`leccion-${pista}-${unidad.indice}`}
             avatar={avatarDeAutor(lista[unidad.indice].autor)}
             autor={lista[unidad.indice].autor}
-            meta={`Lección de la unidad ${unidad.indice + 1}`}
+            meta={`Lección del nivel ${unidad.inicio}`}
             lectura={`${lista[unidad.indice].titulo}. ${lista[unidad.indice].idea}`}
             etiqueta={<><Icono nombre="libro" tamano={20} /> Aprende</>}
             acciones={

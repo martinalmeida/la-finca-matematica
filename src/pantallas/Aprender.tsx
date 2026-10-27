@@ -48,12 +48,14 @@ export default function Aprender() {
           </div>
           <p className="pequeno" style={{ marginBottom: 0 }}>
             {adulto
-              ? 'Los niveles de su cuaderno suben poco a poco: cálculo mental, compras, producción, porcentajes y planeación.'
-              : `Tu ruta está hecha para ${resumen.corto} grado. Cada unidad es un poco más difícil que la anterior: Inicio → Básico → Intermedio → Avanzado → Reto.`}
+              ? 'Su cuaderno tiene 10 temas, elegidos según su prueba de entrada. Cada tema tiene su lección.'
+              : pista === 'inclusion'
+                ? 'Tu ruta tiene 10 temas tranquilos, uno por nivel. Cada tema tiene su historia.'
+                : `Tu ruta tiene 10 temas, uno por nivel, y cada uno es un poco más difícil que el anterior: Inicio → Básico → Intermedio → Avanzado → Reto.`}
           </p>
         </section>
 
-        {(pista === 'g1' || p.apoyo) && !adulto && (
+        {pista === 'inclusion' && (
           <button type="button" className="vidrio tarjeta-taller revelar" onClick={() => ir({ nombre: 'taller' })}>
             <span className="icono-taller" aria-hidden="true">
               <Icono nombre="lapiz" tamano={44} anim="siempre" />
@@ -71,7 +73,7 @@ export default function Aprender() {
         <ol className="lista-lecciones">
           {unidades.map((u) => {
             const l = lista[u.indice];
-            const libre = leccionDisponible(u, actual, unidades);
+            const libre = leccionDisponible(u, actual);
             const completa = actual > u.fin || (u.fin === NIVEL_MAXIMO && progreso.niveles[NIVEL_MAXIMO]?.completado);
             const enCurso = !completa && actual >= u.inicio;
             const estado = completa ? 'Completada' : enCurso ? 'En curso' : libre ? 'Adelanto' : 'Más adelante';
@@ -84,7 +86,7 @@ export default function Aprender() {
                   </span>
                   <span className="columna" style={{ flex: 1, gap: 2, minWidth: 0, textAlign: 'left' }}>
                     <span className="pequeno suave">
-                      Unidad {u.indice + 1} · {u.inicio === u.fin ? `Nivel ${u.inicio}` : `Niveles ${u.inicio}–${u.fin}`}
+                      Tema {u.indice + 1} · Nivel {u.inicio}
                     </span>
                     <strong>{l?.titulo ?? u.titulo}</strong>
                     <span className="pequeno suave">{u.titulo}</span>

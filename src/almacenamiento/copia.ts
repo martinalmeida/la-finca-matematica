@@ -1,7 +1,7 @@
 // Copia de seguridad: exporta e importa todos los datos de la app en un archivo JSON local.
 
 import { borrar, clavesApp, escribirTexto, leerTexto } from './almacen';
-import { migrar, VERSION_ACTUAL } from './migraciones';
+import { CLAVE_VERSION, migrar, VERSION_ACTUAL } from './migraciones';
 
 export type Copia = {
   app: 'la-finca-matematica';
@@ -37,6 +37,8 @@ export function restaurarCopia(texto: string): { ok: true } | { ok: false; error
   if (obj.version > VERSION_ACTUAL) return { ok: false, error: 'La copia es de una versión más nueva de la aplicación.' };
   for (const k of clavesApp()) borrar(k);
   for (const [k, v] of Object.entries(obj.datos)) escribirTexto(k, typeof v === 'string' ? v : JSON.stringify(v));
+  // La versión de la copia manda: así una copia nueva no pasa por migraciones viejas.
+  if (!(CLAVE_VERSION in obj.datos)) escribirTexto(CLAVE_VERSION, String(obj.version));
   migrar();
   return { ok: true };
 }

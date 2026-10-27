@@ -3,9 +3,10 @@ import { guiaFamilias, todosLosVideos, videosLecciones } from '../src/contenido/
 import { lecciones } from '../src/contenido/lecciones';
 
 describe('videos de ayuda', () => {
-  it('cada lección de cada grado y de familias tiene su video', () => {
+  it('cada ruta tiene 10 lecciones y una casilla de video por tema (puede estar vacía)', () => {
     for (const [pista, lista] of Object.entries(lecciones)) {
-      expect(videosLecciones[pista as keyof typeof videosLecciones]).toHaveLength(lista.length);
+      expect(lista, pista).toHaveLength(10);
+      expect(videosLecciones[pista as keyof typeof videosLecciones], pista).toHaveLength(10);
     }
   });
 

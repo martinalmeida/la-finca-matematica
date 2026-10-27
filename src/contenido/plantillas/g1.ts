@@ -593,48 +593,55 @@ export const g1: DefinicionPista = {
   pista: 'g1',
   limite: 100,
   plantillas,
-  tramos: [
+  temas: [
     {
-      inicio: 0,
-      fin: 0,
-      titulo: 'Tutorial y conteo hasta 10',
-      usos: [u(contar, { max: 6 }), u(comparar, { max: 6 }), u(sumaJuntar, { max: 5 }), u(sumaCalculo, { max: 5 }), u(tablaCosecha, { max: 5, modo: 'mayor' })],
+      titulo: 'Contar hasta 10',
+      usos: [u(contar, { max: 10 }), u(comparar, { max: 10 }), u(tablaCosecha, { max: 10, modo: 'mayor' })],
     },
     {
-      inicio: 1,
-      fin: 15,
-      titulo: 'Conteo y comparación hasta 20',
-      usos: [u(contar, { max: 20, escribir: true }), u(comparar, { max: 20 }), u(siguiente, { max: 20 }), u(sumaRecta, { max: 20, maxSalto: 3 }), u(comparaDiferencia, { max: 10 }), u(tablaCosecha, { max: 20, modo: 'mayor' })],
+      titulo: 'Contar y comparar hasta 20',
+      usos: [u(contar, { max: 20 }), u(comparar, { max: 20 }), u(comparaDiferencia, { max: 10 }), u(tablaCosecha, { max: 20, modo: 'mayor' })],
+      prueba: u(comparar, { max: 20 }),
     },
     {
-      inicio: 16,
-      fin: 35,
-      titulo: 'Sumas hasta 10 y luego hasta 20',
-      usos: [u(sumaCalculo, { max: 10, escribir: true }), u(sumaCalculo, { max: 20, escribir: true }), u(sumaRecta, { max: 20 }), u(sumaCambio, { max: 20, escribir: true }), u(sumaJuntar, { max: 20 }), u(contar, { max: 20, escribir: true }), u(tablaCosecha, { max: 20 })],
+      titulo: 'Anterior, siguiente y la recta',
+      usos: [u(siguiente, { max: 20 }), u(siguiente, { max: 50 }), u(sumaRecta, { max: 20, maxSalto: 3 })],
+      prueba: u(siguiente, { max: 50 }),
     },
     {
-      inicio: 36,
-      fin: 55,
-      titulo: 'Restas hasta 20; completar a 10',
-      usos: [u(sumaCalculo, { max: 20, op: 'resta', escribir: true }), u(sumaRecta, { max: 20, op: 'resta' }), u(restaQuitar, { max: 20 }), u(comparaDiferencia, { max: 20 }), u(completar, { total: 10, escribir: true }), u(tablaCosecha, { max: 20, modo: 'diferencia' })],
+      titulo: 'Sumar hasta 10',
+      usos: [u(sumaCalculo, { max: 10 }), u(sumaJuntar, { max: 10 }), u(sumaCambio, { max: 10 }), u(sumaRecta, { max: 10 })],
+      prueba: u(sumaJuntar, { max: 10 }),
     },
     {
-      inicio: 56,
-      fin: 75,
-      titulo: 'Decenas y unidades; suma y resta hasta 50 sin reagrupar',
-      usos: [u(decenas, { max: 50 }), u(sumaCalculo, { max: 50, op: 'mixta', sinReagrupar: true }), u(sumaCambio, { max: 50, sinReagrupar: true }), u(comparaDiferencia, { max: 50, sinReagrupar: true }), u(completar, { total: 20 }), u(tablaCosecha, { max: 50, sinReagrupar: true })],
+      titulo: 'Sumar hasta 20',
+      usos: [u(sumaCalculo, { max: 20 }), u(sumaCambio, { max: 20 }), u(sumaJuntar, { max: 20 }), u(sumaRecta, { max: 20 }), u(tablaCosecha, { max: 20 })],
+      prueba: u(sumaCambio, { max: 20 }),
     },
     {
-      inicio: 76,
-      fin: 90,
-      titulo: 'Juntar, quitar y comparar hasta 99; repartos en 2 o 3 partes',
-      usos: [u(sumaCambio, { max: 99, sinReagrupar: true, incognita: true }), u(comparaDiferencia, { max: 99, sinReagrupar: true }), u(sumaCalculo, { max: 99, op: 'mixta', sinReagrupar: true }), u(decenas, { max: 99 }), u(razonable, { max: 99 }), u(reparto), u(tablaCosecha, { max: 99, sinReagrupar: true })],
+      titulo: 'Restar hasta 20',
+      usos: [u(sumaCalculo, { max: 20, op: 'resta' }), u(restaQuitar, { max: 20 }), u(sumaRecta, { max: 20, op: 'resta' }), u(comparaDiferencia, { max: 20 }), u(tablaCosecha, { max: 20, modo: 'diferencia' })],
+      prueba: u(restaQuitar, { max: 20 }),
     },
     {
-      inicio: 91,
-      fin: 100,
-      titulo: 'Retos mixtos de 1.º',
-      usos: [u(sumaCambio, { max: 99, sinReagrupar: true, incognita: true }), u(restaQuitar, { max: 20 }), u(comparaDiferencia, { max: 99, sinReagrupar: true }), u(sumaCalculo, { max: 99, op: 'mixta', sinReagrupar: true }), u(decenas, { max: 99 }), u(razonable, { max: 99 }), u(completar, { total: 20 }), u(reparto), u(tablaCosecha, { max: 99, modo: 'diferencia' })],
+      titulo: 'Completar a 10: ¿cuántos faltan?',
+      usos: [u(completar, { total: 10 }), u(completar, { total: 20 }), u(comparaDiferencia, { max: 20 })],
+    },
+    {
+      titulo: 'Decenas y unidades hasta 99',
+      usos: [u(decenas, { max: 50 }), u(decenas, { max: 99 }), u(razonable, { max: 99 })],
+      prueba: u(decenas, { max: 99 }),
+    },
+    {
+      titulo: 'Sumar y restar hasta 99 sin llevar',
+      usos: [u(sumaCalculo, { max: 99, op: 'mixta', sinReagrupar: true }), u(sumaCambio, { max: 99, sinReagrupar: true }), u(tablaCosecha, { max: 99, sinReagrupar: true }), u(razonable, { max: 99 })],
+    },
+    {
+      titulo: 'Problemas de juntar, quitar y comparar',
+      usos: [u(sumaCambio, { max: 99, sinReagrupar: true, incognita: true }), u(comparaDiferencia, { max: 99, sinReagrupar: true }), u(restaQuitar, { max: 20 }), u(reparto), u(tablaCosecha, { max: 99, modo: 'diferencia' })],
     },
   ],
 };
+
+/** Plantillas de 1.º que también usa el grado Inclusión. */
+export const plantillasG1 = { contar, comparar, sumaJuntar, restaQuitar };

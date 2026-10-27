@@ -38,15 +38,21 @@ export function generarApodo(rol: Rol): string {
   return `${sustantivos[azar(sustantivos.length)]} ${adjetivos[azar(adjetivos.length)]} ${10 + azar(90)}`;
 }
 
-/** Código anónimo: FM-3-K7Q2 (3 es el grado; F para familia). */
+/** Letra o número del grado en el código: 1–5, I para Inclusión y F para familia. */
+function marcaGrado(grado: Grado | null): string {
+  return grado === null ? 'F' : grado === 'inclusion' ? 'I' : String(grado);
+}
+
+/** Código anónimo: FM-3-K7Q2 (3 es el grado; I para Inclusión; F para familia). */
 export function generarCodigo(grado: Grado | null, existentes: string[] = []): string {
+  const g = marcaGrado(grado);
   for (let i = 0; i < 50; i++) {
     let s = '';
     for (let j = 0; j < 4; j++) s += ALFABETO[azar(ALFABETO.length)];
-    const codigo = `FM-${grado ?? 'F'}-${s}`;
+    const codigo = `FM-${g}-${s}`;
     if (!existentes.includes(codigo)) return codigo;
   }
-  return `FM-${grado ?? 'F'}-${Date.now().toString(36).slice(-4).toUpperCase()}`;
+  return `FM-${g}-${Date.now().toString(36).slice(-4).toUpperCase()}`;
 }
 
 export function crearPerfil(rol: Rol, grado: Grado | null, avatar: string, existentes: Perfil[]): Perfil {
@@ -63,5 +69,5 @@ export function crearPerfil(rol: Rol, grado: Grado | null, avatar: string, exist
 
 /** Al cambiar de grado, el código conserva su parte aleatoria y actualiza el número. */
 export function codigoConGrado(codigo: string, grado: Grado): string {
-  return codigo.replace(/^FM-[^-]+-/, `FM-${grado}-`);
+  return codigo.replace(/^FM-[^-]+-/, `FM-${marcaGrado(grado)}-`);
 }

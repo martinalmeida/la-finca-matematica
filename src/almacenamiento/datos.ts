@@ -1,7 +1,8 @@
-// Esquema de datos (v1) y operaciones sobre perfiles, progreso, registro, ajustes y panel docente.
+// Esquema de datos (v2) y operaciones sobre perfiles, progreso, registro, ajustes y panel docente.
 
 import { borrar, clavesApp, escribir, leer, PREFIJO_V1 } from './almacen';
-import type { Grado, Operacion, Pista } from '../juego/tipos';
+import type { Banda, Grado, Operacion, Pista } from '../juego/tipos';
+import { bandaPorPuntaje, type ResultadoPrueba } from '../juego/pruebas';
 
 export type Rol = 'estudiante' | 'familia';
 
@@ -13,9 +14,18 @@ export type Perfil = {
   rol: Rol;
   grado: Grado | null;
   creado: string;
-  /** Apoyo extra para aprendizaje más pausado (lo activa un adulto): números más pequeños,
-   *  menos opciones, dibujo de ayuda visible y paso a paso. */
-  apoyo?: boolean;
+  /** Ruta de padres que asignó la diagnóstica de familias. */
+  rutaFamilia?: Pista;
+};
+
+/** Pruebas de entrada y salida del perfil en su grado (cada grado tiene las suyas). */
+export type Pruebas = {
+  diagnostica?: ResultadoPrueba;
+  final?: ResultadoPrueba;
+  /** El docente permitió repetir la prueba final. */
+  repetirFinal?: boolean;
+  /** Exigencia elegida a mano por el docente (si no, la da la diagnóstica). */
+  banda?: Banda;
 };
 
 export type EtapaPlanta = 'semilla' | 'brote' | 'planta' | 'flor' | 'fruto' | 'cosecha';
@@ -80,7 +90,7 @@ const K = {
   progreso: (id: string, pista: string) => `${PREFIJO_V1}progreso:${id}:${pista}`,
   registro: (id: string) => `${PREFIJO_V1}registro:${id}`,
   resumen: (id: string) => `${PREFIJO_V1}resumen:${id}`,
-  tutorial: (id: string) => `${PREFIJO_V1}tutorialVisto:${id}`,
+  pruebas: (id: string, pista: string) => `${PREFIJO_V1}pruebas:${id}:${pista}`,
   historias: (id: string) => `${PREFIJO_V1}historiasVistas:${id}`,
   reacciones: (id: string) => `${PREFIJO_V1}reacciones:${id}`,
   taller: (id: string) => `${PREFIJO_V1}taller:${id}`,
@@ -127,18 +137,42 @@ export function eliminarPerfil(id: string): void {
 /** Reinicia el progreso del perfil, conservando apodo, código y avatar. */
 export function reiniciarPerfil(id: string): void {
   for (const k of clavesApp()) {
-    if ((k.includes(`progreso:${id}:`) || k.endsWith(`registro:${id}`) || k.endsWith(`resumen:${id}`)) && !k.includes('perfiles')) borrar(k);
+    if ((k.includes(`progreso:${id}:`) || k.endsWith(`registro:${id}`) || k.endsWith(`resumen:${id}`) || k.includes(`pruebas:${id}:`)) && !k.includes('perfiles')) borrar(k);
   }
 }
 
+/** Ruta de juego del perfil (grado, Inclusión o la ruta de padres asignada). */
 export function pistaDePerfil(p: Perfil): Pista {
-  return p.rol === 'familia' || !p.grado ? 'familia' : (`g${p.grado}` as Pista);
+  if (p.rol === 'familia' || !p.grado) return p.rutaFamilia ?? 'fam-intermedia';
+  return p.grado === 'inclusion' ? 'inclusion' : (`g${p.grado}` as Pista);
 }
+
+/** Pista de la que salen las preguntas de la diagnóstica y la final. */
+export function pistaDePrueba(p: Perfil): Pista {
+  return p.rol === 'familia' || !p.grado ? 'familia' : pistaDePerfil(p);
+}
+
+/** Exigencia del perfil en su grado: la que eligió el docente o la que dio la diagnóstica. */
+export function bandaDePerfil(p: Perfil): Banda {
+  const pr = leerPruebas(p);
+  return pr.banda ?? (pr.diagnostica ? bandaPorPuntaje(pr.diagnostica.aciertos, pr.diagnostica.total) : 'basico');
+}
+
+/** Inclusión no hace pruebas; los demás empiezan por la diagnóstica. */
+export function haceDiagnostica(p: Perfil): boolean {
+  return p.grado !== 'inclusion';
+}
+
+export function necesitaDiagnostica(p: Perfil): boolean {
+  return haceDiagnostica(p) && !leerPruebas(p).diagnostica;
+}
+
+export const TODAS_LAS_PISTAS: Pista[] = ['g1', 'g2', 'g3', 'g4', 'g5', 'inclusion', 'fam-basica', 'fam-intermedia', 'fam-avanzada'];
 
 // --- Progreso ---
 
 export function progresoVacio(): Progreso {
-  return { nivelMaximoDesbloqueado: 0, niveles: {}, semillas: 0, insignias: [], etapaPlanta: 'semilla' };
+  return { nivelMaximoDesbloqueado: 1, niveles: {}, semillas: 0, insignias: [], etapaPlanta: 'semilla' };
 }
 
 export function leerProgreso(id: string, pista: Pista): Progreso {
@@ -154,7 +188,7 @@ export function guardarProgreso(id: string, pista: Pista, p: Progreso): void {
 export function totalesPerfil(id: string): { semillas: number; insignias: string[] } {
   let semillas = 0;
   const insignias = new Set<string>();
-  for (const pista of ['g1', 'g2', 'g3', 'g4', 'g5', 'familia'] as Pista[]) {
+  for (const pista of TODAS_LAS_PISTAS) {
     const p = leer<Progreso | null>(K.progreso(id, pista), null);
     if (!p) continue;
     semillas += p.semillas;
@@ -255,12 +289,15 @@ export function guardarSilo(s: { cosechas: number }): void {
   escribir(K.silo, s);
 }
 
-export function tutorialVisto(id: string): boolean {
-  return leer(K.tutorial(id), false);
+// --- Pruebas diagnóstica y final ---
+
+export function leerPruebas(p: Perfil): Pruebas {
+  const v = leer<Pruebas>(K.pruebas(p.id, pistaDePrueba(p)), {});
+  return v && typeof v === 'object' ? v : {};
 }
 
-export function marcarTutorialVisto(id: string): void {
-  escribir(K.tutorial(id), true);
+export function guardarPruebas(p: Perfil, pruebas: Pruebas): void {
+  escribir(K.pruebas(p.id, pistaDePrueba(p)), pruebas);
 }
 
 // --- Red de la finca: historias (lecciones) vistas y reacciones a publicaciones ---

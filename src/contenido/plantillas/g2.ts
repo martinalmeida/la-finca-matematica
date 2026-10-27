@@ -4,6 +4,7 @@
 
 import type { ContextoGeneracion, DefinicionPista, EjercicioBase, Plantilla, Uso, Visual } from '../../juego/tipos';
 import { adulto, cuantos, frutas, mayus, nombreCant, nombresFincas, persona, pesos, productos, type Genero, type Persona } from '../contexto';
+import { plantillasG3 } from './g3';
 import { distractores, dif, lerp, mezclarOpciones, modoRespuesta, parResta, parSuma, pb, pn, pt } from './util';
 
 // --- Ayudantes locales ---
@@ -944,70 +945,98 @@ const tabla: Plantilla = {
   },
 };
 
-const plantillas = [bloques, cifraValor, comparar, recta, algoritmoSuma, algoritmoResta, calculo, sumaProblema, restaProblema, comparacion, empaque, dinero, vueltas, arreglo, sumaRepetida, grupos, reparto, razonable, tabla];
+const { tablas, arregloSurcos, gruposIguales, surcosProblema, algoritmoMult, multProblema, razonable: razonableMult, produccion, tienda, tablaDatos } = plantillasG3;
 
 const u = (plantilla: Plantilla, params?: Uso['params']): Uso => ({ plantilla, params });
 
 export const g2: DefinicionPista = {
   pista: 'g2',
-  limite: 1000,
-  plantillas,
-  tramos: [
+  limite: 10000,
+  plantillas: [
+    bloques,
+    cifraValor,
+    comparar,
+    recta,
+    algoritmoSuma,
+    algoritmoResta,
+    calculo,
+    sumaProblema,
+    restaProblema,
+    comparacion,
+    empaque,
+    dinero,
+    vueltas,
+    arreglo,
+    sumaRepetida,
+    grupos,
+    reparto,
+    razonable,
+    tabla,
+    tablas,
+    arregloSurcos,
+    gruposIguales,
+    surcosProblema,
+    algoritmoMult,
+    multProblema,
+    razonableMult,
+    produccion,
+    tienda,
+    tablaDatos,
+  ],
+  temas: [
     {
-      inicio: 0,
-      fin: 0,
-      titulo: 'Tutorial y repaso hasta 99',
-      usos: [u(bloques, { max: 99 }), u(comparar, { max: 99 }), u(calculo, { max: 99, op: 'mixta' }), u(sumaProblema, { max: 99 }), u(tabla, { max: 99 })],
-    },
-    {
-      inicio: 1,
-      fin: 15,
-      titulo: 'Valor posicional hasta 999',
-      usos: [u(bloques, { max: 999 }), u(cifraValor), u(comparar, { max: 999 }), u(recta, { paso: 10 }), u(recta, { paso: 100 }), u(empaque), u(dinero, { modo: 'contar' })],
-    },
-    {
-      inicio: 16,
-      fin: 35,
-      titulo: 'Suma sin y con reagrupación',
-      usos: [u(algoritmoSuma), u(calculo, { op: 'suma' }), u(sumaProblema), u(razonable, { op: 'suma' }), u(tabla, { modo: 'total' }), u(dinero, { modo: 'compra' })],
-    },
-    {
-      inicio: 36,
-      fin: 55,
-      titulo: 'Resta sin y con desagrupación',
-      usos: [u(algoritmoResta), u(calculo, { op: 'resta' }), u(recta, { paso: 10, op: 'resta' }), u(restaProblema), u(comparacion), u(razonable, { op: 'resta' }), u(vueltas), u(tabla, { modo: 'diferencia' })],
-    },
-    {
-      inicio: 56,
-      fin: 75,
-      titulo: 'Problemas de cambio, combinación y comparación; dinero',
-      usos: [u(sumaProblema, { incognita: true }), u(restaProblema, { incognita: true }), u(comparacion, { incognita: true }), u(calculo, { op: 'mixta' }), u(razonable, { op: 'mixta' }), u(dinero, { modo: 'compra' }), u(vueltas)],
-    },
-    {
-      inicio: 76,
-      fin: 90,
-      titulo: 'Grupos iguales y suma repetida (×2, ×5, ×10); reparto equitativo',
-      usos: [u(arreglo), u(sumaRepetida), u(grupos), u(reparto), u(tabla, { modo: 'mayor' })],
-    },
-    {
-      inicio: 91,
-      fin: 100,
-      titulo: 'Retos mixtos de 2.º',
+      titulo: 'Repaso: sumar y restar hasta 999',
       usos: [
         u(algoritmoSuma),
         u(algoritmoResta),
-        u(sumaProblema, { incognita: true }),
-        u(restaProblema, { incognita: true }),
-        u(comparacion, { incognita: true }),
-        u(grupos),
-        u(arreglo),
-        u(sumaRepetida),
-        u(razonable, { op: 'mixta' }),
         u(bloques),
-        u(vueltas),
-        u(reparto),
+        u(cifraValor),
+        u(comparar, { max: 999 }),
+        u(recta, { paso: 10 }),
+        u(calculo, { op: 'mixta' }),
+        u(sumaProblema),
+        u(restaProblema),
+        u(comparacion),
+        u(empaque),
+        u(razonable, { op: 'mixta' }),
         u(tabla, { modo: 'total' }),
       ],
+    },
+    {
+      titulo: 'Grupos iguales y suma repetida',
+      usos: [u(sumaRepetida), u(grupos), u(arreglo)],
+    },
+    {
+      titulo: 'Arreglos de surcos',
+      usos: [u(arregloSurcos, { maxTabla: 6 }), u(arreglo, { factores: '2,3,4,5' })],
+    },
+    {
+      titulo: 'Tablas del 2, del 5 y del 10',
+      usos: [u(tablas, { tablas: '2,5,10' }), u(grupos, { factores: '2,5,10' }), u(gruposIguales, { tablas: '2,5,10' }), u(arregloSurcos, { tablas: '2,5,10' })],
+    },
+    {
+      titulo: 'Tablas del 3 y del 4',
+      usos: [u(tablas, { tablas: '3,4' }), u(grupos, { factores: '3,4' }), u(gruposIguales, { tablas: '3,4' }), u(arregloSurcos, { tablas: '3,4' })],
+    },
+    {
+      titulo: 'Tablas del 6 al 9',
+      usos: [u(tablas, { tablas: '6,7,8,9' }), u(arregloSurcos, { tablas: '6,7,8,9' }), u(gruposIguales, { tablas: '6,7,8,9' }), u(surcosProblema, { tablas: '6,7,8,9' })],
+    },
+    {
+      titulo: 'Problemas de grupos iguales',
+      usos: [u(gruposIguales), u(surcosProblema), u(grupos, { factores: '2,3,4,5,10' }), u(reparto), u(tabla, { modo: 'mayor' })],
+    },
+    {
+      titulo: 'Multiplicar 2 cifras por 1 cifra',
+      usos: [u(algoritmoMult, { cifras: 2 }), u(multProblema, { cifras: 2 }), u(razonableMult, { op: 'mult' })],
+    },
+    {
+      titulo: 'Multiplicar 3 cifras por 1 cifra',
+      usos: [u(algoritmoMult, { cifras: 3 }), u(multProblema, { cifras: 3 }), u(produccion, { op: 'mult' })],
+    },
+    {
+      titulo: 'Multiplicar en la tienda y la finca',
+      usos: [u(tienda, { op: 'mult' }), u(dinero, { modo: 'compra' }), u(vueltas), u(multProblema), u(tablaDatos, { modo: 'mult' })],
     },
   ],
 };

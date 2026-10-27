@@ -130,7 +130,7 @@ const MENSAJES_APOYO: Record<TipoError, [nino: string, adulto: string]> = {
 };
 
 export function mensajeError(tipo: TipoError, ej: Pick<Ejercicio, 'pista' | 'calculo' | 'apoyo'>): string {
-  const adulto = ej.pista === 'familia';
+  const adulto = ej.pista === 'familia' || ej.pista.startsWith('fam-');
   if (ej.apoyo) return MENSAJES_APOYO[tipo][adulto ? 1 : 0];
   switch (tipo) {
     case 'suma-sin-llevar':

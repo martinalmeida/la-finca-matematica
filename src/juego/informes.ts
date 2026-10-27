@@ -1,7 +1,7 @@
 // Resúmenes para familias y panel docente (solo códigos, nunca nombres).
 
-import { leerProgreso, leerRegistro, leerResumen, listarPerfiles, pistaDePerfil, type Perfil } from '../almacenamiento/datos';
-import type { Operacion, Pista } from './tipos';
+import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, leerRegistro, leerResumen, listarPerfiles, pistaDePerfil, type Perfil } from '../almacenamiento/datos';
+import type { Banda, Operacion, Pista } from './tipos';
 import { nombresErrores, type TipoError } from './errores';
 
 export const nombresOperacion: Record<Operacion, string> = {
@@ -23,12 +23,18 @@ export type FilaInforme = {
   masCuesta: Operacion[];
   /** Ejercicios resueltos con el paso a paso. */
   pasoAPaso: number;
+  /** Exigencia (estudiantes de 1.º a 5.º). */
+  banda: Banda | null;
+  /** Aciertos de la diagnóstica y de la final (de 10). */
+  diagnostica: number | null;
+  final: number | null;
 };
 
 export function informePerfil(p: Perfil): FilaInforme {
   const pista = pistaDePerfil(p);
   const prog = leerProgreso(p.id, pista);
   const res = leerResumen(p.id);
+  const pruebas = leerPruebas(p);
   const porcentajes: FilaInforme['porcentajes'] = {};
   for (const [op, v] of Object.entries(res.porOperacion) as [Operacion, { total: number; aciertos: number }][]) {
     if (v.total > 0) porcentajes[op] = { pct: Math.round((100 * v.aciertos) / v.total), total: v.total };
@@ -53,6 +59,9 @@ export function informePerfil(p: Perfil): FilaInforme {
       .map(([tipo, n]) => ({ tipo: nombresErrores[tipo as TipoError] ?? tipo, n })),
     masCuesta,
     pasoAPaso: res.pasoAPaso,
+    banda: p.rol === 'estudiante' && haceDiagnostica(p) ? bandaDePerfil(p) : null,
+    diagnostica: pruebas.diagnostica?.aciertos ?? null,
+    final: pruebas.final?.aciertos ?? null,
   };
 }
 
@@ -67,7 +76,7 @@ function csv(filas: (string | number | boolean | undefined)[][]): string {
 /** CSV de resumen por perfil (códigos, sin apodos ni nombres). */
 export function csvResumen(): string {
   const ops: Operacion[] = ['suma', 'resta', 'multiplicacion', 'division', 'mixta'];
-  const enc = ['codigo', 'rol', 'grado', 'pista', 'nivel_maximo', 'estrellas', 'semillas', ...ops.flatMap((o) => [`${o}_pct`, `${o}_n`]), 'errores_frecuentes', 'apoyo_extra', 'paso_a_paso'];
+  const enc = ['codigo', 'rol', 'grado', 'pista', 'nivel_maximo', 'estrellas', 'semillas', ...ops.flatMap((o) => [`${o}_pct`, `${o}_n`]), 'errores_frecuentes', 'paso_a_paso', 'banda', 'diagnostica', 'final', 'diferencia', 'diagnostica_por_tema', 'final_por_tema'];
   const filas = informeTodos().map((f) => [
     f.perfil.codigo,
     f.perfil.rol,
@@ -78,10 +87,20 @@ export function csvResumen(): string {
     f.semillas,
     ...ops.flatMap((o) => [f.porcentajes[o]?.pct ?? '', f.porcentajes[o]?.total ?? 0]),
     f.erroresFrecuentes.map((e) => `${e.tipo} (${e.n})`).join('; '),
-    f.perfil.apoyo ? 'si' : 'no',
     f.pasoAPaso,
+    f.banda ?? '',
+    f.diagnostica ?? '',
+    f.final ?? '',
+    f.diagnostica !== null && f.final !== null ? f.final - f.diagnostica : '',
+    porTema(leerPruebas(f.perfil).diagnostica?.porTema),
+    porTema(leerPruebas(f.perfil).final?.porTema),
   ]);
   return '﻿' + csv([enc, ...filas]);
+}
+
+/** Aciertos por tema como texto: «1101000100» (1 = acierto). */
+function porTema(lista: boolean[] | undefined): string {
+  return lista ? lista.map((x) => (x ? '1' : '0')).join('') : '';
 }
 
 /** CSV del registro detallado (modo investigación). */
@@ -106,7 +125,9 @@ export function jsonInvestigacion(): string {
           rol: p.rol,
           grado: p.grado,
           creado: p.creado,
-          apoyo: !!p.apoyo,
+          banda: p.rol === 'estudiante' && haceDiagnostica(p) ? bandaDePerfil(p) : null,
+          rutaFamilia: p.rutaFamilia ?? null,
+          pruebas: leerPruebas(p),
           nivelMaximo: f.nivelMaximo,
           estrellas: f.estrellas,
           semillas: f.semillas,

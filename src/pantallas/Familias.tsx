@@ -2,9 +2,12 @@ import { useApp } from '../estado';
 import { Barra } from '../componentes/Comunes';
 import { Avatar } from '../componentes/Ilustraciones';
 import { informePerfil, nombresOperacion } from '../juego/informes';
-import { listarPerfiles } from '../almacenamiento/datos';
+import { leerPruebas, listarPerfiles, pistaDePerfil } from '../almacenamiento/datos';
+import Comparacion from '../componentes/Comparacion';
+import { NIVEL_MAXIMO } from '../juego/motor';
 import { consejosFamilia as consejos } from '../contenido/red';
 import { CabeceraVidrio } from '../componentes/Red';
+import { nombreGrado } from '../juego/complejidad';
 import Icono from '../componentes/Icono';
 import { BotonVideo } from '../componentes/Video';
 import { guiaFamilias, videosLecciones } from '../contenido/videos';
@@ -12,19 +15,22 @@ import { lecciones } from '../contenido/lecciones';
 import type { Pista } from '../juego/tipos';
 
 const GRADOS: { pista: Pista; nombre: string }[] = [
+  { pista: 'inclusion', nombre: 'Inclusión' },
   { pista: 'g1', nombre: '1.º grado' },
   { pista: 'g2', nombre: '2.º grado' },
   { pista: 'g3', nombre: '3.º grado' },
   { pista: 'g4', nombre: '4.º grado' },
   { pista: 'g5', nombre: '5.º grado' },
-  { pista: 'familia', nombre: 'Para usted: cuentas de la casa y la finca' },
+  { pista: 'fam-basica', nombre: 'Para usted: cuaderno básico' },
+  { pista: 'fam-intermedia', nombre: 'Para usted: cuaderno intermedio' },
+  { pista: 'fam-avanzada', nombre: 'Para usted: cuaderno avanzado' },
 ];
 
 export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 'avance' | 'videos' }) {
   const { ir, ajustes } = useApp();
 
   if (seccion === 'videos') {
-    const gradosNinos = new Set(listarPerfiles().filter((p) => p.rol === 'estudiante').map((p) => `g${p.grado}`));
+    const gradosNinos = new Set<Pista>(listarPerfiles().filter((p) => p.rol === 'estudiante').map(pistaDePerfil));
     return (
       <main className="pantalla">
         <Barra titulo={<span className="cuaderno-titulo">Videos para acompañar</span>} />
@@ -52,14 +58,17 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
               {gradosNinos.has(pista) && <span className="chip pequeno">Grado de sus niños</span>}
             </summary>
             <div className="columna" style={{ marginTop: 10 }}>
-              {videosLecciones[pista].map((v, k) => (
-                <div key={v.id + k} className="columna" style={{ gap: 4 }}>
-                  <span className="pequeno suave">
-                    Lección {k + 1}: {lecciones[pista][k]?.titulo}
-                  </span>
-                  <BotonVideo video={v} adulto clase="boton" texto={v.titulo} />
-                </div>
-              ))}
+              {videosLecciones[pista].map(
+                (v, k) =>
+                  v && (
+                    <div key={v.id + k} className="columna" style={{ gap: 4 }}>
+                      <span className="pequeno suave">
+                        Tema {k + 1}: {lecciones[pista][k]?.titulo}
+                      </span>
+                      <BotonVideo video={v} adulto clase="boton" texto={v.titulo} />
+                    </div>
+                  ),
+              )}
             </div>
           </details>
         ))}
@@ -94,6 +103,7 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
         {ninos.length === 0 && <p className="tarjeta">Todavía no hay perfiles de estudiantes en este celular.</p>}
         {ninos.map((p) => {
           const f = informePerfil(p);
+          const pr = leerPruebas(p);
           return (
             <article key={p.id} className="tarjeta columna">
               <div className="fila">
@@ -101,13 +111,19 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
                 <div>
                   <strong>{p.apodo}</strong>
                   <div className="pequeno suave">
-                    {p.grado}.º grado · {p.codigo}
+                    {nombreGrado(p.grado)} · {p.codigo}
                   </div>
                 </div>
               </div>
               <p style={{ margin: 0 }}>
-                Va en el <strong>nivel {f.nivelMaximo} de 100</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
+                Va en el <strong>nivel {f.nivelMaximo} de {NIVEL_MAXIMO}</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
               </p>
+              {pr.diagnostica && !pr.final && (
+                <p className="pequeno" style={{ margin: 0 }}>
+                  Prueba de entrada: {pr.diagnostica.aciertos} de {pr.diagnostica.total}. Al terminar los 10 niveles hará la prueba final y podrá comparar.
+                </p>
+              )}
+              {pr.diagnostica && pr.final && <Comparacion diagnostica={pr.diagnostica} final={pr.final} adulto />}
               <p style={{ margin: 0 }}>
                 {f.masCuesta.length
                   ? `Le cuesta más: ${f.masCuesta.map((o) => nombresOperacion[o].toLowerCase()).join(' y ')}. Practiquen juntos con ejemplos de la casa.`

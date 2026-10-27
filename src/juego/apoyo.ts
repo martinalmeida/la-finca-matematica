@@ -1,10 +1,7 @@
-// Apoyo extra para quienes aprenden a otro ritmo: menos opciones para elegir y
+// Ayudas de la banda Refuerzo (la asigna la prueba diagnóstica): menos opciones para elegir y
 // datos para el «paso a paso» (qué pasa en el problema y cómo se ve).
 
 import type { Calculo, Ejercicio, Respuesta } from './tipos';
-
-/** Factor que baja la dificultad dentro de la unidad (números más pequeños). */
-export const FACTOR_DIFICULTAD_APOYO = 0.5;
 
 /** Deja la respuesta correcta y el distractor más cercano, en el orden original. */
 export function dosOpciones<T extends Respuesta>(opciones: T[], esCorrecta: (o: T) => boolean): T[] {

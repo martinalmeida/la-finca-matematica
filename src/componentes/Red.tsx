@@ -85,7 +85,7 @@ export function Publicacion({ id, avatar, autor, meta, etiqueta, children, reacc
   );
 }
 
-/** Fila de historias: una por unidad de la ruta del grado. */
+/** Fila de historias: una por tema de la ruta. */
 export function BarraHistorias({
   unidades,
   lecciones,
@@ -122,7 +122,7 @@ export function BarraHistorias({
                   {libre ? <IconoEmoji emoji={l?.emoji ?? '📖'} tamano={40} anim="siempre" /> : <Icono nombre="candado" tamano={32} anim="no" />}
                 </span>
               </span>
-              <span className="historia-nombre">{enCurso ? 'Ahora' : `Unidad ${u.indice + 1}`}</span>
+              <span className="historia-nombre">{enCurso ? 'Ahora' : `Nivel ${u.inicio}`}</span>
             </button>
           </div>
         );

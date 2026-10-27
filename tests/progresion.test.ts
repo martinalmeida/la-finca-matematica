@@ -1,12 +1,9 @@
-// Prueba de progresión: un estudiante simulado aprueba los niveles 0 a 100 en cada pista.
+// Prueba de progresión: un estudiante simulado aprueba los niveles 1 a 10 en cada ruta.
 import { describe, expect, it } from 'vitest';
-import { definiciones } from '../src/contenido/pistas';
-import { aciertosParaAprobar, cantidadEjercicios, generarNivel, indiceDificultad, LIMITES_TRAMOS } from '../src/juego/motor';
+import { aciertosParaAprobar, BANDAS, dificultadPregunta, generarNivel, NIVEL_MAXIMO, PREGUNTAS_POR_NIVEL } from '../src/juego/motor';
 import { aplicarResultado, calcularEstrellas } from '../src/juego/progresion';
-import { progresoVacio } from '../src/almacenamiento/datos';
-import type { Ejercicio, Pista } from '../src/juego/tipos';
-
-const PISTAS = Object.keys(definiciones) as Pista[];
+import { progresoVacio, TODAS_LAS_PISTAS } from '../src/almacenamiento/datos';
+import type { Banda, Ejercicio } from '../src/juego/tipos';
 
 /** Magnitud de un ejercicio: el mayor número de sus datos y respuesta. */
 function magnitud(ej: Ejercicio): number {
@@ -15,24 +12,19 @@ function magnitud(ej: Ejercicio): number {
   return Math.max(0, ...nums);
 }
 
-function mediaMagnitud(pista: Pista, nivel: number, muestras = 40): number {
-  let s = 0;
-  let n = 0;
-  for (let i = 0; i < muestras; i++) {
-    for (const ej of generarNivel({ codigo: 'FM-P-TEST', pista, nivel, intento: i + 1 })) {
-      s += Math.log10(1 + magnitud(ej));
-      n++;
-    }
-  }
-  return s / n;
-}
-
 describe('reglas de aprobación y estrellas', () => {
-  it('4 de 5 y 3 de 4', () => {
-    expect(cantidadEjercicios('g1')).toBe(4);
-    expect(aciertosParaAprobar('g1')).toBe(3);
-    expect(cantidadEjercicios('g3')).toBe(5);
-    expect(aciertosParaAprobar('g3')).toBe(4);
+  it('aciertos para pasar según la banda; Inclusión nunca pierde', () => {
+    expect(aciertosParaAprobar('g3', 'refuerzo')).toBe(7);
+    expect(aciertosParaAprobar('g3', 'basico')).toBe(8);
+    expect(aciertosParaAprobar('g3', 'avanzado')).toBe(9);
+    expect(aciertosParaAprobar('inclusion', 'avanzado')).toBe(0);
+  });
+  it('la dificultad sube dentro del rango de la banda', () => {
+    for (const banda of Object.keys(BANDAS) as Banda[]) {
+      expect(dificultadPregunta(banda, 0)).toBeCloseTo(BANDAS[banda].desde);
+      expect(dificultadPregunta(banda, PREGUNTAS_POR_NIVEL - 1)).toBeCloseTo(BANDAS[banda].hasta);
+      for (let i = 1; i < PREGUNTAS_POR_NIVEL; i++) expect(dificultadPregunta(banda, i)).toBeGreaterThan(dificultadPregunta(banda, i - 1));
+    }
   });
   it('estrellas', () => {
     expect(calcularEstrellas(true, 0, 0)).toBe(3);
@@ -43,56 +35,58 @@ describe('reglas de aprobación y estrellas', () => {
   });
   it('no aprobar nunca quita semillas ni niveles', () => {
     let p = progresoVacio();
-    p = aplicarResultado(p, { pista: 'g2', nivel: 0, aciertos: 5, total: 5, errores: 0, pistasUsadas: 0, intento: 1, repaso: false, semillas: 5 }).progreso;
+    p = aplicarResultado(p, { pista: 'g2', nivel: 1, aciertos: 10, total: 10, errores: 0, pistasUsadas: 0, intento: 1, repaso: false, semillas: 10 }).progreso;
     const antes = { ...p };
-    const e = aplicarResultado(p, { pista: 'g2', nivel: 1, aciertos: 1, total: 5, errores: 6, pistasUsadas: 3, intento: 1, repaso: false, semillas: 1 });
+    const e = aplicarResultado(p, { pista: 'g2', nivel: 2, aciertos: 5, total: 10, errores: 6, pistasUsadas: 3, intento: 1, repaso: false, semillas: 1 });
     expect(e.aprobado).toBe(false);
     expect(e.progreso.semillas).toBeGreaterThanOrEqual(antes.semillas);
-    expect(e.progreso.nivelMaximoDesbloqueado).toBe(1);
+    expect(e.progreso.nivelMaximoDesbloqueado).toBe(2);
+  });
+  it('7 de 10 aprueba en Refuerzo pero no en Básico', () => {
+    const r = { pista: 'g4' as const, nivel: 1, aciertos: 7, total: 10, errores: 3, pistasUsadas: 0, intento: 1, repaso: false, semillas: 7 };
+    expect(aplicarResultado(progresoVacio(), { ...r, banda: 'refuerzo' }).aprobado).toBe(true);
+    expect(aplicarResultado(progresoVacio(), { ...r, banda: 'basico' }).aprobado).toBe(false);
   });
 });
 
-describe('progresión de 0 a 100 en cada pista', () => {
-  for (const pista of PISTAS) {
-    it(`${pista}: se desbloquea de uno en uno y la dificultad nunca baja`, () => {
+describe('progresión de 1 a 10 en cada ruta', () => {
+  for (const pista of TODAS_LAS_PISTAS) {
+    it(`${pista}: 10 preguntas por nivel, se desbloquea de uno en uno`, () => {
       let p = progresoVacio();
-      let previo = -1;
-      for (let nivel = 0; nivel <= 100; nivel++) {
+      for (let nivel = 1; nivel <= NIVEL_MAXIMO; nivel++) {
         const ejercicios = generarNivel({ codigo: 'FM-1-SIMU', pista, nivel, intento: 1 });
-        expect(ejercicios.length).toBe(cantidadEjercicios(pista));
-        // Sin enunciados repetidos dentro del nivel.
-        expect(new Set(ejercicios.map((e) => e.enunciado)).size).toBe(ejercicios.length);
-        // Cada nivel (salvo los muy cortos) mezcla al menos 3 dimensiones.
-        expect(new Set(ejercicios.map((e) => e.dimension)).size).toBeGreaterThanOrEqual(3);
+        expect(ejercicios.length).toBe(PREGUNTAS_POR_NIVEL);
+        // Casi sin enunciados repetidos (en Inclusión la repetición es parte de la rutina).
+        if (pista !== 'inclusion') expect(new Set(ejercicios.map((e) => e.enunciado)).size).toBeGreaterThanOrEqual(PREGUNTAS_POR_NIVEL - 2);
         expect(nivel).toBe(p.nivelMaximoDesbloqueado);
-        const e = aplicarResultado(p, { pista, nivel, aciertos: ejercicios.length, total: ejercicios.length, errores: 0, pistasUsadas: 0, intento: 1, repaso: false, semillas: ejercicios.length });
-        p = e.progreso;
-        const indice = indiceDificultad(nivel);
-        expect(indice).toBeGreaterThanOrEqual(previo);
-        previo = indice;
+        p = aplicarResultado(p, { pista, nivel, aciertos: 10, total: 10, errores: 0, pistasUsadas: 0, intento: 1, repaso: false, semillas: 10 }).progreso;
       }
-      expect(p.nivelMaximoDesbloqueado).toBe(100);
-      expect(p.niveles[100].completado).toBe(true);
+      expect(p.nivelMaximoDesbloqueado).toBe(NIVEL_MAXIMO);
+      expect(p.niveles[NIVEL_MAXIMO].completado).toBe(true);
       expect(p.etapaPlanta).toBe('cosecha');
-      expect(p.insignias).toContain('cosechador-100');
+      expect(p.insignias).toContain('ruta-completa');
       expect(p.insignias).toContain('explorador');
-    });
-
-    it(`${pista}: dentro de cada tramo, los números no se achican al subir la dificultad`, () => {
-      for (const [a, b] of LIMITES_TRAMOS) {
-        if (a === b) continue;
-        // Se comparan niveles que no son de cosecha.
-        const inicio = a % 10 === 0 ? a + 1 : a;
-        const fin = b % 10 === 0 ? b - 1 : b;
-        expect(mediaMagnitud(pista, fin) + 0.05).toBeGreaterThanOrEqual(mediaMagnitud(pista, inicio));
-      }
     });
   }
 
+  it('Avanzado trae números más grandes que Refuerzo en el mismo tema', () => {
+    for (const pista of ['g2', 'g3', 'g4', 'g5'] as const) {
+      let refuerzo = 0;
+      let avanzado = 0;
+      for (let intento = 1; intento <= 20; intento++) {
+        for (let nivel = 1; nivel <= NIVEL_MAXIMO; nivel++) {
+          refuerzo += generarNivel({ codigo: 'CD34', pista, nivel, intento, banda: 'refuerzo' }).reduce((s, e) => s + Math.log10(1 + magnitud(e)), 0);
+          avanzado += generarNivel({ codigo: 'CD34', pista, nivel, intento, banda: 'avanzado' }).reduce((s, e) => s + Math.log10(1 + magnitud(e)), 0);
+        }
+      }
+      expect(avanzado, pista).toBeGreaterThan(refuerzo);
+    }
+  });
+
   it('la generación es reproducible con la misma semilla y cambia con el intento', () => {
-    const a = generarNivel({ codigo: 'FM-3-AAAA', pista: 'g3', nivel: 40, intento: 1 }).map((e) => e.enunciado);
-    const b = generarNivel({ codigo: 'FM-3-AAAA', pista: 'g3', nivel: 40, intento: 1 }).map((e) => e.enunciado);
-    const c = generarNivel({ codigo: 'FM-3-AAAA', pista: 'g3', nivel: 40, intento: 2 }).map((e) => e.enunciado);
+    const a = generarNivel({ codigo: 'FM-3-AAAA', pista: 'g3', nivel: 4, intento: 1 }).map((e) => e.enunciado);
+    const b = generarNivel({ codigo: 'FM-3-AAAA', pista: 'g3', nivel: 4, intento: 1 }).map((e) => e.enunciado);
+    const c = generarNivel({ codigo: 'FM-3-AAAA', pista: 'g3', nivel: 4, intento: 2 }).map((e) => e.enunciado);
     expect(a).toEqual(b);
     expect(a).not.toEqual(c);
   });

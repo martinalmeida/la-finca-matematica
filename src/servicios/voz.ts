@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useApp } from '../estado';
+import { bandaDePerfil } from '../almacenamiento/datos';
 
 function vozEspanolLocal(): SpeechSynthesisVoice | null {
   try {
@@ -54,8 +55,8 @@ export function detenerVoz() {
 
 export function useVoz() {
   const { perfil } = useApp();
-  // Con apoyo extra, la voz va más despacio.
-  const velocidad = perfil?.apoyo ? 0.75 : 0.88;
+  // En Inclusión y en la banda Refuerzo, la voz va más despacio.
+  const velocidad = perfil && (perfil.grado === 'inclusion' || (perfil.rol === 'estudiante' && bandaDePerfil(perfil) === 'refuerzo')) ? 0.75 : 0.88;
   const [voz, setVoz] = useState<SpeechSynthesisVoice | null>(() => vozEspanolLocal());
   const actual = useSyncExternalStore(suscribir, () => leyendo);
   useEffect(() => {

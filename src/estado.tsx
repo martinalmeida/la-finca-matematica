@@ -3,6 +3,7 @@
 import { createContext, useContext } from 'react';
 import type { Ajustes, Perfil, Rol } from './almacenamiento/datos';
 import type { Efecto, ResultadoNivel } from './juego/progresion';
+import type { TipoPrueba } from './juego/motor';
 
 export type Pantalla =
   | { nombre: 'bienvenida' }
@@ -18,7 +19,8 @@ export type Pantalla =
   | { nombre: 'familias'; seccion?: 'menu' | 'acompanar' | 'avance' | 'videos' }
   | { nombre: 'docente' }
   | { nombre: 'pareja' }
-  | { nombre: 'taller' };
+  | { nombre: 'taller' }
+  | { nombre: 'prueba'; tipo: TipoPrueba };
 
 export type EstadoApp = {
   pantalla: Pantalla;
