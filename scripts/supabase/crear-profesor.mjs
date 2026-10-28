@@ -31,8 +31,9 @@ if (clave !== repetida) {
 
 const r = spawnSync(
   'psql',
-  [url, '-v', 'ON_ERROR_STOP=1', '-qAt', '-v', `u=${usuario}`, '-v', `c=${clave}`, '-v', `n=${nombre}`, '-c', "select public.crear_profesor(:'u', :'c', :'n')"],
-  { encoding: 'utf8' },
+  // Las variables :'u' solo se reemplazan en lo que psql lee (no con -c): la consulta va por la entrada.
+  [url, '-v', 'ON_ERROR_STOP=1', '-qAt', '-v', `u=${usuario}`, '-v', `c=${clave}`, '-v', `n=${nombre}`],
+  { encoding: 'utf8', input: "select public.crear_profesor(:'u', :'c', :'n');\n" },
 );
 if (r.status !== 0) {
   console.error((r.stderr || '').replace(/^.*ERROR:\s*/m, 'Error: ').trim());
