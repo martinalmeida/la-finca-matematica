@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { obtenerSupabase, esErrorDeRed } from '../servicios/supabase';
 import type { FilaPerfil, TipoUsuario } from '../almacenamiento/datos';
 import type { Evento, Partida } from '../almacenamiento/cola';
+import { borrarFotoDe, urlsDeFotos } from '../servicios/foto';
 
 export type PartidaRemota = Partida & { usuario_id: string };
 export type EventoRemoto = Evento & { usuario_id: string };
@@ -103,7 +104,27 @@ export const editarUsuario = (id: string, u: { nombre: string; tipo: TipoUsuario
 
 export const cambiarClave = (id: string, clave: string) => rpc('cambiar_clave', { p_id: id, p_clave: clave });
 export const fijarActivo = (id: string, activo: boolean) => rpc('fijar_activo', { p_id: id, p_activo: activo });
-export const eliminarUsuario = (id: string) => rpc('eliminar_usuario', { p_id: id });
+export async function eliminarUsuario(id: string): Promise<void> {
+  // El archivo de la foto no se borra en cascada con la cuenta: se borra antes (si falla, se sigue).
+  await borrarFotoDe(await cliente(), id).catch(() => undefined);
+  await rpc('eliminar_usuario', { p_id: id });
+}
+
+/** URLs temporales de las fotos de los usuarios que tienen una. Si falla, sin fotos (se ven los personajes). */
+export async function cargarFotos(usuarios: FilaPerfil[]): Promise<Record<string, string>> {
+  try {
+    return await urlsDeFotos(await cliente(), usuarios.filter((u) => u.foto).map((u) => u.id));
+  } catch {
+    return {};
+  }
+}
+
+/** Quita la foto de un alumno (por si no es apropiada). */
+export async function quitarFoto(id: string): Promise<void> {
+  const error = await borrarFotoDe(await cliente(), id);
+  if (error) throw traducir(error as { message?: string });
+  await rpc('quitar_foto_de', { p_id: id });
+}
 export const reiniciarProgreso = (id: string) => rpc('reiniciar_progreso', { p_id: id });
 export const fijarBanda = (id: string, pista: string, banda: string | null) => rpc('fijar_banda', { p_id: id, p_pista: pista, p_banda: banda });
 export const permitirFinal = (id: string, pista: string) => rpc('permitir_final', { p_id: id, p_pista: pista });

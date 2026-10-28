@@ -2,7 +2,8 @@
 // Entrar necesita internet; después el usuario juega sin señal con la sesión guardada.
 
 import { activarCola, aplicarRemotas, borrarDatosLocales } from '../almacenamiento/cola';
-import { borrarCuenta, guardarCuenta, leerCuenta, type FilaPerfil } from '../almacenamiento/datos';
+import { borrarCuenta, conPendientes, guardarCuenta, leerCuenta, type FilaPerfil } from '../almacenamiento/datos';
+import { guardarFotoLocal, traerDeLaNube } from './foto';
 import { correoDe, esErrorDeRed, normalizarUsuario, obtenerSupabase } from './supabase';
 
 export type Entrada = { ok: true; cuenta: FilaPerfil } | { ok: false; error: string };
@@ -17,7 +18,17 @@ export async function iniciarSesion(usuario: string, clave: string): Promise<Ent
     if (!sb) return { ok: false, error: 'La aplicación no está conectada a la nube. Avísale al profesor.' };
     const { data, error } = await sb.auth.signInWithPassword({ email: correoDe(usuario), password: clave });
     if (error) {
-      if (error.code === 'user_banned') return { ok: false, error: 'Tu cuenta está desactivada. Habla con tu profesor.' };
+      if (error.code === 'user_banned') {
+        // Era la cuenta guardada en este celular (la sesión había vencido): se borra lo suyo.
+        const anterior = leerCuenta();
+        if (anterior && anterior.usuario === normalizarUsuario(usuario)) {
+          borrarDatosLocales(anterior.id);
+          guardarFotoLocal(anterior.id, null);
+          borrarCuenta();
+          activarCola(null);
+        }
+        return { ok: false, error: 'Tu cuenta está desactivada. Habla con tu profesor.' };
+      }
       if (error.code === 'invalid_credentials' || error.status === 400) return { ok: false, error: 'Usuario o contraseña incorrectos.' };
       return { ok: false, error: esErrorDeRed(error) ? SIN_INTERNET : 'No se pudo entrar. Inténtalo de nuevo en un momento.' };
     }
@@ -38,6 +49,7 @@ export async function iniciarSesion(usuario: string, clave: string): Promise<Ent
     const mismo = anterior?.id === fila.id && anterior.generacion === fila.generacion;
     if (anterior && !mismo) {
       borrarDatosLocales(anterior.id);
+      if (anterior.id !== fila.id) guardarFotoLocal(anterior.id, null);
       // Sin cuenta guardada: si la descarga de abajo falla, el próximo intento vuelve a bajar todo
       // (y no sube un avance vacío encima del de la nube).
       borrarCuenta();
@@ -47,9 +59,11 @@ export async function iniciarSesion(usuario: string, clave: string): Promise<Ent
       const { data: filas, error: errorDatos } = await sb.from('datos_usuario').select('clave, valor').eq('usuario_id', id);
       if (errorDatos) return { ok: false, error: esErrorDeRed(errorDatos) ? SIN_INTERNET : 'No se pudo descargar tu avance. Inténtalo de nuevo.' };
       aplicarRemotas(id, filas ?? []);
+      // La foto no impide entrar: si no baja ahora, baja en la próxima sincronización.
+      if (fila.foto) await traerDeLaNube(sb, id, fila.foto).catch(() => undefined);
     }
     // Si es la misma cuenta (la sesión había vencido), se conserva lo que faltaba por subir.
-    guardarCuenta(mismo && anterior ? { ...fila, avatar: anterior.avatarPendiente ? anterior.avatar : fila.avatar, avatarPendiente: anterior.avatarPendiente } : fila);
+    guardarCuenta(mismo ? conPendientes(fila, anterior) : fila);
     activarCola(fila.rol === 'usuario' ? fila.id : null);
     return { ok: true, cuenta: leerCuenta() ?? fila };
   } catch (e) {
@@ -75,7 +89,10 @@ export async function cerrarSesion(): Promise<void> {
   } catch {
     // sin almacenamiento
   }
-  if (cuenta) borrarDatosLocales(cuenta.id);
+  if (cuenta) {
+    borrarDatosLocales(cuenta.id);
+    guardarFotoLocal(cuenta.id, null);
+  }
   borrarCuenta();
   activarCola(null);
 }

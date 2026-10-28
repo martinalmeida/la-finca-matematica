@@ -19,8 +19,8 @@ export default function Clasificar({ ej, bloqueado, onResponder }: PropsInteracc
   const tocarFigura = (k: number) => {
     if (bloqueado) return;
     sonar('toque', ajustes.sonido);
-    // Tocar una figura ya puesta la saca de la canasta.
-    if (ubicacion[k] !== null) setUbicacion((u) => u.map((g, j) => (j === k ? null : g)));
+    // Tocar una figura ya puesta solo la elige (sigue en su canasta): se cambia tocando otra canasta.
+    // Antes la sacaba al instante y un toque sin querer deshacía lo hecho.
     setElegida(elegida === k ? null : k);
   };
 
@@ -77,15 +77,15 @@ export default function Clasificar({ ej, bloqueado, onResponder }: PropsInteracc
           </Recipiente>
         ))}
       </div>
+      {(sueltas.length > 0 || elegida !== null) && (
+        <p className="instruccion" style={{ alignSelf: 'center', margin: 0 }}>
+          {elegida === null ? 'Toca una figura' : 'Ahora toca su canasta'}
+        </p>
+      )}
       {sueltas.length > 0 && (
-        <>
-          <p className="instruccion" style={{ alignSelf: 'center', margin: 0 }}>
-            {elegida === null ? 'Toca una figura' : 'Ahora toca su canasta'}
-          </p>
-          <div className="clasificar-sueltas" role="group" aria-label="Figuras por ubicar">
-            {sueltas.map(figura)}
-          </div>
-        </>
+        <div className="clasificar-sueltas" role="group" aria-label="Figuras por ubicar">
+          {sueltas.map(figura)}
+        </div>
       )}
     </div>
   );

@@ -6,6 +6,8 @@ import type { Credencial } from './Tarjetas';
 
 export type EstadoProfesor = {
   alumnos: Alumno[];
+  /** URL temporal de la foto de cada usuario que tiene una (por id). */
+  fotos: Record<string, string>;
   /** Vuelve a bajar todo de la nube. */
   recargar: () => Promise<void>;
   avisar: (texto: string) => void;

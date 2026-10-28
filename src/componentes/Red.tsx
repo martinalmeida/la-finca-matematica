@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { useApp } from '../estado';
 import { Avatar, type AvatarId } from './Ilustraciones';
+import FotoPerfil from './FotoPerfil';
 import { alternarReaccion, leerReacciones } from '../almacenamiento/datos';
 import { sonar } from '../servicios/sonido';
 import { etiquetaUnidad, type Unidad } from '../juego/complejidad';
@@ -36,9 +37,11 @@ type PropsPublicacion = {
   acciones?: ReactNode;
   /** Texto para escuchar la publicación (para quienes aún no leen). */
   lectura?: string;
+  /** Publicación del propio usuario: lleva su foto si puso una. */
+  fotoDe?: string;
 };
 
-export function Publicacion({ id, avatar, autor, meta, etiqueta, children, reaccion = ['Me gusta', 'Te gusta'], iconoReaccion = 'corazon', acciones, lectura }: PropsPublicacion) {
+export function Publicacion({ id, avatar, autor, meta, etiqueta, children, reaccion = ['Me gusta', 'Te gusta'], iconoReaccion = 'corazon', acciones, lectura, fotoDe }: PropsPublicacion) {
   const { perfil, ajustes } = useApp();
   const [activa, setActiva] = useState(() => (perfil ? !!leerReacciones(perfil.id)[id] : false));
   const [pulso, setPulso] = useState(0);
@@ -46,7 +49,7 @@ export function Publicacion({ id, avatar, autor, meta, etiqueta, children, reacc
     <article className="publicacion vidrio revelar">
       <header className="publicacion-cabecera">
         <span className="anillo-avatar pequeno-anillo">
-          <Avatar id={avatar} tamano={40} etiqueta="" />
+          {fotoDe ? <FotoPerfil id={fotoDe} avatar={avatar} tamano={40} etiqueta="" /> : <Avatar id={avatar} tamano={40} etiqueta="" />}
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <strong className="mayuscula-inicial">{autor}</strong>

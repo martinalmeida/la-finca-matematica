@@ -38,9 +38,11 @@ function IntroNivel({ nivel, tema, idea, video, adulto, alEmpezar }: { nivel: st
           </p>
         </>
       )}
-      <button type="button" className="boton principal" onClick={alEmpezar}>
-        {adulto ? 'Empezar el nivel' : '¡Empezar el nivel!'} <Icono nombre="siguiente" tamano={24} />
-      </button>
+      <div className="acciones-pegadas">
+        <button type="button" className="boton principal" onClick={alEmpezar}>
+          {adulto ? 'Empezar el nivel' : '¡Empezar el nivel!'} <Icono nombre="siguiente" tamano={24} />
+        </button>
+      </div>
     </section>
   );
 }

@@ -97,7 +97,7 @@ function DemoArrastrar({ alLograr }: { alLograr: () => void }) {
         {!enCanasta && (
           <button
             type="button"
-            className="ficha boton plano"
+            className="ficha boton plano movible"
             style={{ width: 64, height: 64, opacity: arrastre ? 0.3 : 1 }}
             onPointerDown={(e) => {
               (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);

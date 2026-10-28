@@ -1,9 +1,13 @@
 // Perfil del estudiante (al estilo de las redes): avatar, cifras, ruta del grado, insignias,
 // planta de cacao y silo de la escuela.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../estado';
-import { Avatar, Planta } from '../componentes/Ilustraciones';
+import { Planta } from '../componentes/Ilustraciones';
+import FotoPerfil from '../componentes/FotoPerfil';
+import { prepararFoto, useFoto } from '../servicios/foto';
+import { alSincronizar } from '../servicios/sincronizacion';
+import { leerCuenta } from '../almacenamiento/datos';
 import { Medidor } from '../componentes/Historia';
 import { CabeceraVidrio } from '../componentes/Red';
 import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, pistaDePerfil } from '../almacenamiento/datos';
@@ -18,7 +22,7 @@ import Icono, { IconoEmoji } from '../componentes/Icono';
 const nombresEtapa = ['Semilla', 'Brote', 'Planta', 'Flor', 'Fruto', 'Cosecha'];
 
 export default function MiFinca() {
-  const { perfil, ir } = useApp();
+  const { perfil, ir, cambiarFoto, avisar } = useApp();
   const p = perfil!;
   const pista = pistaDePerfil(p);
   const prog = leerProgreso(p.id, pista);
@@ -31,6 +35,30 @@ export default function MiFinca() {
   const catalogo = catalogoInsignias();
   const pruebas = leerPruebas(p);
   const adulto = p.rol === 'familia';
+  const foto = useFoto(p.id);
+  const refArchivo = useRef<HTMLInputElement>(null);
+  const [cargando, setCargando] = useState(false);
+  const [errorFoto, setErrorFoto] = useState<string | null>(null);
+  // Al subir la foto deja de decir «se guardará cuando haya internet».
+  const [, refrescar] = useState(0);
+  useEffect(() => alSincronizar(() => refrescar((x) => x + 1)), []);
+  const fotoPendiente = !!foto && leerCuenta()?.fotoPendiente === 'subir';
+
+  const elegirFoto = async (archivo: File | undefined) => {
+    if (!archivo) return;
+    setCargando(true);
+    setErrorFoto(null);
+    try {
+      cambiarFoto(await prepararFoto(archivo));
+      avisar(adulto ? 'Foto guardada' : '¡Tu foto quedó lista!');
+    } catch (e) {
+      setErrorFoto(e instanceof Error ? e.message : 'Esa foto no se pudo abrir. Prueba con otra.');
+    } finally {
+      setCargando(false);
+      // Permite volver a elegir el mismo archivo.
+      if (refArchivo.current) refArchivo.current.value = '';
+    }
+  };
 
   return (
     <>
@@ -46,9 +74,18 @@ export default function MiFinca() {
       <main className="pantalla">
         <section className="perfil-cabecera vidrio revelar" aria-label="Mi perfil">
           <div className="fila" style={{ justifyContent: 'center', gap: 16 }}>
-            <span className="anillo-avatar grande-anillo">
-              <Avatar id={p.avatar} tamano={84} />
-            </span>
+            <button
+              type="button"
+              className="anillo-avatar grande-anillo boton-foto"
+              onClick={() => refArchivo.current?.click()}
+              disabled={cargando}
+              aria-label={foto ? (adulto ? 'Cambiar su foto' : 'Cambiar mi foto') : adulto ? 'Poner su foto' : 'Poner mi foto'}
+            >
+              <FotoPerfil id={p.id} avatar={p.avatar} tamano={84} etiqueta="" />
+              <span className="insignia-camara" aria-hidden="true">
+                <Icono nombre="camara" tamano={18} anim="no" />
+              </span>
+            </button>
             <div className="cifras">
               <div>
                 <strong>{actual}</strong>
@@ -76,11 +113,32 @@ export default function MiFinca() {
               {haceDiagnostica(p) && !adulto && <span className="chip">Exigencia: {BANDAS[bandaDePerfil(p)].nombre}</span>}
             </div>
           </div>
+          <input ref={refArchivo} type="file" accept="image/*" hidden onChange={(e) => void elegirFoto(e.target.files?.[0])} />
           <div className="fila">
+            <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} disabled={cargando} onClick={() => refArchivo.current?.click()}>
+              <Icono nombre="camara" tamano={26} /> {cargando ? 'Preparando…' : foto ? (adulto ? 'Cambiar foto' : 'Cambiar mi foto') : adulto ? 'Poner su foto' : 'Poner mi foto'}
+            </button>
             <button type="button" className="boton vidrio-boton" style={{ flex: '1 1 auto' }} onClick={() => ir({ nombre: 'avatar' })}>
               <Icono nombre="personas" tamano={26} /> {adulto ? 'Cambiar personaje' : 'Cambiar mi personaje'}
             </button>
           </div>
+          {foto && (
+            <p className="pequeno suave fila" style={{ margin: 0, gap: 6 }}>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                {fotoPendiente
+                  ? adulto ? 'Su foto se guardará en la nube cuando haya internet.' : 'Tu foto se guardará en la nube cuando haya internet.'
+                  : adulto ? 'Su foto la ven usted y su profesor.' : 'Tu foto la ven tú y tu profesor.'}
+              </span>
+              <button type="button" className="boton enlace" onClick={() => cambiarFoto(null)}>
+                Quitar foto
+              </button>
+            </p>
+          )}
+          {errorFoto && (
+            <p className="pequeno fila" role="alert" style={{ margin: 0, gap: 6 }}>
+              <Icono nombre="aviso" tamano={20} anim="no" /> {errorFoto}
+            </p>
+          )}
           <EstadoNube adulto={adulto} />
         </section>
 

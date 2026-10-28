@@ -1,7 +1,7 @@
 // Barra de pestañas flotante de vidrio (como las apps del celular).
 
 import { useApp, type Pantalla } from '../estado';
-import { Avatar } from './Ilustraciones';
+import FotoPerfil from './FotoPerfil';
 import Icono, { type NombreIcono } from './Icono';
 
 type Item = { destino: Pantalla; icono: NombreIcono | ''; texto: string };
@@ -33,7 +33,7 @@ export default function Pestanas() {
         >
           <span className="pestana-icono" aria-hidden="true">
             {/* La clave hace que el ícono vuelva a animarse al activar la pestaña. */}
-            {i.icono ? <Icono key={k === activa ? 'activa' : 'inactiva'} nombre={i.icono} tamano={30} anim={k === activa ? 'una' : 'no'} /> : <Avatar id={perfil!.avatar} tamano={30} etiqueta="" />}
+            {i.icono ? <Icono key={k === activa ? 'activa' : 'inactiva'} nombre={i.icono} tamano={30} anim={k === activa ? 'una' : 'no'} /> : <FotoPerfil id={perfil!.id} avatar={perfil!.avatar} tamano={30} etiqueta="" />}
           </span>
           <span className="pestana-texto">{i.texto}</span>
         </button>

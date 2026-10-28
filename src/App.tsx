@@ -16,6 +16,7 @@ import { alCambiarDisponibilidad, almacenamientoDisponible } from './almacenamie
 import { activarCola } from './almacenamiento/cola';
 import { alListoSinInternet, marcarOcupada, seActualizo } from './pwa/registro';
 import { cerrarSesion } from './servicios/sesion';
+import { guardarFotoLocal, nuevaVersion } from './servicios/foto';
 import { ajustarGuarda, alAtras } from './servicios/atras';
 import { alSincronizar, iniciarSincronizacion, sincronizarAhora } from './servicios/sincronizacion';
 import Entrar from './pantallas/Entrar';
@@ -205,7 +206,9 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
   useEffect(
     () =>
       alSincronizar(({ estado, cuentaCambio }) => {
+        // Desactivada o borrada por el profesor: se cierra la sesión enseguida (también en medio de un nivel).
         if (estado === 'inactivo') void salir('Tu cuenta fue desactivada. Habla con tu profesor.');
+        else if (estado === 'eliminado') void salir('Tu cuenta ya no existe. Habla con tu profesor.');
         else if (estado === 'sin-sesion') {
           const texto = 'Escribe otra vez tu contraseña para seguir guardando tu avance.';
           if (ocupadaRef.current) setClaveDiferida(texto);
@@ -234,6 +237,17 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
       void sincronizarAhora();
     },
     [cuenta, alCambiarCuenta],
+  );
+
+  const cambiarFoto = useCallback(
+    (datos: string | null) => {
+      const actual = leerCuenta() ?? cuenta;
+      const version = datos ? nuevaVersion() : null;
+      guardarFotoLocal(actual.id, datos && version ? { version, datos } : null);
+      guardarCuenta({ ...actual, foto: version, fotoPendiente: datos ? 'subir' : 'quitar' });
+      void sincronizarAhora();
+    },
+    [cuenta],
   );
 
   // Botón "atrás" de Android: cierra la capa abierta o vuelve a la pantalla anterior dentro de la app.
@@ -273,12 +287,13 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
       avisar,
       salir: () => salir(),
       cambiarAvatar: elegirAvatar,
+      cambiarFoto,
       cambiarAjustes: (a) => {
         setAjustes(a);
         guardarAjustes(a);
       },
     }),
-    [pantalla, perfil, ajustes, ir, volver, avisar, salir, elegirAvatar],
+    [pantalla, perfil, ajustes, ir, volver, avisar, salir, elegirAvatar, cambiarFoto],
   );
 
   // La primera vez: elegir personaje (antes de la prueba de entrada).

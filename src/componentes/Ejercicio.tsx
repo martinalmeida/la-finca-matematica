@@ -1,7 +1,7 @@
 // Un ejercicio: enunciado, ilustración, audio opcional, zona de respuesta,
 // tres niveles de pista, retroalimentación específica y solución explicada.
 
-import { lazy, Suspense, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import type { Ejercicio as TEjercicio, Respuesta } from '../juego/tipos';
 import { detectarTipoError, mensajeError, type TipoError } from '../juego/errores';
 import { esFamilia, generarParecido } from '../juego/motor';
@@ -100,6 +100,8 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
   const [primerError, setPrimerError] = useState<TipoError | undefined>();
   const [parecido, setParecido] = useState<TEjercicio | null>(null);
   const inicio = useRef(Date.now());
+  const refRetro = useRef<HTMLDivElement>(null);
+  const refAcciones = useRef<HTMLDivElement>(null);
   const elogio = useMemo(() => {
     const lista = adulto ? elogiosAdultos : elogiosNinos;
     return lista[hashTexto(ej.id) % lista.length];
@@ -115,6 +117,20 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
   const decir = (texto: string) => {
     if (puedeHablar) voz.leer(texto, `${ej.id}-retro`);
   };
+
+  // Al responder, la vista va a lo que pasó: el mensaje queda a la vista y «Siguiente», pegado abajo.
+  // Sin esto, en un celular pequeño quedaban debajo del teclado y no se sabía que había que bajar.
+  useEffect(() => {
+    if (estado === 'jugando') return;
+    const el = refRetro.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const pie = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--alto-pie')) || 0;
+    const abajo = window.innerHeight - pie - (refAcciones.current?.offsetHeight ?? 0) - 16;
+    if (r.top >= 72 && r.bottom <= abajo) return;
+    const quieto = document.documentElement.dataset.efectos === 'ligeros' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ block: 'center', behavior: quieto ? 'auto' : 'smooth' });
+  }, [estado]);
 
   const responder = (r: Respuesta) => {
     if (estado !== 'jugando') return;
@@ -268,7 +284,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
       )}
 
       {mensaje && (
-        <div className={`retro ${estado === 'bien' || prueba ? 'bien' : 'casi'}`} role="status">
+        <div ref={refRetro} className={`retro ${estado === 'bien' || prueba ? 'bien' : 'casi'}`} role="status">
           <span className="icono-retro" aria-hidden="true">
             <Icono nombre={estado === 'bien' || prueba ? 'check' : estado === 'solucion' ? 'solucion' : 'pensar'} tamano={28} />
           </span>
@@ -311,13 +327,16 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
         </button>
       )}
 
+      {estado === 'solucion' && !practica && !prueba && (
+        <button type="button" className="boton secundario" onClick={() => setParecido(generarParecido(ej, hashTexto(ej.id + Date.now())))}>
+          <Icono nombre="repetir" tamano={26} /> Practicar uno parecido
+        </button>
+      )}
+
+      {/* Pegado abajo: siempre a la mano, aunque la explicación o el teclado sean largos.
+          Va directo en la sección (el «sticky» solo se mueve dentro de su contenedor). */}
       {estado !== 'jugando' && (
-        <div className="columna">
-          {estado === 'solucion' && !practica && !prueba && (
-            <button type="button" className="boton secundario" onClick={() => setParecido(generarParecido(ej, hashTexto(ej.id + Date.now())))}>
-              <Icono nombre="repetir" tamano={26} /> Practicar uno parecido
-            </button>
-          )}
+        <div ref={refAcciones} className="acciones-pegadas">
           <button type="button" className="boton principal" onClick={terminar}>
             {practica ? 'Volver al nivel' : 'Siguiente'} <Icono nombre="siguiente" tamano={24} />
           </button>

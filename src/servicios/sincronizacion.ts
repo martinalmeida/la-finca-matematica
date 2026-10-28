@@ -3,11 +3,26 @@
 // exigencia, permiso de repetir la final, desactivación o reinicio del progreso.
 
 import { borrarDatosLocales, confirmarLote, pendientes, tomarLote, type Lote } from '../almacenamiento/cola';
-import { guardarCuenta, guardarSiloEscuela, leerCuenta, type FilaPerfil } from '../almacenamiento/datos';
+import { conPendientes, guardarCuenta, guardarSiloEscuela, leerCuenta, type FilaPerfil } from '../almacenamiento/datos';
 import { escribir, leer, PREFIJO_V1 } from '../almacenamiento/almacen';
 import { esErrorDeRed, obtenerSupabase } from './supabase';
+import { subirPendiente, traerDeLaNube } from './foto';
 
-export type EstadoSync = 'ok' | 'sin-red' | 'sin-sesion' | 'inactivo' | 'reiniciado' | 'error';
+export type EstadoSync = 'ok' | 'sin-red' | 'sin-sesion' | 'inactivo' | 'eliminado' | 'reiniciado' | 'error';
+
+type ErrorNube = { message?: string; code?: string } | null | undefined;
+
+/** ¿El error dice que la cuenta ya no existe o que está desactivada? (Si no, null.) */
+export function estadoDeCuenta(e: ErrorNube): 'inactivo' | 'eliminado' | null {
+  if (!e) return null;
+  // Auth (al renovar la sesión) y la base (sincronizar: el perfil se borró con la cuenta).
+  if (e.code === 'user_not_found' || (e.code === '42501' && /Cuenta no encontrada/i.test(e.message ?? ''))) return 'eliminado';
+  if (e.code === 'user_banned') return 'inactivo';
+  return null;
+}
+
+/** Sin avances por subir, igual se pregunta a la nube cada tanto si la cuenta sigue activa. */
+const REVISAR_CUENTA = 5 * 60_000;
 
 type Aviso = { estado: EstadoSync; cuentaCambio: boolean };
 
@@ -55,7 +70,7 @@ async function sincronizar(): Promise<EstadoSync> {
     const sb = await obtenerSupabase();
     if (!sb) return 'error';
     const { data: sesion, error: errorSesion } = await sb.auth.getSession();
-    if (errorSesion) return esErrorDeRed(errorSesion) ? 'sin-red' : 'sin-sesion';
+    if (errorSesion) return estadoDeCuenta(errorSesion) ?? (esErrorDeRed(errorSesion) ? 'sin-red' : 'sin-sesion');
     if (!sesion.session || sesion.session.user.id !== cuenta.id) return 'sin-sesion';
 
     if (cuenta.avatarPendiente && cuenta.avatar) {
@@ -63,6 +78,13 @@ async function sincronizar(): Promise<EstadoSync> {
       // Si mientras subía eligió otro personaje, ese sigue pendiente.
       const ahora = leerCuenta() ?? cuenta;
       if (!error && ahora.avatar === cuenta.avatar) guardarCuenta({ ...ahora, avatarPendiente: false });
+    }
+
+    if (cuenta.fotoPendiente) {
+      const error = await subirPendiente(sb, cuenta);
+      // Si mientras subía cambió otra vez la foto, esa sigue pendiente.
+      const ahora = leerCuenta() ?? cuenta;
+      if (!error && ahora.foto === cuenta.foto && ahora.fotoPendiente === cuenta.fotoPendiente) guardarCuenta({ ...ahora, fotoPendiente: undefined });
     }
 
     let perfil: FilaPerfil | null = null;
@@ -73,7 +95,7 @@ async function sincronizar(): Promise<EstadoSync> {
         p_eventos: lote.eventos,
         p_partidas: lote.partidas,
       });
-      if (error) return esErrorDeRed(error) ? 'sin-red' : /JWT|token|401/i.test(error.message) ? 'sin-sesion' : 'error';
+      if (error) return estadoDeCuenta(error) ?? (esErrorDeRed(error) ? 'sin-red' : /JWT|token|401/i.test(error.message) ? 'sin-sesion' : 'error');
       const r = data as { estado: 'ok' | 'inactivo' | 'generacion'; perfil?: FilaPerfil };
       if (r.estado === 'inactivo') return 'inactivo';
       // El profesor reinició el progreso (también si el reinicio entró mientras se subía este lote):
@@ -81,7 +103,7 @@ async function sincronizar(): Promise<EstadoSync> {
       if (r.perfil && (r.estado === 'generacion' || r.perfil.generacion !== cuenta.generacion)) {
         const actual = leerCuenta() ?? cuenta;
         borrarDatosLocales(cuenta.id);
-        guardarCuenta({ ...r.perfil, avatar: actual.avatarPendiente ? actual.avatar : r.perfil.avatar, avatarPendiente: actual.avatarPendiente });
+        guardarCuenta(conPendientes(r.perfil, actual));
         return 'reiniciado';
       }
       confirmarLote(cuenta.id, lote);
@@ -89,8 +111,10 @@ async function sincronizar(): Promise<EstadoSync> {
     }
     if (perfil) {
       const actual = leerCuenta() ?? cuenta;
-      guardarCuenta({ ...perfil, avatar: actual.avatarPendiente ? actual.avatar : perfil.avatar, avatarPendiente: actual.avatarPendiente });
+      guardarCuenta(conPendientes(perfil, actual));
       if (cambioVisible(cuenta, perfil)) avisar({ estado: 'ok', cuentaCambio: true });
+      // Foto cambiada desde otro celular (o quitada por el profesor). La foto no es crítica: si falla, la próxima vez.
+      if ('foto' in perfil && !(leerCuenta() ?? actual).fotoPendiente) await traerDeLaNube(sb, cuenta.id, perfil.foto).catch(() => undefined);
     }
     const silo = await sb.rpc('silo_escuela');
     if (!silo.error && typeof silo.data === 'number') guardarSiloEscuela(silo.data);
@@ -122,7 +146,8 @@ export function sincronizarPronto(): void {
   temporizador = window.setTimeout(() => void sincronizarAhora(), 2500);
 }
 
-/** Sincroniza al abrir, al volver la señal, al volver a la app y cada minuto con señal. */
+/** Sincroniza al abrir, al volver la señal y al volver a la app; con señal, cada minuto si hay algo
+ *  por subir y cada 5 minutos si no (para enterarse de que el profesor desactivó o borró la cuenta). */
 export function iniciarSincronizacion(): () => void {
   const alVolverSenal = () => void sincronizarAhora();
   const alVerse = () => {
@@ -130,8 +155,16 @@ export function iniciarSincronizacion(): () => void {
   };
   window.addEventListener('online', alVolverSenal);
   document.addEventListener('visibilitychange', alVerse);
+  let ultimaRevision = Date.now();
   const intervalo = window.setInterval(() => {
-    if (navigator.onLine && pendientes() > 0) void sincronizarAhora();
+    if (!navigator.onLine) return;
+    const cuenta = leerCuenta();
+    const porSubir = pendientes() > 0 || cuenta?.avatarPendiente || cuenta?.fotoPendiente;
+    const toca = document.visibilityState === 'visible' && Date.now() - ultimaRevision >= REVISAR_CUENTA;
+    if (porSubir || toca) {
+      ultimaRevision = Date.now();
+      void sincronizarAhora();
+    }
   }, 60_000);
   void sincronizarAhora();
   return () => {

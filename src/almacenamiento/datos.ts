@@ -21,6 +21,8 @@ export type FilaPerfil = {
   grado: number | null;
   activo: boolean;
   avatar: string | null;
+  /** Versión de la foto subida a Storage (fotos/{id}/foto.jpg), o null si no tiene. */
+  foto?: string | null;
   bandas: Partial<Record<string, Banda>>;
   finales_permitidos: Record<string, number>;
   generacion: number;
@@ -129,14 +131,33 @@ const K = {
 
 // --- Cuenta con sesión iniciada ---
 
+/** Cuenta de este celular: la fila de «perfiles» y lo que falta subir de ella. */
+export type Cuenta = FilaPerfil & {
+  avatarPendiente?: boolean;
+  /** La foto cambió en este celular y falta subirla (o borrarla) en la nube. */
+  fotoPendiente?: 'subir' | 'quitar';
+};
+
 /** Cuenta de este celular (la fila de «perfiles» tal como llegó de la nube). */
-export function leerCuenta(): (FilaPerfil & { avatarPendiente?: boolean }) | null {
-  const c = leer<(FilaPerfil & { avatarPendiente?: boolean }) | null>(K.cuenta, null);
+export function leerCuenta(): Cuenta | null {
+  const c = leer<Cuenta | null>(K.cuenta, null);
   return c && typeof c === 'object' && c.id ? c : null;
 }
 
-export function guardarCuenta(c: FilaPerfil & { avatarPendiente?: boolean }): void {
+export function guardarCuenta(c: Cuenta): void {
   escribir(K.cuenta, c);
+}
+
+/** Fila nueva de la nube sin perder lo elegido aquí que aún no ha subido (personaje y foto). */
+export function conPendientes(fila: FilaPerfil, actual: Cuenta | null): Cuenta {
+  if (!actual) return fila;
+  return {
+    ...fila,
+    avatar: actual.avatarPendiente ? actual.avatar : fila.avatar,
+    avatarPendiente: actual.avatarPendiente,
+    foto: actual.fotoPendiente ? actual.foto : fila.foto,
+    fotoPendiente: actual.fotoPendiente,
+  };
 }
 
 export function borrarCuenta(): void {

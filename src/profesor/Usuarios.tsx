@@ -3,7 +3,7 @@
 
 import { useMemo, useState, type FormEvent } from 'react';
 import Icono from '../componentes/Icono';
-import { Avatar } from '../componentes/Ilustraciones';
+import FotoPerfil from '../componentes/FotoPerfil';
 import type { FilaPerfil, TipoUsuario } from '../almacenamiento/datos';
 import { nivelConTotal } from '../juego/complejidad';
 import { nivelMaximo } from '../juego/motor';
@@ -363,7 +363,7 @@ export function ImprimirTarjetas({ lista, texto }: { lista: Credencial[]; texto:
 type Filtro = Grupo | 'todos';
 
 export default function Usuarios() {
-  const { alumnos, abrirDetalle, credenciales } = useProfesor();
+  const { alumnos, fotos, abrirDetalle, credenciales } = useProfesor();
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [estado, setEstado] = useState<'activos' | 'inactivos'>('activos');
   const [buscar, setBuscar] = useState('');
@@ -429,7 +429,7 @@ export default function Usuarios() {
           return (
             <li key={a.fila.id}>
               <button type="button" className="fila-usuario vidrio" onClick={() => abrirDetalle(a.fila.id)}>
-                <span className="anillo-avatar pequeno-anillo">{a.fila.avatar ? <Avatar id={a.fila.avatar} tamano={40} etiqueta="" /> : <Icono nombre="personas" tamano={30} anim="no" />}</span>
+                <span className="anillo-avatar pequeno-anillo">{fotos[a.fila.id] || a.fila.avatar ? <FotoPerfil url={fotos[a.fila.id] ?? null} avatar={a.fila.avatar ?? ''} tamano={40} etiqueta="" /> : <Icono nombre="personas" tamano={30} anim="no" />}</span>
                 <span className="fu-nombre">
                   <strong>{a.fila.nombre}</strong>
                   <span className="pequeno suave">

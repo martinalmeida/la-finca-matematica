@@ -108,6 +108,7 @@ function Exportar() {
 export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: FilaPerfil; alSalir: () => void; alVencer: () => void }) {
   const [pestana, setPestana] = useState<Pestana>('usuarios');
   const [alumnos, setAlumnos] = useState<Alumno[]>([]);
+  const [fotos, setFotos] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [detalle, setDetalle] = useState<string | null>(null);
@@ -149,6 +150,7 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
       const d = await api.cargarDatos();
       setAlumnos(armarAlumnos(d));
       setError(null);
+      void api.cargarFotos(d.usuarios).then(setFotos);
     } catch (e) {
       if (e instanceof api.ErrorPanel && e.sesionVencida) alVencer();
       else setError((e as Error).message);
@@ -198,6 +200,7 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
   const valor = useMemo<EstadoProfesor>(
     () => ({
       alumnos,
+      fotos,
       recargar,
       avisar,
       ejecutar,
@@ -209,7 +212,7 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
       agregarCredencial: (c) => setCredenciales((l) => [...l.filter((x) => x.usuario !== c.usuario), c]),
       imprimir: (titulo, contenido) => setImpresion({ titulo, contenido }),
     }),
-    [alumnos, recargar, avisar, ejecutar, credenciales],
+    [alumnos, fotos, recargar, avisar, ejecutar, credenciales],
   );
 
   const abierto = detalle ? alumnos.find((a) => a.fila.id === detalle) : undefined;

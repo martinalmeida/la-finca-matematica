@@ -11,7 +11,7 @@ import {
   pendientes,
   tomarLote,
 } from '../src/almacenamiento/cola';
-import { guardarAjustes, guardarPartida, guardarProgreso, leerAjustes, leerProgreso, progresoVacio, registrar } from '../src/almacenamiento/datos';
+import { conPendientes, guardarAjustes, guardarPartida, guardarProgreso, leerAjustes, leerProgreso, progresoVacio, registrar, type FilaPerfil } from '../src/almacenamiento/datos';
 
 const ID = 'u1';
 
@@ -93,5 +93,26 @@ describe('cola de sincronización', () => {
     guardarProgreso(ID, 'g3', progresoVacio());
     registrar('nivel', { pista: 'g3', nivel: 1, plantilla: 'x', operacion: 'suma', correcto: true, intentos: 1, pistasUsadas: 0, ms: 1 });
     expect(pendientes()).toBe(0);
+  });
+});
+
+describe('cuenta: lo elegido en el celular que aún no sube', () => {
+  const fila: FilaPerfil = {
+    id: ID, usuario: 'ana', nombre: 'Ana', rol: 'usuario', tipo: 'estudiante', grado: 1, activo: true, avatar: 'gallina', foto: 'v1',
+    bandas: {}, finales_permitidos: {}, generacion: 0, profesor_id: null, creado: '2026-10-01T00:00:00Z', ultima_sync: null,
+  };
+
+  it('la fila nueva de la nube no pisa la foto ni el personaje pendientes', () => {
+    const actual = { ...fila, avatar: 'vaca', avatarPendiente: true, foto: 'v2', fotoPendiente: 'subir' as const };
+    const c = conPendientes({ ...fila, nombre: 'Ana María' }, actual);
+    expect(c).toMatchObject({ nombre: 'Ana María', avatar: 'vaca', avatarPendiente: true, foto: 'v2', fotoPendiente: 'subir' });
+  });
+
+  it('quitar la foto pendiente se conserva hasta subir', () => {
+    expect(conPendientes(fila, { ...fila, foto: null, fotoPendiente: 'quitar' })).toMatchObject({ foto: null, fotoPendiente: 'quitar' });
+  });
+
+  it('sin pendientes manda lo de la nube (otro celular o el profesor cambió la foto)', () => {
+    expect(conPendientes({ ...fila, foto: null }, fila)).toMatchObject({ foto: null, fotoPendiente: undefined });
   });
 });

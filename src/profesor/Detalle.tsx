@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Icono from '../componentes/Icono';
-import { Avatar } from '../componentes/Ilustraciones';
+import FotoPerfil from '../componentes/FotoPerfil';
 import Comparacion from '../componentes/Comparacion';
 import { pruebasDe, progresoDe, type Pruebas } from '../almacenamiento/datos';
 import { BANDAS, nivelMaximo, temaDe } from '../juego/motor';
@@ -212,7 +212,7 @@ export function InformeUsuario({ a, impreso = false }: { a: Alumno; impreso?: bo
 }
 
 export default function Detalle({ a }: { a: Alumno }) {
-  const { abrirDetalle, ejecutar, recargar, imprimir, alumnos } = useProfesor();
+  const { abrirDetalle, ejecutar, recargar, imprimir, alumnos, fotos } = useProfesor();
   const [hoja, setHoja] = useState<null | 'editar' | 'clave' | 'reiniciar' | 'eliminar'>(null);
   const [exportando, setExportando] = useState(false);
   const pistaPruebas = pistaPruebasDe(a);
@@ -244,7 +244,7 @@ export default function Detalle({ a }: { a: Alumno }) {
         <button type="button" className="boton icono" onClick={() => abrirDetalle(null)} aria-label="Volver a la lista">
           <Icono nombre="atras" tamano={24} />
         </button>
-        <span className="anillo-avatar">{a.fila.avatar ? <Avatar id={a.fila.avatar} tamano={56} etiqueta="" /> : <Icono nombre="personas" tamano={40} anim="no" />}</span>
+        <span className="anillo-avatar">{fotos[a.fila.id] || a.fila.avatar ? <FotoPerfil url={fotos[a.fila.id] ?? null} avatar={a.fila.avatar ?? ''} tamano={56} etiqueta="" /> : <Icono nombre="personas" tamano={40} anim="no" />}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ margin: 0 }}>{a.fila.nombre}</h2>
           <div className="pequeno suave">
@@ -270,6 +270,17 @@ export default function Detalle({ a }: { a: Alumno }) {
         <button type="button" className="boton" onClick={exportar} disabled={exportando}>
           <Icono nombre="guardar" tamano={22} /> {exportando ? 'Preparando…' : 'Datos CSV'}
         </button>
+        {a.fila.foto && (
+          <button
+            type="button"
+            className="boton"
+            onClick={async () => {
+              if (window.confirm(`¿Quitar la foto de ${a.fila.nombre}? Volverá a verse su personaje.`) && (await ejecutar(() => api.quitarFoto(a.fila.id), 'Foto quitada'))) await recargar();
+            }}
+          >
+            <Icono nombre="camara" tamano={22} /> Quitar foto
+          </button>
+        )}
       </section>
 
       {esEstudiante && (

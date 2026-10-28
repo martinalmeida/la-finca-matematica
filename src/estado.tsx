@@ -27,6 +27,8 @@ export type EstadoApp = {
   /** Cierra la sesión (borra del celular los datos de la cuenta). */
   salir: () => Promise<void>;
   cambiarAvatar: (avatar: string) => void;
+  /** Pone (data URL ya recortada) o quita (null) la foto de perfil; sube al sincronizar. */
+  cambiarFoto: (datos: string | null) => void;
   cambiarAjustes: (a: Ajustes) => void;
   avisar: (texto: string) => void;
 };

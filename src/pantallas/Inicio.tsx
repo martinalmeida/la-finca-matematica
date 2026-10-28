@@ -179,7 +179,7 @@ export default function Inicio() {
         </Publicacion>
 
         {ultimaInsignia && (
-          <Publicacion id={`insignia-${ultimaInsignia.id}`} avatar={p.avatar} autor={primerNombre(p)} meta={tu('Tu último logro', 'Su último logro')} etiqueta={<><Icono nombre="medalla" tamano={20} /> Logro</>} reaccion={['Aplaudir', '¡Aplaudido!']} iconoReaccion="fiesta">
+          <Publicacion id={`insignia-${ultimaInsignia.id}`} avatar={p.avatar} fotoDe={p.id} autor={primerNombre(p)} meta={tu('Tu último logro', 'Su último logro')} etiqueta={<><Icono nombre="medalla" tamano={20} /> Logro</>} reaccion={['Aplaudir', '¡Aplaudido!']} iconoReaccion="fiesta">
             <div className="logro-grande">
               <span>
                 <IconoEmoji emoji={ultimaInsignia.icono} tamano={42} anim="siempre" />

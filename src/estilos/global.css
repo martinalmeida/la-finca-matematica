@@ -683,13 +683,15 @@ button {
   transform: translateY(-1px) scale(1.12);
 }
 
-.pestana-icono svg:not(.icono) {
+.pestana-icono svg:not(.icono),
+.pestana-icono .foto-perfil {
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 0 0 1.5px rgba(16, 32, 24, 0.14);
 }
 
-.pestana.activa .pestana-icono svg:not(.icono) {
+.pestana.activa .pestana-icono svg:not(.icono),
+.pestana.activa .pestana-icono .foto-perfil {
   box-shadow: 0 0 0 2px var(--verde);
 }
 
@@ -868,7 +870,8 @@ button {
   animation: girar 8s linear infinite;
 }
 
-.anillo-avatar > svg {
+.anillo-avatar > svg,
+.anillo-avatar > .foto-perfil {
   position: relative;
   display: block;
   background: #fff;
@@ -880,12 +883,49 @@ button {
   padding: 2px;
 }
 
-.pequeno-anillo > svg {
+.pequeno-anillo > svg,
+.pequeno-anillo > .foto-perfil {
   border-width: 2px;
+}
+
+/* Foto de perfil: siempre redonda y sin deformarse, en el mismo sitio que el personaje. */
+.foto-perfil {
+  display: block;
+  flex: none;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  background: #fff;
 }
 
 .grande-anillo {
   padding: 4px;
+}
+
+/* El avatar del perfil también abre la cámara o la galería para poner la foto. */
+.boton-foto {
+  border: none;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.boton-foto:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.insignia-camara {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(28, 40, 80, 0.3);
 }
 
 .semillas {
@@ -1866,6 +1906,24 @@ button {
   font-weight: 700;
 }
 
+/* Botón para seguir pegado al borde de abajo (sobre el pie de autoría) mientras su bloque
+   esté en pantalla: no hay que buscarlo debajo del teclado o de la explicación. */
+.acciones-pegadas {
+  position: sticky;
+  bottom: calc(var(--alto-pie, 44px) + 8px);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  margin: 0 -6px;
+  border-radius: 26px;
+  background: var(--vidrio-fuerte);
+  border: 1px solid var(--borde-vidrio);
+  -webkit-backdrop-filter: var(--desenfoque);
+  backdrop-filter: var(--desenfoque);
+  box-shadow: var(--sombra), var(--brillo-interno);
+}
+
 .zona-respuesta {
   display: flex;
   flex-direction: column;
@@ -2096,7 +2154,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  touch-action: none;
+  /* Sin «touch-action: none» aquí: la zona ocupa casi toda la pantalla de un celular pequeño
+     y no dejaba bajar hasta el teclado ni hasta «Siguiente». Solo lo llevan las fichas por mover. */
   user-select: none;
   -webkit-user-select: none;
 }
@@ -2384,7 +2443,27 @@ button {
   height: 44px;
   display: grid;
   place-items: center;
+  touch-action: manipulation;
+}
+
+/* La que se lleva con el dedo: el gesto es del arrastre, no de la página. */
+.ficha.movible {
   touch-action: none;
+}
+
+.deposito-destino {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+}
+
+.boton.enlace.sacar-una {
+  align-self: center;
+  min-height: 36px;
+  font-size: 0.9rem;
+  gap: 4px;
 }
 
 .ficha.arrastrando {
