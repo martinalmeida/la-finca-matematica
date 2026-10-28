@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DibujoObjeto, DibujoRecipiente, esFemenino, nombreObjeto } from '../Ilustraciones';
 import type { Recipiente } from '../../juego/tipos';
 import Numerica from './Numerica';
+import ContenedorRecipiente, { formaRecipiente } from '../Recipiente';
 import type { PropsInteraccion } from './tipos';
 import { sonar } from '../../servicios/sonido';
 import { useApp } from '../../estado';
@@ -23,7 +24,9 @@ export default function Arrastrar(props: PropsInteraccion) {
     return Array(a).fill('origen');
   };
   const [zonas, setZonas] = useState<Zona[]>(inicial);
-  const [arrastre, setArrastre] = useState<{ ficha: number; x: number; y: number } | null>(null);
+  const [arrastre, setArrastre] = useState<{ ficha: number; x: number; y: number; dedo: number } | null>(null);
+  // Punto donde se puso el dedo: menos de 8 px de movimiento es un toque, no un arrastre.
+  const inicioToque = useRef({ x: 0, y: 0 });
   const [sobre, setSobre] = useState<Zona | null>(null);
   const movido = useRef(false);
 
@@ -36,20 +39,22 @@ export default function Arrastrar(props: PropsInteraccion) {
 
   useEffect(() => {
     if (!arrastre) return;
+    const { dedo, ficha } = arrastre;
     const mover = (e: PointerEvent) => {
-      movido.current = true;
+      if (e.pointerId !== dedo) return;
+      if (Math.hypot(e.clientX - inicioToque.current.x, e.clientY - inicioToque.current.y) > 8) movido.current = true;
       setArrastre((s) => (s ? { ...s, x: e.clientX, y: e.clientY } : s));
       setSobre(zonaEn(e.clientX, e.clientY));
     };
     const soltar = (e: PointerEvent) => {
-      const z = zonaEn(e.clientX, e.clientY);
-      setArrastre((s) => {
-        if (s && z) {
-          setZonas((zs) => zs.map((v, k) => (k === s.ficha ? z : v)));
-          sonar('toque', ajustes.sonido);
-        }
-        return null;
-      });
+      if (e.pointerId !== dedo) return;
+      // Cancelado por el sistema (llamada, gesto del celular): la ficha vuelve a su sitio.
+      const z = e.type === 'pointercancel' || !movido.current ? null : zonaEn(e.clientX, e.clientY);
+      if (z) {
+        setZonas((zs) => zs.map((v, k) => (k === ficha ? z : v)));
+        sonar('toque', ajustes.sonido);
+      }
+      setArrastre(null);
       setSobre(null);
     };
     window.addEventListener('pointermove', mover);
@@ -60,13 +65,18 @@ export default function Arrastrar(props: PropsInteraccion) {
       window.removeEventListener('pointerup', soltar);
       window.removeEventListener('pointercancel', soltar);
     };
-  }, [arrastre, ajustes.sonido]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arrastre?.ficha, arrastre?.dedo, ajustes.sonido]);
 
   if (i.tipo !== 'arrastrar') return null;
 
   /** Tocar sin arrastrar: mueve la ficha al destino (o a la canasta con menos). */
   const tocar = (k: number) => {
-    if (movido.current) return;
+    if (movido.current) {
+      // Fue un arrastre; el próximo toque (o Enter con el teclado) sí cuenta.
+      movido.current = false;
+      return;
+    }
     setZonas((zs) => {
       const actual = zs[k];
       if (destinos.includes(actual)) return zs.map((v, j) => (j === k ? (modo === 'juntar' ? (k < a ? 'origen' : 'origen2') : 'origen') : v));
@@ -84,10 +94,11 @@ export default function Arrastrar(props: PropsInteraccion) {
       className="ficha boton plano"
       style={arrastre?.ficha === k ? { opacity: 0.3 } : undefined}
       onPointerDown={(e) => {
-        if (props.bloqueado) return;
+        if (props.bloqueado || arrastre) return;
         movido.current = false;
+        inicioToque.current = { x: e.clientX, y: e.clientY };
         (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-        setArrastre({ ficha: k, x: e.clientX, y: e.clientY });
+        setArrastre({ ficha: k, x: e.clientX, y: e.clientY, dedo: e.pointerId });
       }}
       onClick={() => !props.bloqueado && tocar(k)}
       aria-label={`Mover ${nombreObjeto(i.objeto)}`}
@@ -99,15 +110,23 @@ export default function Arrastrar(props: PropsInteraccion) {
   const deposito = (zona: Zona, rec: Recipiente, clase = '', indice = 0) => {
     const fichas = zonas.map((z, k) => (z === zona ? k : -1)).filter((k) => k >= 0);
     return (
-      <div key={zona} data-zona={zona} className={`deposito ${clase} ${sobre === zona ? 'activo' : ''}`} aria-label={`${rec.nombre}: ${fichas.length}`}>
-        <div className="rotulo">
-          <span className="rotulo-nombre">
-            <DibujoRecipiente dibujo={rec.dibujo} indice={indice} tamano={26} />
+      <ContenedorRecipiente
+        key={zona}
+        data-zona={zona}
+        forma={formaRecipiente(rec.dibujo)}
+        activo={sobre === zona}
+        className={`deposito ${clase}`}
+        aria-label={`${rec.nombre}: ${fichas.length}`}
+        rotulo={
+          <div className="recipiente-rotulo">
+            {/* Con forma propia el dibujo sobra: el recipiente ya se ve. Personas y animales sí lo llevan. */}
+            {!formaRecipiente(rec.dibujo) && <DibujoRecipiente dibujo={rec.dibujo} indice={indice} tamano={24} />}
             <span className="rotulo-texto">{rec.nombre}</span>
-          </span>
-        </div>
+          </div>
+        }
+      >
         {fichas.map(ficha)}
-      </div>
+      </ContenedorRecipiente>
     );
   };
 

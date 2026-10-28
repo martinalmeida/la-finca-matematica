@@ -26,7 +26,11 @@ export function obtenerSupabase(): Promise<SupabaseClient | null> {
             auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
             global: { fetch: fetchConLimite },
           }),
-        );
+        ).catch((e) => {
+          // No se pudo descargar la librería (sin señal): el próximo intento la vuelve a pedir.
+          cliente = null;
+          throw e;
+        });
   }
   return cliente;
 }

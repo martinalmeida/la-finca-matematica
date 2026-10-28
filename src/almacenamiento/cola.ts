@@ -68,7 +68,7 @@ export function claveLocal(remota: string, id: string): string {
 }
 
 function leerCola(): Cola {
-  const c = leer<Partial<Cola>>(K_COLA, {});
+  const c = leer<Partial<Cola> | null>(K_COLA, {}) ?? {};
   return { claves: c.claves ?? {}, eventos: Array.isArray(c.eventos) ? c.eventos : [], partidas: Array.isArray(c.partidas) ? c.partidas : [] };
 }
 
@@ -163,7 +163,7 @@ export function aplicarRemotas(id: string, filas: { clave: string; valor: unknow
 export function borrarDatosLocales(id: string): void {
   sinMarcar(() => {
     for (const k of clavesApp()) {
-      if (claveRemota(k, id) !== null || k === K_COLA || k === PREFIJO_V1 + 'silo' || k === PREFIJO_V1 + 'siloEscuela') borrar(k);
+      if (claveRemota(k, id) !== null || k === K_COLA || k === PREFIJO_V1 + 'silo' || k === PREFIJO_V1 + 'siloEscuela' || k === PREFIJO_V1 + 'ultimaSync') borrar(k);
     }
   });
 }

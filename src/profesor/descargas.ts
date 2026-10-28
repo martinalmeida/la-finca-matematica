@@ -1,5 +1,7 @@
 // Descarga de archivos generados en el navegador (CSV de los informes).
 
+import { fechaLocal } from '../almacenamiento/datos';
+
 export function descargar(nombre: string, contenido: string, tipo = 'text/csv'): void {
   const blob = new Blob([contenido], { type: tipo + ';charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -13,5 +15,5 @@ export function descargar(nombre: string, contenido: string, tipo = 'text/csv'):
 }
 
 export function fechaArchivo(): string {
-  return new Date().toISOString().slice(0, 10);
+  return fechaLocal(new Date());
 }

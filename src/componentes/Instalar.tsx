@@ -1,6 +1,7 @@
 // Invitación a instalar la aplicación: ventana nativa en Android y pasos guiados en iPhone/iPad.
 // Se ofrece cada vez que se abre la app desde el navegador, hasta que quede instalada.
 
+import { useCapaConAtras } from '../servicios/atras';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   alCambiarInstalable,
@@ -180,6 +181,7 @@ function AbrirEn({ navegador, enlace }: { navegador: 'Chrome' | 'Safari'; enlace
 /** Hoja inferior con el botón de instalar o los pasos para este celular. */
 export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () => void; automatica?: boolean }) {
   const { puede, instalada, recien } = useInstalacion();
+  useCapaConAtras(true, alCerrar);
   const [plataforma] = useState(detectarPlataforma);
   const [rechazo, setRechazo] = useState(false);
   const [esperando, setEsperando] = useState(plataforma === 'android-chrome' || plataforma === 'android-samsung' || plataforma === 'escritorio');
@@ -292,21 +294,32 @@ export function InvitacionInstalar({ permitida }: { permitida: boolean }) {
 }
 
 /** Botón "Instalar en este celular" para Bienvenida y Ajustes. */
-export function BotonInstalar() {
+/** Botón para instalar la app. «discreto»: enlace de texto con ícono de línea (pantalla de entrada). */
+export function BotonInstalar({ discreto = false }: { discreto?: boolean }) {
   const { instalada } = useInstalacion();
   const [abierta, setAbierta] = useState(false);
   if (esAppNativa()) return null;
   if (instalada)
-    return (
+    return discreto ? null : (
       <p className="pequeno suave fila">
         <Icono nombre="check" tamano={20} /> La aplicación ya está instalada en este celular.
       </p>
     );
   return (
     <>
-      <button type="button" className="boton secundario" onClick={() => setAbierta(true)}>
-        <Icono nombre="celular" tamano={28} /> Instalar en este celular
-      </button>
+      {discreto ? (
+        <button type="button" className="boton-instalar-discreto" onClick={() => setAbierta(true)}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="6" y="2.5" width="12" height="19" rx="2.5" />
+            <path d="M12 7v7M9 11l3 3 3-3M10.5 18.5h3" />
+          </svg>
+          Instalar en este celular
+        </button>
+      ) : (
+        <button type="button" className="boton secundario" onClick={() => setAbierta(true)}>
+          <Icono nombre="celular" tamano={28} /> Instalar en este celular
+        </button>
+      )}
       {abierta && <HojaInstalar alCerrar={() => setAbierta(false)} />}
     </>
   );

@@ -51,16 +51,18 @@ async function sincronizar(): Promise<EstadoSync> {
   const cuenta = leerCuenta();
   if (!cuenta || cuenta.rol !== 'usuario') return 'ok';
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'sin-red';
-  const sb = await obtenerSupabase();
-  if (!sb) return 'error';
   try {
+    const sb = await obtenerSupabase();
+    if (!sb) return 'error';
     const { data: sesion, error: errorSesion } = await sb.auth.getSession();
     if (errorSesion) return esErrorDeRed(errorSesion) ? 'sin-red' : 'sin-sesion';
     if (!sesion.session || sesion.session.user.id !== cuenta.id) return 'sin-sesion';
 
     if (cuenta.avatarPendiente && cuenta.avatar) {
       const { error } = await sb.rpc('elegir_avatar', { p_avatar: cuenta.avatar });
-      if (!error) guardarCuenta({ ...(leerCuenta() ?? cuenta), avatarPendiente: false });
+      // Si mientras subía eligió otro personaje, ese sigue pendiente.
+      const ahora = leerCuenta() ?? cuenta;
+      if (!error && ahora.avatar === cuenta.avatar) guardarCuenta({ ...ahora, avatarPendiente: false });
     }
 
     let perfil: FilaPerfil | null = null;
@@ -74,10 +76,12 @@ async function sincronizar(): Promise<EstadoSync> {
       if (error) return esErrorDeRed(error) ? 'sin-red' : /JWT|token|401/i.test(error.message) ? 'sin-sesion' : 'error';
       const r = data as { estado: 'ok' | 'inactivo' | 'generacion'; perfil?: FilaPerfil };
       if (r.estado === 'inactivo') return 'inactivo';
-      if (r.estado === 'generacion' && r.perfil) {
-        // El profesor reinició el progreso: lo de este celular ya no vale.
+      // El profesor reinició el progreso (también si el reinicio entró mientras se subía este lote):
+      // lo de este celular ya no vale.
+      if (r.perfil && (r.estado === 'generacion' || r.perfil.generacion !== cuenta.generacion)) {
+        const actual = leerCuenta() ?? cuenta;
         borrarDatosLocales(cuenta.id);
-        guardarCuenta({ ...r.perfil, avatarPendiente: leerCuenta()?.avatarPendiente });
+        guardarCuenta({ ...r.perfil, avatar: actual.avatarPendiente ? actual.avatar : r.perfil.avatar, avatarPendiente: actual.avatarPendiente });
         return 'reiniciado';
       }
       confirmarLote(cuenta.id, lote);

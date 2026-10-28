@@ -2,6 +2,7 @@
 // privacidad mejorada (youtube-nocookie.com): sin internet se avisa y el resto de la app sigue igual.
 // Los niños lo ven dentro de la app; a los adultos también se les ofrece abrirlo en YouTube.
 
+import { useCapaConAtras } from '../servicios/atras';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../estado';
@@ -97,6 +98,7 @@ export function VideoEnPagina({ video, adulto }: { video: Video; adulto: boolean
 
 export function HojaVideo({ video, adulto, alCerrar }: { video: Video; adulto: boolean; alCerrar: () => void }) {
   const enLinea = useEnLinea();
+  useCapaConAtras(true, alCerrar);
 
   useEffect(() => {
     detenerVoz();

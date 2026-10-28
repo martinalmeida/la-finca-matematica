@@ -1733,3 +1733,25 @@ export const lecciones: Record<Pista, Leccion[]> = {
 export function leccionDe(pista: Pista, tema: number): Leccion {
   return lecciones[pista][tema];
 }
+
+/** Palabras con contenido de un título (sin tildes, signos ni palabras cortas). */
+function palabras(t: string): string[] {
+  return t
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .split(/[^a-z0-9ñ]+/)
+    .filter((p) => p.length > 2);
+}
+
+/**
+ * Nombre del tema para mostrar bajo el título de la lección, o null si casi lo repite
+ * («Repaso: tablas y sumas» / «Repaso: tablas, sumas y restas»).
+ */
+export function temaSiAporta(tituloLeccion: string, tema: string): string | null {
+  const a = palabras(tituloLeccion);
+  const b = palabras(tema);
+  if (!a.length || !b.length) return tema;
+  const comunes = a.filter((p) => b.includes(p)).length;
+  return comunes / Math.min(a.length, b.length) >= 0.6 ? null : tema;
+}

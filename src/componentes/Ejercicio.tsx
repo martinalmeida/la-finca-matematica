@@ -299,6 +299,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
           bloqueado={estado !== 'jugando'}
           onResponder={responder}
           fallidas={prueba || inclusion ? [] : fallidas}
+          errores={errores}
           correcta={estado !== 'jugando' && !prueba ? ej.respuesta : null}
         />
       </div>

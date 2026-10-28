@@ -4,7 +4,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { useApp } from '../estado';
-import type { Leccion } from '../contenido/lecciones';
+import { temaSiAporta, type Leccion } from '../contenido/lecciones';
 import { etiquetaUnidad, type Unidad } from '../juego/complejidad';
 import { Avatar } from './Ilustraciones';
 import { avatarDeAutor } from '../contenido/red';
@@ -15,6 +15,7 @@ import { retroError, sonar } from '../servicios/sonido';
 import { BotonVideo } from './Video';
 import { videoDeLeccion } from '../contenido/videos';
 import { pistaDePerfil } from '../almacenamiento/datos';
+import { useCapaConAtras } from '../servicios/atras';
 
 export function Medidor({ barras, max = 5, etiqueta }: { barras: number; max?: number; etiqueta?: string }) {
   return (
@@ -92,6 +93,7 @@ type Props = {
 
 export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCerrar }: Props) {
   const { ajustes, perfil } = useApp();
+  useCapaConAtras(true, alCerrar);
   const [paso, setPaso] = useState(0);
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
   const video = perfil ? videoDeLeccion(pistaDePerfil(perfil), unidad.inicio - 1) : null;
@@ -109,7 +111,7 @@ export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCe
             Nivel {etiquetaUnidad(unidad)} · {unidad.complejidad.nombre} <Medidor barras={unidad.complejidad.barras} />
           </span>
           <h2 className="historia-titulo">{l.titulo}</h2>
-          <p className="suave">{unidad.titulo}</p>
+          {temaSiAporta(l.titulo, unidad.titulo) && <p className="suave">{unidad.titulo}</p>}
           <p className="pequeno suave">{tu('Toca a la derecha para seguir', 'Toque a la derecha para seguir')}</p>
         </div>
       ),

@@ -186,6 +186,8 @@ html.panel-profesor #raiz {
 
 .opcion-tipo {
   flex: 1 1 150px;
+  text-align: left;
+  line-height: 1.2;
 }
 
 .opcion-grado {

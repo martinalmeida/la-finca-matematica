@@ -7,7 +7,7 @@ import { sonar } from '../../servicios/sonido';
 import { useApp } from '../../estado';
 
 /** Contar tocando: cada objeto se marca con su número al tocarlo. */
-export default function Contar({ ej, bloqueado, onResponder, fallidas, correcta }: PropsInteraccion) {
+export default function Contar({ ej, bloqueado, onResponder, fallidas, correcta, errores }: PropsInteraccion) {
   const { ajustes } = useApp();
   const i = ej.interaccion;
   const [orden, setOrden] = useState<number[]>([]);
@@ -41,7 +41,7 @@ export default function Contar({ ej, bloqueado, onResponder, fallidas, correcta 
           <p className="instruccion" style={{ alignSelf: 'center' }}>
             Escribe cuántos hay
           </p>
-          <PizarraNumero cifras={2} bloqueado={bloqueado} correcta={typeof correcta === 'number' ? correcta : null} reinicio={fallidas.length} onListo={onResponder} />
+          <PizarraNumero cifras={2} bloqueado={bloqueado} correcta={typeof correcta === 'number' ? correcta : null} reinicio={errores ?? fallidas.length} onListo={onResponder} />
         </>
       ) : (
         <Opciones opciones={i.opciones} bloqueado={bloqueado} fallidas={fallidas} correcta={correcta} onElegir={onResponder} etiqueta="¿Cuántos hay?" />

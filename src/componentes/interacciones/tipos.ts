@@ -9,4 +9,6 @@ export type PropsInteraccion = {
   fallidas: Respuesta[];
   /** Respuesta correcta revelada (tras acertar o ver la solución). */
   correcta: Respuesta | null;
+  /** Intentos fallidos (sube aunque no se marquen las fallidas, como en Inclusión): limpia la pizarra. */
+  errores?: number;
 };

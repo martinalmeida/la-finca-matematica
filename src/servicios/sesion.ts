@@ -12,9 +12,9 @@ const SIN_INTERNET = 'Necesitas internet para entrar. Busca señal e inténtalo 
 export async function iniciarSesion(usuario: string, clave: string): Promise<Entrada> {
   if (!normalizarUsuario(usuario) || !clave) return { ok: false, error: 'Escribe tu usuario y tu contraseña.' };
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return { ok: false, error: SIN_INTERNET };
-  const sb = await obtenerSupabase();
-  if (!sb) return { ok: false, error: 'La aplicación no está conectada a la nube. Avísale al profesor.' };
   try {
+    const sb = await obtenerSupabase();
+    if (!sb) return { ok: false, error: 'La aplicación no está conectada a la nube. Avísale al profesor.' };
     const { data, error } = await sb.auth.signInWithPassword({ email: correoDe(usuario), password: clave });
     if (error) {
       if (error.code === 'user_banned') return { ok: false, error: 'Tu cuenta está desactivada. Habla con tu profesor.' };
@@ -33,9 +33,15 @@ export async function iniciarSesion(usuario: string, clave: string): Promise<Ent
     }
 
     const anterior = leerCuenta();
-    const mismo = anterior?.id === fila.id;
-    // Si en este celular había otra cuenta, sus datos se borran.
-    if (anterior && !mismo) borrarDatosLocales(anterior.id);
+    // Misma cuenta y misma generación: la sesión solo había vencido.
+    // Si el profesor reinició el progreso mientras tanto, lo guardado aquí ya no vale: se borra.
+    const mismo = anterior?.id === fila.id && anterior.generacion === fila.generacion;
+    if (anterior && !mismo) {
+      borrarDatosLocales(anterior.id);
+      // Sin cuenta guardada: si la descarga de abajo falla, el próximo intento vuelve a bajar todo
+      // (y no sube un avance vacío encima del de la nube).
+      borrarCuenta();
+    }
     if (fila.rol === 'usuario' && !mismo) {
       // Celular nuevo para esta cuenta: se baja todo lo guardado en la nube.
       const { data: filas, error: errorDatos } = await sb.from('datos_usuario').select('clave, valor').eq('usuario_id', id);

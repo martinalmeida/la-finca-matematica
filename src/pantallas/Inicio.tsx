@@ -69,7 +69,7 @@ export default function Inicio() {
       <CabeceraVidrio
         izquierda={<Logo tamano={38} />}
         titulo="La Finca"
-        subtitulo={tu(`Hola, ${primerNombre(p)}`, `Bienvenido(a), ${primerNombre(p)}`)}
+        subtitulo={`Hola, ${primerNombre(p)}`}
         derecha={
           <>
             <span className="chip semillas" aria-label={`${progreso.semillas} semillas`}>
@@ -92,7 +92,7 @@ export default function Inicio() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="pequeno suave">
-                {RESUMEN_GRADO[pista].nombre} · Nivel {nivelConTotal(pista, actual)}
+                {RESUMEN_GRADO[pista].nombre} · <span className="sin-partir">Nivel {nivelConTotal(pista, actual)}</span>
               </div>
               <strong className="titulo-tarjeta">{temaDe(pista, actual).titulo}</strong>
               <div className="fila pequeno" style={{ marginTop: 4 }}>

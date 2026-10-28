@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { DibujoFigura } from '../Figuras';
+import Recipiente from '../Recipiente';
 import { sonar } from '../../servicios/sonido';
 import { useApp } from '../../estado';
 import type { PropsInteraccion } from './tipos';
@@ -58,13 +59,22 @@ export default function Clasificar({ ej, bloqueado, onResponder }: PropsInteracc
     <div className="columna clasificar">
       <div className="clasificar-canastas">
         {i.grupos.map((g, n) => (
-          <div key={g.id} className={`clasificar-canasta vidrio ${elegida !== null ? 'esperando' : ''}`}>
-            <button type="button" className="clasificar-rotulo" onClick={() => tocarCanasta(n)} disabled={bloqueado} aria-label={`Poner en ${g.etiqueta}`}>
-              <DibujoFigura figura={g.figura} tamano={40} />
-              <span>{g.etiqueta}</span>
-            </button>
-            <div className="clasificar-dentro">{i.items.map((_, k) => k).filter((k) => ubicacion[k] === n).map(figura)}</div>
-          </div>
+          <Recipiente
+            key={g.id}
+            forma="canasta"
+            activo={elegida !== null}
+            className="clasificar-canasta"
+            // Tocar cualquier parte de la canasta también sirve (las figuras de adentro tienen su propio botón).
+            onClick={(e) => !(e.target as HTMLElement).closest('button') && tocarCanasta(n)}
+            rotulo={
+              <button type="button" className="clasificar-rotulo" onClick={(e) => { e.stopPropagation(); tocarCanasta(n); }} disabled={bloqueado} aria-label={`Poner en ${g.etiqueta}`}>
+                <DibujoFigura figura={g.figura} tamano={32} />
+                <span>{g.etiqueta}</span>
+              </button>
+            }
+          >
+            {i.items.map((_, k) => k).filter((k) => ubicacion[k] === n).map(figura)}
+          </Recipiente>
         ))}
       </div>
       {sueltas.length > 0 && (

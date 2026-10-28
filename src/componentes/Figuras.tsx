@@ -3,6 +3,7 @@
 
 import type { ColorFigura, Figura } from '../juego/tipos';
 import { DibujoObjeto } from './Ilustraciones';
+import Recipiente from './Recipiente';
 import { claro, medio, oscuro, type Tono } from './paleta';
 
 const TONO_COLOR: Record<ColorFigura, Tono> = { rojo: 'r', azul: 'a', amarillo: 'y', verde: 'v' };
@@ -71,11 +72,11 @@ export function DibujoFigura({ figura, tamano = 80 }: { figura: Figura; tamano?:
   }
   if (figura.cantidad !== undefined) {
     return (
-      <span className={`figura-canasta ${figura.cantidad === 0 ? 'vacia' : ''}`} aria-hidden="true">
+      <Recipiente forma="canasta" pequeno className="figura-canasta" aria-hidden="true" style={{ width: Math.round(tamano * 1.5) }}>
         {Array.from({ length: figura.cantidad }, (_, k) => (
           <DibujoObjeto key={k} objeto={figura.objeto} tamano={Math.round(tamano * 0.34)} etiqueta="" />
         ))}
-      </span>
+      </Recipiente>
     );
   }
   return <DibujoObjeto objeto={figura.objeto} tamano={Math.round(tamano * (figura.escala ?? 1))} etiqueta="" />;

@@ -180,7 +180,13 @@ export function resumenGrupo(alumnos: Alumno[], grupo: Grupo): ResumenGrupo {
 
 // ───────────── Exportaciones (CSV para Excel o SPSS) ─────────────
 
-const fecha = (iso: string | null | undefined) => (iso ? iso.slice(0, 19).replace('T', ' ') : '');
+/** Fecha y hora en la hora de Colombia (la nube las guarda en UTC). Las fechas sin hora quedan igual. */
+const fecha = (iso: string | null | undefined) => {
+  if (!iso) return '';
+  if (!iso.includes('T')) return iso;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString('sv-SE', { timeZone: 'America/Bogota' });
+};
 const tipoTexto = (f: FilaPerfil) => (f.tipo === 'estudiante' ? 'estudiante' : f.tipo === 'familia' ? 'familia' : 'inclusion');
 
 export function csvResumen(alumnos: Alumno[]): string {

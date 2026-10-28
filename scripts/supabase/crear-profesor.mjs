@@ -29,11 +29,14 @@ if (clave !== repetida) {
   process.exit(1);
 }
 
+// La contraseña va por la entrada estándar (con \set), no en los argumentos: así no aparece en «ps».
+// Dentro de comillas simples de psql: la comilla se dobla y la barra invertida se escapa.
+const citar = (t) => `'${t.replace(/\\/g, '\\\\').replace(/'/g, "''")}'`;
 const r = spawnSync(
   'psql',
   // Las variables :'u' solo se reemplazan en lo que psql lee (no con -c): la consulta va por la entrada.
-  [url, '-v', 'ON_ERROR_STOP=1', '-qAt', '-v', `u=${usuario}`, '-v', `c=${clave}`, '-v', `n=${nombre}`],
-  { encoding: 'utf8', input: "select public.crear_profesor(:'u', :'c', :'n');\n" },
+  [url, '-v', 'ON_ERROR_STOP=1', '-qAt', '-v', `u=${usuario}`, '-v', `n=${nombre}`],
+  { encoding: 'utf8', input: `\\set c ${citar(clave)}\nselect public.crear_profesor(:'u', :'c', :'n');\n` },
 );
 if (r.status !== 0) {
   console.error((r.stderr || '').replace(/^.*ERROR:\s*/m, 'Error: ').trim());

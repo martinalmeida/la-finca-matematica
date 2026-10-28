@@ -114,7 +114,8 @@ export function aplicarResultado(prev: Progreso, r: ResultadoNivel, diasJugados 
   };
   if (aprobado) {
     if (r.nivel === Math.ceil(maximo / 2)) dar('explorador');
-    if (anterior.intentos + 1 >= 3 && r.pista !== 'inclusion') dar('paciencia');
+    // Aprobar por primera vez después de varios intentos (no por repetir un nivel ya superado).
+    if (!anterior.completado && anterior.intentos + 1 >= 3 && r.pista !== 'inclusion') dar('paciencia');
     if (r.nivel === maximo) dar('ruta-completa');
     if (Object.values(p.niveles).filter((n) => n.estrellas === 3).length >= 5) dar('tres-estrellas');
   }

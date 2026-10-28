@@ -109,7 +109,7 @@ function TablaUsuarios({ alumnos }: { alumnos: Alumno[] }) {
   const { abrirDetalle } = useProfesor();
   return (
     <div className="tabla-scroll">
-      <table className="tabla-panel">
+      <table className="tabla-panel apilable">
         <thead>
           <tr>
             <th scope="col">Nombre</th>
@@ -137,16 +137,16 @@ function TablaUsuarios({ alumnos }: { alumnos: Alumno[] }) {
                     {a.fila.nombre}
                   </button>
                 </th>
-                <td>{nombreGrupo(a.grupo)}</td>
-                <td>{nivelConTotal(i.pista, Math.min(i.nivelMaximo, nivelMaximo(i.pista)))}</td>
-                <td>{i.estrellas}</td>
-                <td>{i.ejercicios ? `${Math.round((100 * i.aciertos) / i.ejercicios)} %` : '—'}</td>
+                <td data-etiqueta="Grupo">{nombreGrupo(a.grupo)}</td>
+                <td data-etiqueta="Nivel">{nivelConTotal(i.pista, Math.min(i.nivelMaximo, nivelMaximo(i.pista)))}</td>
+                <td data-etiqueta="Estrellas">{i.estrellas}</td>
+                <td data-etiqueta="Aciertos">{i.ejercicios ? `${Math.round((100 * i.aciertos) / i.ejercicios)} %` : '—'}</td>
                 {OPERACIONES.slice(0, 4).map((o) => (
-                  <td key={o}>{i.porcentajes[o] ? `${i.porcentajes[o]!.pct} %` : '—'}</td>
+                  <td key={o} data-etiqueta={nombresOperacion[o]}>{i.porcentajes[o] ? `${i.porcentajes[o]!.pct} %` : '—'}</td>
                 ))}
-                <td>{i.diagnostica === null ? '—' : `${i.diagnostica} → ${i.final ?? '…'}`}</td>
-                <td>{i.banda ? BANDAS[i.banda].nombre : '—'}</td>
-                <td>{hace(a.ultimaActividad)}</td>
+                <td data-etiqueta="Entrada → final">{i.diagnostica === null ? '—' : `${i.diagnostica} → ${i.final ?? '…'}`}</td>
+                <td data-etiqueta="Exigencia">{i.banda ? BANDAS[i.banda].nombre : '—'}</td>
+                <td data-etiqueta="Jugó">{hace(a.ultimaActividad)}</td>
               </tr>
             );
           })}

@@ -4,6 +4,7 @@
 // usa un fondo dibujado y funciona igual. Nada de la cámara se graba ni se envía.
 // Este archivo se carga aparte (React.lazy): three.js solo se descarga al abrir la cámara.
 
+import { useCapaConAtras } from '../servicios/atras';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ConfigEscena } from './escenaConfig';
@@ -11,7 +12,7 @@ import { cantidadObjeto } from './Ilustraciones';
 import { useApp } from '../estado';
 import { MotorRA, type Conteo, type EstadoMovimiento } from '../servicios/ra';
 import { sonar } from '../servicios/sonido';
-import { useVoz } from '../servicios/voz';
+import { detenerVoz, useVoz } from '../servicios/voz';
 import { num } from '../contenido/contexto';
 import Icono from './Icono';
 
@@ -28,9 +29,12 @@ type Props = {
 
 export default function EscenaRA({ config, titulo, instruccion, mensaje, alCerrar }: Props) {
   const { ajustes, perfil } = useApp();
+  useCapaConAtras(true, alCerrar);
   const adulto = perfil?.rol === 'familia';
   const tu = (nino: string, usted: string) => (adulto ? usted : nino);
   const voz = useVoz();
+  // Al cerrar la escena se calla lo que estaba leyendo.
+  useEffect(() => () => detenerVoz(), []);
   const contenedor = useRef<HTMLDivElement>(null);
   const motor = useRef<MotorRA | null>(null);
   const [camara, setCamara] = useState<'pidiendo' | 'lista' | 'negada' | 'sin-camara'>('pidiendo');

@@ -174,6 +174,8 @@ export function pruebasDe(p: Perfil, f: Fuente): Pruebas {
 export function bandaDe(p: Perfil, f: Fuente): Banda {
   const fijada = p.bandas[pistaDePrueba(p)];
   if (fijada) return fijada;
+  // A las familias su prueba de entrada les asigna el cuaderno (la ruta), no una exigencia.
+  if (p.rol === 'familia' || !p.grado) return 'basico';
   const d = pruebasCrudas(f, pistaDePrueba(p)).diagnostica;
   return d ? bandaPorPuntaje(d.aciertos, d.total) : 'basico';
 }
@@ -277,6 +279,12 @@ export function leerResumen(id: string): Resumen {
   return resumenDe(fuenteLocal(id));
 }
 
+/** Día en la hora del celular (AAAA-MM-DD). En Colombia, toISOString() ya es «mañana» desde las 7 p. m. */
+export function fechaLocal(d: Date): string {
+  const dos = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
+}
+
 export function sumarAlResumen(id: string, operacion: Operacion, correcto: boolean, tipoError?: string, pasoAPaso = false): Resumen {
   const r = leerResumen(id);
   const op = r.porOperacion[operacion] ?? { total: 0, aciertos: 0 };
@@ -285,7 +293,7 @@ export function sumarAlResumen(id: string, operacion: Operacion, correcto: boole
   r.porOperacion[operacion] = op;
   if (tipoError) r.errores[tipoError] = (r.errores[tipoError] ?? 0) + 1;
   if (pasoAPaso) r.pasoAPaso++;
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaLocal(new Date());
   if (!r.diasJugados.includes(hoy)) r.diasJugados = [...r.diasJugados.slice(-60), hoy];
   escribir(K.resumen(id), r);
   return r;
@@ -327,6 +335,16 @@ export function guardarAjustes(a: Ajustes): void {
 
 export function leerSilo(): { cosechas: number } {
   return leer(K.silo, { cosechas: 0 });
+}
+
+/** ¿Ya hay registro de cosechas celebradas en este celular? (no lo hay al entrar o tras un reinicio) */
+export function hayRegistroSilo(): boolean {
+  return leer<unknown>(K.silo, null) !== null;
+}
+
+/** ¿Ya llegó de la nube el total del silo de la escuela? */
+export function siloEscuelaConocido(): boolean {
+  return leer<unknown>(K.siloEscuela, null) !== null;
 }
 
 export function guardarSilo(s: { cosechas: number }): void {

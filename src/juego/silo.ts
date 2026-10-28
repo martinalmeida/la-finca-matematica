@@ -1,7 +1,7 @@
 // Silo de la escuela: semillas de todos los usuarios del mismo profesor.
 // El total llega de la nube al sincronizar; sin señal se usa el último conocido.
 
-import { guardarSilo, leerCuenta, leerSilo, leerSiloEscuela, perfilDeFila, totalesPerfil } from '../almacenamiento/datos';
+import { guardarSilo, hayRegistroSilo, leerCuenta, leerSilo, leerSiloEscuela, perfilDeFila, siloEscuelaConocido, totalesPerfil } from '../almacenamiento/datos';
 import { CAPACIDAD_SILO } from './progresion';
 
 export function estadoSilo() {
@@ -15,6 +15,12 @@ export function estadoSilo() {
 /** Devuelve true si hay una cosecha colectiva nueva que celebrar (y la marca como celebrada). */
 export function hayCosechaNueva(): boolean {
   const s = estadoSilo();
+  // Recién entrado (o tras un reinicio): las cosechas que ya había en la escuela no se celebran;
+  // se toman como punto de partida en cuanto se conoce el total de la nube.
+  if (!hayRegistroSilo()) {
+    if (siloEscuelaConocido()) guardarSilo({ cosechas: s.cosechas });
+    return false;
+  }
   if (s.cosechas > s.celebradas) {
     guardarSilo({ cosechas: s.cosechas });
     return true;

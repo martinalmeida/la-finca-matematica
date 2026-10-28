@@ -142,7 +142,7 @@ export default function Escribir(props: PropsInteraccion) {
           cifras={i.cifras}
           bloqueado={bloqueado}
           correcta={typeof correcta === 'number' ? correcta : null}
-          reinicio={fallidas.length}
+          reinicio={props.errores ?? fallidas.length}
           onListo={onResponder}
         />
       )}

@@ -52,7 +52,8 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
   const haceBanda = !adulto;
   const pruebasGuardadas = useMemo(() => leerPruebas(p), [p.id]);
   const yaHecha = tipo === 'diagnostica' ? pruebasGuardadas.diagnostica : pruebasGuardadas.repetirFinal ? undefined : pruebasGuardadas.final;
-  const intento = tipo === 'final' && pruebasGuardadas.final ? 2 : 1;
+  // Cada repetición de la final trae preguntas nuevas (la 3.ª no repite la 2.ª).
+  const intento = tipo === 'final' && pruebasGuardadas.final ? (pruebasGuardadas.finalesUsados ?? 0) + 2 : 1;
   const ejercicios = useMemo(() => generarPrueba({ codigo: p.usuario, pista: pistaPrueba, tipo, intento }), [p.usuario, pistaPrueba, tipo, intento]);
 
   const [fase, setFase] = useState<'intro' | 'jugando' | 'fin'>(yaHecha ? 'fin' : 'intro');
@@ -75,7 +76,11 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
         );
   useLecturaAutomatica(`prueba-${tipo}-intro`, textoIntro, fase === 'intro');
 
+  // Cada pregunta se cuenta una sola vez (un doble toque al final no guarda la prueba dos veces).
+  const contado = useRef(-1);
   const terminarEjercicio = (r: ResultadoEjercicio) => {
+    if (contado.current >= indice) return;
+    contado.current = indice;
     const ej = ejercicios[indice];
     registrar(tipo === 'diagnostica' ? 'prueba-diagnostica' : 'prueba-final', {
       pista: pistaPrueba,
@@ -153,7 +158,15 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
             )}
           </ul>
         </section>
-        <button type="button" className="boton principal brillo" onClick={() => setFase('jugando')}>
+        <button
+          type="button"
+          className="boton principal brillo"
+          onClick={() => {
+            // El tiempo de la prueba empieza al empezar a responder, no en la pantalla de presentación.
+            inicio.current = Date.now();
+            setFase('jugando');
+          }}
+        >
           <Icono nombre="jugar-simple" tamano={24} /> {t('¡Empezar!', 'Empezar')}
         </button>
         {tipo === 'final' && (

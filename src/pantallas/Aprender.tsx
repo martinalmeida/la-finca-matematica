@@ -6,7 +6,7 @@ import Historia, { Medidor } from '../componentes/Historia';
 import { CabeceraVidrio } from '../componentes/Red';
 import { historiasVistas, leerProgreso, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
 import { barrasGrado, etiquetaNivel, leccionDisponible, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
-import { lecciones } from '../contenido/lecciones';
+import { lecciones, temaSiAporta } from '../contenido/lecciones';
 import { nivelMaximo } from '../juego/motor';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 import { videoDeLeccion } from '../contenido/videos';
@@ -37,11 +37,11 @@ export default function Aprender() {
       <CabeceraVidrio titulo="Aprender" subtitulo={`${resumen.nombre} · ${lista.length} lecciones`} />
       <main className="pantalla">
         <section className="vidrio tarjeta-grado revelar" aria-label="Complejidad del grado">
-          <div className="fila" style={{ flexWrap: 'nowrap' }}>
+          <div className="fila">
             <span className="insignia-grado" aria-hidden="true">
               {resumen.corto}
             </span>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: '1 1 150px', minWidth: 0 }}>
               <strong className="titulo-tarjeta">{resumen.foco}</strong>
               <div className="pequeno suave">{rangoNumeros(pista)}</div>
             </div>
@@ -92,7 +92,7 @@ export default function Aprender() {
                         : `Tema ${u.indice + 1} · Nivel ${u.inicio}`}
                     </span>
                     <strong>{l?.titulo ?? u.titulo}</strong>
-                    <span className="pequeno suave">{u.titulo}</span>
+                    {l && temaSiAporta(l.titulo, u.titulo) && <span className="pequeno suave">{u.titulo}</span>}
                     <span className="fila pequeno" style={{ marginTop: 4 }}>
                       <span className={`chip complejidad c-${u.complejidad.id}`}>
                         <Medidor barras={u.complejidad.barras} /> {u.complejidad.nombre}

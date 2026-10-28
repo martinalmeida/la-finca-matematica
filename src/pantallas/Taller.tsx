@@ -3,7 +3,7 @@
 // 2) Repasa: trazar encima de la guía punteada, empezando en el punto verde.
 // 3) Escribe solo: la app reconoce la cifra y aparecen esos objetos (en la cámara, si está activada).
 
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../estado';
 import { Barra, Estrellas } from '../componentes/Comunes';
 import Lienzo from '../componentes/Lienzo';
@@ -15,7 +15,7 @@ import CifraAnimada from '../componentes/CifraAnimada';
 import { cajaCifra, formaEnCaja, reconocerCifra, revisarRepaso, CONFIANZA_MINIMA } from '../juego/trazos';
 import { guardarCifraTaller, leerTaller } from '../almacenamiento/datos';
 import { retroError, sonar } from '../servicios/sonido';
-import { useVoz } from '../servicios/voz';
+import { detenerVoz, useVoz } from '../servicios/voz';
 import type { Objeto } from '../juego/tipos';
 
 // three.js y LocAR.js solo se descargan al abrir la cámara.
@@ -44,6 +44,16 @@ function Practica({ cifra, alVolver }: { cifra: number; alVolver: () => void }) 
   const caja = useMemo(() => cajaCifra(ANCHO, ALTO, MARGEN), []);
   const guia = useMemo(() => formaEnCaja(FORMAS[cifra][0], caja), [cifra, caja]);
   const objeto = OBJETOS[cifra];
+  // Volver a «Mira» tras dos fallos: se cancela si logra escribirlo antes o si sale del taller.
+  const volverAMirar = useRef<number>(undefined);
+  // Al salir de la práctica se calla la voz.
+  useEffect(
+    () => () => {
+      window.clearTimeout(volverAMirar.current);
+      detenerVoz();
+    },
+    [],
+  );
 
   useEffect(() => {
     setTrazos([]);
@@ -81,6 +91,7 @@ function Practica({ cifra, alVolver }: { cifra: number; alVolver: () => void }) 
     const r = reconocerCifra(trazos);
     const acepta = r && (r.cifra === cifra || (r.confianza < CONFIANZA_MINIMA && r.segunda === cifra));
     if (acepta) {
+      window.clearTimeout(volverAMirar.current);
       sonar('cosecha', ajustes.sonido);
       if (perfil) guardarCifraTaller(perfil.id, cifra, fallosEscribir === 0 ? 3 : 2);
       const texto = cifra === 0 ? '¡Muy bien, un cero! Cero gallinas: el corral está vacío.' : `¡Muy bien, un ${NOMBRES_CIFRA[cifra]}! Mira: ${cantidadObjeto(objeto, cifra)}.`;
@@ -95,7 +106,8 @@ function Practica({ cifra, alVolver }: { cifra: number; alVolver: () => void }) 
     if (!r) return fallar('Escríbelo más grande, usando todo el cuadro.');
     if (n >= 2) {
       fallar(`Parece un ${r.cifra}. Miremos otra vez cómo se hace el ${cifra}.`);
-      window.setTimeout(() => setPaso('mira'), 1600);
+      window.clearTimeout(volverAMirar.current);
+      volverAMirar.current = window.setTimeout(() => setPaso('mira'), 1600);
     } else fallar(`Parece un ${r.cifra}. Inténtalo otra vez.`);
   };
 

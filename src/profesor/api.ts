@@ -58,9 +58,9 @@ export async function cargarDatos(): Promise<Datos> {
   const sb = await cliente();
   try {
     const [usuarios, datos, partidas] = await Promise.all([
-      todas<FilaPerfil>((d, h) => sb.from('perfiles').select('*').eq('rol', 'usuario').order('nombre').range(d, h)),
+      todas<FilaPerfil>((d, h) => sb.from('perfiles').select('*').eq('rol', 'usuario').order('nombre').order('id').range(d, h)),
       todas<DatoRemoto>((d, h) => sb.from('datos_usuario').select('*').order('usuario_id').order('clave').range(d, h)),
-      todas<PartidaRemota>((d, h) => sb.from('partidas').select('*').order('t').range(d, h)),
+      todas<PartidaRemota>((d, h) => sb.from('partidas').select('*').order('t').order('id').range(d, h)),
     ]);
     return { usuarios, datos, partidas };
   } catch (e) {
@@ -74,7 +74,8 @@ export async function cargarEventos(usuarioId?: string): Promise<EventoRemoto[]>
   try {
     return await todas<EventoRemoto>((d, h) => {
       const q = sb.from('eventos').select('*');
-      return (usuarioId ? q.eq('usuario_id', usuarioId) : q).order('t').range(d, h);
+      // Desempate por id: con la misma hora, las páginas no repiten ni saltan filas.
+      return (usuarioId ? q.eq('usuario_id', usuarioId) : q).order('t').order('id').range(d, h);
     });
   } catch (e) {
     throw e instanceof ErrorPanel ? e : traducir(e as Error);

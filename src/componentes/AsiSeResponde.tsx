@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Interaccion } from '../juego/tipos';
 import { DibujoObjeto } from './Ilustraciones';
+import ContenedorRecipiente from './Recipiente';
 import Teclado from './Teclado';
 import Icono from './Icono';
 import { sonar } from '../servicios/sonido';
@@ -68,7 +69,7 @@ function DemoArrastrar({ alLograr }: { alLograr: () => void }) {
   const { ajustes } = useApp();
   const [enCanasta, setEnCanasta] = useState(false);
   const [arrastre, setArrastre] = useState<{ x: number; y: number } | null>(null);
-  const refCanasta = useRef<HTMLDivElement>(null);
+  const refCanasta = useRef<HTMLSpanElement>(null);
   const lograr = () => {
     setEnCanasta(true);
     sonar('acierto', ajustes.sonido);
@@ -92,7 +93,7 @@ function DemoArrastrar({ alLograr }: { alLograr: () => void }) {
   }, [arrastre]);
   return (
     <div className="arrastre">
-      <div className="deposito" style={{ justifyContent: 'center' }}>
+      <ContenedorRecipiente forma={null} className="deposito">
         {!enCanasta && (
           <button
             type="button"
@@ -108,11 +109,10 @@ function DemoArrastrar({ alLograr }: { alLograr: () => void }) {
             <DibujoObjeto objeto="mazorca" tamano={56} etiqueta="" />
           </button>
         )}
-      </div>
-      <div ref={refCanasta} className="deposito destino" style={{ justifyContent: 'center', alignItems: 'center' }} aria-label="Canasta">
-        <DibujoObjeto objeto="canasta" tamano={64} />
-        {enCanasta && <DibujoObjeto objeto="mazorca" tamano={40} />}
-      </div>
+      </ContenedorRecipiente>
+      <ContenedorRecipiente ref={refCanasta} forma="canasta" className="deposito destino" aria-label="Canasta" style={{ alignSelf: 'center', width: 'min(100%, 240px)' }}>
+        {enCanasta && <DibujoObjeto objeto="mazorca" tamano={44} />}
+      </ContenedorRecipiente>
       {arrastre && (
         <div className="ficha arrastrando" style={{ left: arrastre.x, top: arrastre.y }} aria-hidden="true">
           <DibujoObjeto objeto="mazorca" tamano={56} etiqueta="" />

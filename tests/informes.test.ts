@@ -85,8 +85,9 @@ describe('informes del profesor', () => {
     expect(enc.split(';')).toContain('"diagnostica_por_tema"');
     expect(primera).toContain('"ana"');
     expect(primera).toContain('"1111000000";"1111111100"');
+    // La nube guarda en UTC; el CSV se exporta en la hora de Colombia (UTC−5).
     const ev = csvEventos([{ id: 'e', usuario_id: 'ana', t: '2026-10-25T10:00:00Z', tipo: 'nivel', pista: 'g3', nivel: 1, plantilla: 'p', operacion: 'suma', correcto: true, intentos: 1, pistas_usadas: 0, ms: 900 }], alumnos);
-    expect(ev.split('\r\n')[1]).toBe('"ana";"Nombre ana";"3.º grado";"2026-10-25 10:00:00";"nivel";"g3";"1";"p";"suma";"1";"1";"0";"";"900"');
+    expect(ev.split('\r\n')[1]).toBe('"ana";"Nombre ana";"3.º grado";"2026-10-25 05:00:00";"nivel";"g3";"1";"p";"suma";"1";"1";"0";"";"900"');
   });
 
   it('sugiere usuario y contraseña fáciles', () => {

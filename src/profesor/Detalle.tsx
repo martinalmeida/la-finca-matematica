@@ -14,11 +14,11 @@ import type { Banda, Pista } from '../juego/tipos';
 import { descargar, fechaArchivo } from './descargas';
 import * as api from './api';
 import { useProfesor } from './contexto';
-import { csvEventos, csvPartidas, nombreGrupo, pistaPruebasDe, type Alumno } from './informes';
+import { csvEventos, csvPartidas, pistaPruebasDe, type Alumno } from './informes';
 import { Actividad, BarraConteo, BarraPct } from './Graficas';
 import { CambiarClave, Confirmar, detalleCuenta, EditarUsuario, hace } from './Usuarios';
 
-const segundos = (ms: number | null) => (ms === null ? '—' : `${(ms / 1000).toFixed(1)} s`);
+const segundos = (ms: number | null) => (ms === null ? '—' : `${(ms / 1000).toFixed(1).replace('.', ',')} s`);
 const fechaCorta = (iso: string) => new Date(iso).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
 
 /** Días con partidas (o con ejercicios, según el resumen) → cuántas partidas hubo. */
@@ -114,7 +114,7 @@ export function InformeUsuario({ a, impreso = false }: { a: Alumno; impreso?: bo
       <section className="tarjeta columna">
         <h3>Ruta nivel por nivel · {RESUMEN_GRADO[i.pista].nombre}</h3>
         <div className="tabla-scroll">
-          <table className="tabla-panel">
+          <table className="tabla-panel apilable tabla-ruta">
             <thead>
               <tr>
                 <th scope="col">Nivel</th>
@@ -132,11 +132,11 @@ export function InformeUsuario({ a, impreso = false }: { a: Alumno; impreso?: bo
                 return (
                   <tr key={n} className={estado === 'Bloqueado' ? 'apagada' : ''}>
                     <th scope="row">{etiquetaNivel(i.pista, n)}</th>
-                    <td>{temaDe(i.pista, n).titulo}</td>
-                    <td aria-label={`${e?.estrellas ?? 0} estrellas`}>{e ? '★'.repeat(e.estrellas) + '☆'.repeat(3 - e.estrellas) : '—'}</td>
-                    <td>{e?.intentos ?? 0}</td>
-                    <td>{e ? `${e.mejorAciertos} de 10` : '—'}</td>
-                    <td>{estado}</td>
+                    <td className="celda-titulo">{temaDe(i.pista, n).titulo}</td>
+                    <td data-etiqueta="Estrellas" aria-label={`${e?.estrellas ?? 0} estrellas`}>{e ? '★'.repeat(e.estrellas) + '☆'.repeat(3 - e.estrellas) : '—'}</td>
+                    <td data-etiqueta="Intentos">{e?.intentos ?? 0}</td>
+                    <td data-etiqueta="Mejor puntaje">{e ? `${e.mejorAciertos} de 10` : '—'}</td>
+                    <td data-etiqueta="Estado">{estado}</td>
                   </tr>
                 );
               })}
@@ -178,7 +178,7 @@ export function InformeUsuario({ a, impreso = false }: { a: Alumno; impreso?: bo
           <p style={{ margin: 0 }}>Aún no hay partidas sincronizadas.</p>
         ) : (
           <div className="tabla-scroll">
-            <table className="tabla-panel">
+            <table className="tabla-panel apilable">
               <thead>
                 <tr>
                   <th scope="col">Fecha</th>
@@ -191,15 +191,15 @@ export function InformeUsuario({ a, impreso = false }: { a: Alumno; impreso?: bo
               <tbody>
                 {ultimas.map((p) => (
                   <tr key={p.id}>
-                    <td>{new Date(p.t).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</td>
-                    <td>
+                    <td className="celda-titulo">{new Date(p.t).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</td>
+                    <td data-etiqueta="Qué">
                       {p.tipo === 'nivel' ? `Nivel ${etiquetaNivel(p.pista as Pista, p.nivel ?? 1)}${p.repaso ? ' (repaso)' : ''}` : p.tipo === 'prueba-diagnostica' ? 'Prueba de entrada' : 'Prueba final'}
                     </td>
-                    <td>
+                    <td data-etiqueta="Aciertos">
                       {p.aciertos} de {p.total}
                     </td>
-                    <td>{p.estrellas ?? '—'}</td>
-                    <td>{Math.round((p.ms_total ?? 0) / 1000)} s</td>
+                    <td data-etiqueta="Estrellas">{p.estrellas ?? '—'}</td>
+                    <td data-etiqueta="Tiempo">{Math.round((p.ms_total ?? 0) / 1000)} s</td>
                   </tr>
                 ))}
               </tbody>
@@ -248,7 +248,7 @@ export default function Detalle({ a }: { a: Alumno }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ margin: 0 }}>{a.fila.nombre}</h2>
           <div className="pequeno suave">
-            {a.fila.usuario} · {detalleCuenta(a.fila)} · {nombreGrupo(a.grupo)}
+            {a.fila.usuario} · {detalleCuenta(a.fila)}
             {!a.fila.activo && <span className="chip chip-alerta">Desactivado</span>}
           </div>
           <div className="pequeno suave">

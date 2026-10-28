@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useCapaConAtras } from '../servicios/atras';
 import { useApp } from '../estado';
 import Ejercicio, { type ResultadoEjercicio } from '../componentes/Ejercicio';
 import { generarNivel, temaDe } from '../juego/motor';
@@ -72,6 +73,7 @@ function Agenda({ tema, alEmpezar }: { tema: string; alEmpezar: () => void }) {
 
 /** Inclusión: un descanso tranquilo en cualquier momento. */
 function Pausa({ alSeguir }: { alSeguir: () => void }) {
+  useCapaConAtras(true, alSeguir);
   useLecturaAutomatica('pausa', 'Descansamos. Respira despacio. Cuando quieras, seguimos.');
   return (
     <div className="pausa" role="dialog" aria-modal="true" aria-label="Pausa">
@@ -93,8 +95,10 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const inclusion = pista === 'inclusion';
   const progreso = useMemo(() => leerProgreso(p.id, pista), [p.id, pista]);
   const intento = (progreso.niveles[nivel]?.intentos ?? 0) + 1;
-  // Las 10 preguntas del nivel se generan al entrar a él.
-  const ejercicios = useMemo(() => generarNivel({ codigo: p.usuario, pista, nivel, intento, repaso, banda }), [p.usuario, pista, nivel, intento, repaso, banda]);
+  // Las 10 preguntas del nivel se generan al entrar a él; cada entrada trae otras
+  // (si sale a mitad del nivel y vuelve, no le salen las mismas que ya vio resueltas).
+  const [variante] = useState(() => Date.now());
+  const ejercicios = useMemo(() => generarNivel({ codigo: p.usuario, pista, nivel, intento, repaso, banda, variante }), [p.usuario, pista, nivel, intento, repaso, banda, variante]);
   const video = ajustes.videos === false ? null : videoDeLeccion(pista, nivel - 1);
   const leccion = lecciones[pista][unidadDe(pista, nivel).indice];
   const adulto = p.rol === 'familia';
@@ -105,7 +109,12 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const [agenda, setAgenda] = useState(inclusion);
   const [pausa, setPausa] = useState(false);
 
+  // Cada ejercicio se cuenta una sola vez: un segundo toque en «Siguiente» (mientras se abre el
+  // resultado) no registra otra vez el último ni aplica el nivel dos veces.
+  const contado = useRef(-1);
   const terminarEjercicio = (r: ResultadoEjercicio) => {
+    if (contado.current >= indice) return;
+    contado.current = indice;
     const ej = ejercicios[indice];
     sumarAlResumen(p.id, ej.operacion, r.correcto, r.tipoError, r.pasoAPaso);
     registrar('nivel', {

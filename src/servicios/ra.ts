@@ -1,5 +1,5 @@
 // Realidad aumentada con LocAR.js (https://github.com/AR-js-org/locar.js) y three.js.
-// - La cámara trasera llega con el Webcam de LocAR.
+// - La cámara trasera se pide con getUserMedia (se apaga siempre al cerrar).
 // - La brújula y el giroscopio del celular mueven la cámara 3D con DeviceOrientationControls.
 // - Los objetos de la finca se anclan en el mundo con LocAR.add (longitud, latitud, altura):
 //   quedan quietos en su sitio aunque el niño gire el celular, y hay que buscarlos alrededor.
@@ -9,7 +9,7 @@
 // Sin sensores de movimiento (computador), se mira alrededor arrastrando el dedo o el ratón.
 
 import * as THREE from 'three';
-import { DeviceOrientationControls, LocAR, Webcam } from 'locar';
+import { DeviceOrientationControls, LocAR } from 'locar';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
 import { DibujoObjeto } from '../componentes/Ilustraciones';
@@ -113,7 +113,8 @@ export class MotorRA {
   private camara: THREE.PerspectiveCamera;
   private locar: LocAR;
   private controles: DeviceOrientationControls | null = null;
-  private webcam: Webcam | null = null;
+  private video: HTMLVideoElement | null = null;
+  private flujo: MediaStream | null = null;
   private cosas: Cosa[] = [];
   private canasta: THREE.Sprite | null = null;
   private rayo = new THREE.Raycaster();
@@ -200,8 +201,11 @@ export class MotorRA {
     if (this.controles) window.removeEventListener(this.controles.orientationChangeEventName, this.alOrientar);
     this.controles?.disconnect();
     this.controles?.dispose();
-    // Webcam.dispose apaga la cámara y quita el video del DOM.
-    this.webcam?.dispose();
+    // Apaga la cámara y quita el video. Si la cámara aún no había respondido, se apaga al llegar (abrirCamara).
+    this.flujo?.getTracks().forEach((t) => t.stop());
+    this.flujo = null;
+    this.video?.remove();
+    this.video = null;
     for (const c of this.cosas) this.quitar(c);
     if (this.canasta) this.quitar({ sprite: this.canasta, etiqueta: null, marca: null, enCanasta: false, destino: null });
     this.renderer.dispose();
@@ -226,17 +230,34 @@ export class MotorRA {
     const alto = this.opciones.ligero ? 480 : 720;
     // LocAR tipa solo facingMode, pero pasa las restricciones tal cual a getUserMedia.
     const restricciones = { audio: false, video: { facingMode: 'environment', height: { ideal: alto } } } as unknown as { video: { facingMode: string } };
-    this.webcam = new Webcam(restricciones, `#${video.id}`);
-    this.webcam.on('webcamstarted', (e: { videoWidth: number; videoHeight: number }) => {
-      if (!this.vivo) return;
-      this.feed = { ancho: e.videoWidth, alto: e.videoHeight };
-      this.ajustarTamano();
-      this.opciones.alCamara('lista');
-    });
-    this.webcam.on('webcamerror', (e: { code: string }) => {
-      if (!this.vivo) return;
-      this.opciones.alCamara(e.code === 'NotAllowedError' || e.code === 'SecurityError' ? 'negada' : 'sin-camara');
-    });
+    this.video = video;
+    // La cámara se pide aquí (y no con el Webcam de LocAR) para poder apagarla aunque la escena
+    // se cierre mientras el permiso o el arranque están pendientes.
+    navigator.mediaDevices
+      .getUserMedia(restricciones as MediaStreamConstraints)
+      .then((flujo) => {
+        if (!this.vivo) {
+          flujo.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        this.flujo = flujo;
+        video.addEventListener(
+          'loadedmetadata',
+          () => {
+            if (!this.vivo) return;
+            void video.play().catch(() => undefined);
+            this.feed = { ancho: video.videoWidth, alto: video.videoHeight };
+            this.ajustarTamano();
+            this.opciones.alCamara('lista');
+          },
+          { once: true },
+        );
+        video.srcObject = flujo;
+      })
+      .catch((e: { name?: string }) => {
+        if (!this.vivo) return;
+        this.opciones.alCamara(e.name === 'NotAllowedError' || e.name === 'SecurityError' ? 'negada' : 'sin-camara');
+      });
   }
 
   private iniciarSensores(): void {

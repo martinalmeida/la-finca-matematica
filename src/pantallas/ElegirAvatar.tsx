@@ -13,7 +13,7 @@ export default function ElegirAvatar({ perfil, alElegir, alVolver }: { perfil: P
         <Barra titulo={adulto ? 'Elija su personaje' : 'Elige tu personaje'} alVolver={alVolver} />
       ) : (
         <header className="barra">
-          <h1>{adulto ? `Bienvenido(a), ${primerNombre(perfil)}. Elija su personaje` : `¡Hola, ${primerNombre(perfil)}! Elige tu personaje`}</h1>
+          <h1>{adulto ? `Hola, ${primerNombre(perfil)}. Elija su personaje` : `¡Hola, ${primerNombre(perfil)}! Elige tu personaje`}</h1>
         </header>
       )}
       <div className="rejilla" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))' }}>

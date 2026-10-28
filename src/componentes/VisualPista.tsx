@@ -1,7 +1,9 @@
 // Representación visual de la pista 2: objetos, arreglo, recta, bloques o reparto.
 
-import type { Visual } from '../juego/tipos';
+import type { ReactNode } from 'react';
+import type { Recipiente, Visual } from '../juego/tipos';
 import { DibujoObjeto, DibujoRecipiente } from './Ilustraciones';
+import ContenedorRecipiente, { formaRecipiente } from './Recipiente';
 import { DibujoFigura } from './Figuras';
 import { RectaDibujo } from './interacciones/Recta';
 import { BloquesDibujo, descomponer } from './interacciones/Bloques';
@@ -56,12 +58,7 @@ export default function VisualPista({ visual }: { visual: Visual }) {
       return (
         <div className="visual-grupos" role="img" aria-label={`Grupos de ${visual.grupos.join(' y ')}${visual.tachados ? `, ${visual.tachados} tachados` : ''}${vacios ? `, ${vacios} espacios vacíos` : ''}`}>
           {visual.grupos.map((g, k) => (
-            <div key={k} className="visual-grupo">
-              {visual.grupo?.dibujo && (
-                <span className="visual-grupo-dueno">
-                  <DibujoRecipiente dibujo={visual.grupo.dibujo} indice={k} tamano={24} />
-                </span>
-              )}
+            <Grupo key={k} dibujo={visual.grupo?.dibujo} indice={k}>
               {Array.from({ length: g }, (_, j) => {
                 // Se tachan los últimos del primer grupo.
                 const tachar = k === 0 && j >= g - (visual.tachados ?? 0) && restantesTachar-- > 0;
@@ -75,7 +72,7 @@ export default function VisualPista({ visual }: { visual: Visual }) {
                 Array.from({ length: vacios }, (_, j) => (
                   <span key={`v${j}`} className="hueco" style={{ width: 26, height: 26 }} />
                 ))}
-            </div>
+            </Grupo>
           ))}
         </div>
       );
@@ -113,16 +110,11 @@ export default function VisualPista({ visual }: { visual: Visual }) {
       return (
         <div className="visual-grupos" role="img" aria-label={texto}>
           {Array.from({ length: visual.grupos }, (_, k) => (
-            <div key={k} className="visual-grupo">
-              {visual.grupo?.dibujo && (
-                <span className="visual-grupo-dueno">
-                  <DibujoRecipiente dibujo={visual.grupo.dibujo} indice={k} tamano={24} />
-                </span>
-              )}
+            <Grupo key={k} dibujo={visual.grupo?.dibujo} indice={k}>
               {Array.from({ length: cada }, (_, j) => (
                 <DibujoObjeto key={j} objeto={objeto} tamano={24} etiqueta="" />
               ))}
-            </div>
+            </Grupo>
           ))}
           {resto > 0 && (
             <div className="visual-grupo visual-sobran">
@@ -136,4 +128,20 @@ export default function VisualPista({ visual }: { visual: Visual }) {
       );
     }
   }
+}
+
+/** Un grupo de la pista: dentro de su recipiente (canasta, caja, costal…) o, si es de una persona, con su dibujo al lado. */
+function Grupo({ dibujo, indice, children }: { dibujo?: Recipiente['dibujo']; indice: number; children: ReactNode }) {
+  const forma = formaRecipiente(dibujo);
+  if (forma) return <ContenedorRecipiente forma={forma} pequeno className="visual-grupo-recipiente">{children}</ContenedorRecipiente>;
+  return (
+    <div className="visual-grupo">
+      {dibujo && (
+        <span className="visual-grupo-dueno">
+          <DibujoRecipiente dibujo={dibujo} indice={indice} tamano={24} />
+        </span>
+      )}
+      {children}
+    </div>
+  );
 }

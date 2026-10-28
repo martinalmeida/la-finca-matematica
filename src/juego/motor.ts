@@ -94,11 +94,13 @@ export type OpcionesNivel = {
   intento: number;
   repaso?: boolean;
   banda?: Banda;
+  /** Cambia las preguntas en cada entrada al nivel (salir y volver no repite el mismo juego). */
+  variante?: number;
 };
 
 /** Genera las 10 preguntas de un nivel: mezcla los usos del tema (y sus dimensiones) y sube la dificultad. */
-export function generarNivel({ codigo, pista, nivel, intento, repaso = false, banda = BANDA_POR_DEFECTO }: OpcionesNivel): Ejercicio[] {
-  const rng = crearRng(semillaNivel(codigo, pista, nivel, intento) ^ (repaso ? 0x5f3759df : 0));
+export function generarNivel({ codigo, pista, nivel, intento, repaso = false, banda = BANDA_POR_DEFECTO, variante = 0 }: OpcionesNivel): Ejercicio[] {
+  const rng = crearRng(semillaNivel(codigo, pista, nivel, intento) ^ (repaso ? 0x5f3759df : 0) ^ (variante ? hashTexto(String(variante)) : 0));
   const usos = temaDe(pista, nivel).usos;
   const apoyo = banda === 'refuerzo' && pista !== 'inclusion';
 

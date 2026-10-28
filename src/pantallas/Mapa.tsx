@@ -68,7 +68,11 @@ export default function Mapa() {
     <>
       <CabeceraVidrio
         titulo={resumen.nombre}
-        subtitulo={`Nivel ${nivelConTotal(pista, enJuego)} · ${rangoNumeros(pista)}`}
+        subtitulo={
+          <>
+            <span className="sin-partir">Nivel {nivelConTotal(pista, enJuego)}</span> · <span className="sin-partir">{rangoNumeros(pista)}</span>
+          </>
+        }
         derecha={
           conPruebas && !adulto ? (
             <span className="chip pequeno" title={BANDAS[banda].descripcion}>

@@ -10,10 +10,11 @@ export default function Arreglo(props: PropsInteraccion) {
   if (i.tipo !== 'arreglo') return null;
   const lado = Math.min(10, Math.max(i.filas, i.columnas) + 1);
   const listo = sel && sel.f === i.filas && sel.c === i.columnas;
-  const tam = lado > 8 ? 26 : 30;
+  // Celdas tan grandes como quepan (hasta 44 px, cómodas para el dedo) en el ancho de la pantalla.
+  const celda = `min(44px, calc((min(100vw, 560px) - 48px - ${lado - 1} * 3px) / ${lado}))`;
   return (
     <div className="columna">
-      <div className="arreglo" style={{ gridTemplateColumns: `repeat(${lado}, ${tam}px)` }} role="grid" aria-label="Cuadrícula de surcos">
+      <div className="arreglo" style={{ gridTemplateColumns: `repeat(${lado}, ${celda})` }} role="grid" aria-label="Cuadrícula de surcos">
         {Array.from({ length: lado * lado }, (_, k) => {
           const f = Math.floor(k / lado);
           const c = k % lado;
@@ -23,12 +24,11 @@ export default function Arreglo(props: PropsInteraccion) {
               key={k}
               type="button"
               className={`celda ${activa ? 'activa' : ''}`}
-              style={{ width: tam, height: tam }}
               disabled={props.bloqueado}
               onClick={() => setSel({ f: f + 1, c: c + 1 })}
               aria-label={`Formar ${f + 1} filas por ${c + 1} columnas`}
             >
-              {activa && <DibujoObjeto objeto={i.objeto} tamano={tam - 6} etiqueta="" />}
+              {activa && <DibujoObjeto objeto={i.objeto} tamano={34} etiqueta="" />}
             </button>
           );
         })}

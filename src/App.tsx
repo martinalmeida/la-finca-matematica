@@ -16,6 +16,7 @@ import { alCambiarDisponibilidad, almacenamientoDisponible } from './almacenamie
 import { activarCola } from './almacenamiento/cola';
 import { alListoSinInternet, marcarOcupada, seActualizo } from './pwa/registro';
 import { cerrarSesion } from './servicios/sesion';
+import { ajustarGuarda, alAtras } from './servicios/atras';
 import { alSincronizar, iniciarSincronizacion, sincronizarAhora } from './servicios/sincronizacion';
 import Entrar from './pantallas/Entrar';
 import ElegirAvatar from './pantallas/ElegirAvatar';
@@ -24,13 +25,19 @@ import Pestanas from './componentes/Pestanas';
 import Icono from './componentes/Icono';
 import { InvitacionInstalar } from './componentes/Instalar';
 import PieAutor from './componentes/PieAutor';
+import FronteraError from './componentes/FronteraError';
 
 // Pantallas en archivos aparte. Se precargan en segundo plano después de abrir la app,
 // así cambiar de pantalla no espera la descarga (ni muestra «Cargando…»).
 const precargas: (() => Promise<unknown>)[] = [];
 function perezosa<T extends ComponentType<any>>(cargar: () => Promise<{ default: T }>) {
   let promesa: Promise<{ default: T }> | undefined;
-  const una = () => (promesa ??= cargar());
+  // Si la descarga falla (sin señal y sin caché), no se guarda el error: el próximo intento la repite.
+  const una = () =>
+    (promesa ??= cargar().catch((e) => {
+      promesa = undefined;
+      throw e;
+    }));
   precargas.push(una);
   return lazy(una);
 }
@@ -103,9 +110,11 @@ export default function App() {
     );
   } else if (cuenta.rol === 'profesor') {
     contenido = (
+      <FronteraError alVolver={() => location.reload()}>
       <Suspense fallback={<div className="cargando" aria-live="polite">Cargando…</div>}>
         <AppProfesor cuenta={cuenta} alSalir={() => salir()} alVencer={() => pedirClave('Su sesión terminó. Escriba otra vez su contraseña.')} />
       </Suspense>
+      </FronteraError>
     );
   } else {
     contenido = <AppUsuario key={cuenta.id} cuenta={cuenta} alCambiarCuenta={setCuenta} salir={salir} pedirClave={pedirClave} />;
@@ -119,7 +128,8 @@ export default function App() {
         </div>
       )}
       {/* El usuario que juega lleva su propio fondo (sigue sus ajustes de efectos). */}
-      {(!cuenta || motivo || cuenta.rol === 'profesor') && <Fondo />}
+      {/* La pantalla de entrada lleva su propio fondo, sobrio y quieto. */}
+      {cuenta?.rol === 'profesor' && !motivo && <Fondo />}
       {(!cuenta || motivo) && <SinSesion />}
       {contenido}
       <PieAutor />
@@ -168,7 +178,22 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
   }, [avisar]);
   // En un nivel, una prueba, el reto en pareja o el taller no se recarga por una actualización:
   // se aplica al salir.
-  useEffect(() => marcarOcupada(['nivel', 'prueba', 'taller'].includes(pantalla.nombre)), [pantalla.nombre]);
+  const ocupada = ['nivel', 'prueba', 'taller'].includes(pantalla.nombre);
+  useEffect(() => marcarOcupada(ocupada), [ocupada]);
+
+  // Si la sesión vence en medio de un nivel, una prueba o el taller, no se corta el juego (se perdería
+  // lo jugado): se pide la contraseña al salir. Mientras tanto todo queda guardado en la cola.
+  const ocupadaRef = useRef(ocupada);
+  ocupadaRef.current = ocupada;
+  const [claveDiferida, setClaveDiferida] = useState<string | null>(null);
+  // Sube cuando el profesor reinicia o cambia la cuenta: las pantallas se vuelven a montar con los datos nuevos.
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    if (claveDiferida && !ocupada) {
+      pedirClave(claveDiferida);
+      setClaveDiferida(null);
+    }
+  }, [claveDiferida, ocupada, pedirClave]);
   useEffect(precargarPantallas, []);
   useEffect(() => aplicarTamanoLetra(perfil, ajustes, pantalla), [perfil, ajustes, pantalla]);
 
@@ -181,14 +206,21 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
     () =>
       alSincronizar(({ estado, cuentaCambio }) => {
         if (estado === 'inactivo') void salir('Tu cuenta fue desactivada. Habla con tu profesor.');
-        else if (estado === 'sin-sesion') pedirClave('Escribe otra vez tu contraseña para seguir guardando tu avance.');
+        else if (estado === 'sin-sesion') {
+          const texto = 'Escribe otra vez tu contraseña para seguir guardando tu avance.';
+          if (ocupadaRef.current) setClaveDiferida(texto);
+          else pedirClave(texto);
+        }
         else if (estado === 'reiniciado') {
           setPila([{ nombre: 'inicio' }]);
+          setVersion((v) => v + 1);
           avisar('Tu profesor reinició tu progreso: empiezas de nuevo');
         }
         if (cuentaCambio) {
           const c = leerCuenta();
           if (c) alCambiarCuenta(c);
+          // Las pantallas vuelven a leer lo que cambió el profesor (no en medio de un nivel).
+          if (!ocupadaRef.current) setVersion((v) => v + 1);
         }
       }),
     [salir, pedirClave, alCambiarCuenta, avisar],
@@ -204,14 +236,16 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
     [cuenta, alCambiarCuenta],
   );
 
-  // Botón "atrás" de Android: vuelve a la pantalla anterior dentro de la app.
+  // Botón "atrás" de Android: cierra la capa abierta o vuelve a la pantalla anterior dentro de la app.
   useEffect(() => {
     const alVolver = () => {
+      if (alAtras()) return;
       setPila((p) => (p.length > 1 ? p.slice(0, -1) : p));
     };
     window.addEventListener('popstate', alVolver);
     return () => window.removeEventListener('popstate', alVolver);
   }, []);
+  useEffect(() => ajustarGuarda(pila.length > 1), [pila.length]);
 
   const ir = useCallback<EstadoApp['ir']>((destino, opciones) => {
     // Cada entrada a un nivel tiene su clave: "Repetir" monta el nivel desde cero.
@@ -220,11 +254,6 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
       if (opciones?.reemplazar) return [...pilaActual.slice(0, -1), p];
       // Pantallas raíz (pestañas): reinician la pila.
       if (esPestana(p)) return [p];
-      try {
-        history.pushState({ finca: true }, '');
-      } catch {
-        // sin historial
-      }
       return [...pilaActual, p];
     }));
     window.scrollTo(0, 0);
@@ -258,12 +287,14 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
   return (
     <ContextoApp.Provider value={valor}>
       <Fondo />
+      <FronteraError key={version} alVolver={() => setPila([{ nombre: 'inicio' }])}>
       <Suspense fallback={<div className="cargando" aria-live="polite">Cargando…</div>}>
         {/* La clave cambia con cada pantalla: dispara la animación de entrada. */}
-        <div key={sinAvatar ? 'avatar' : `${pila.length}-${pantalla.nombre}-${pantalla.nombre === 'nivel' ? pantalla.clave : ''}`} className={`escenario ${esPestana(pantalla) && !sinAvatar ? 'con-pestanas' : ''}`}>
+        <div key={sinAvatar ? 'avatar' : `${version}-${pila.length}-${pantalla.nombre}-${pantalla.nombre === 'nivel' ? pantalla.clave : ''}`} className={`escenario ${esPestana(pantalla) && !sinAvatar ? 'con-pestanas' : ''}`}>
           {sinAvatar ? <ElegirAvatar perfil={perfil} alElegir={elegirAvatar} /> : <Contenido pantalla={pantalla} perfil={perfil} />}
         </div>
       </Suspense>
+      </FronteraError>
       {esPestana(pantalla) && !sinAvatar && <Pestanas />}
       {/* No interrumpe un nivel en curso: se ofrece en las pestañas. */}
       <InvitacionInstalar permitida={!sinAvatar && !['nivel', 'resultado', 'taller', 'prueba'].includes(pantalla.nombre)} />

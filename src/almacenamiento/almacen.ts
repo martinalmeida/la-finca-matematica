@@ -23,6 +23,19 @@ function probar(): boolean {
 
 function marcarNoDisponible() {
   if (disponible) {
+    // Antes de pasar a memoria se copia lo que ya estaba guardado: si no, la cuenta, la cola y el
+    // avance de otras rutas se leerían vacíos y la próxima escritura los pisaría.
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith(PREFIJO) && !memoria.has(k)) {
+          const v = localStorage.getItem(k);
+          if (v !== null) memoria.set(k, v);
+        }
+      }
+    } catch {
+      // ni siquiera se puede leer: queda solo lo de esta sesión
+    }
     disponible = false;
     oyentes.forEach((f) => f());
   }

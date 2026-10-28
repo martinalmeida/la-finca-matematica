@@ -102,7 +102,7 @@ export default function Familias({ seccion }: { seccion: 'menu' | 'acompanar' | 
         </p>
         <article className="tarjeta columna">
           <p style={{ margin: 0 }}>
-            {RESUMEN_GRADO[pista].nombre} · <strong>nivel {nivelConTotal(pista, f.nivelMaximo)}</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
+            {RESUMEN_GRADO[pista].nombre} · <strong className="sin-partir">nivel {nivelConTotal(pista, f.nivelMaximo)}</strong> · ★ {f.estrellas} estrellas · {f.semillas} semillas
           </p>
           {pr.diagnostica && !pr.final && (
             <p className="pequeno" style={{ margin: 0 }}>
