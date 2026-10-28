@@ -1,8 +1,13 @@
 // Invitación a instalar la aplicación: ventana nativa en Android y pasos guiados en iPhone/iPad.
 // Se ofrece cada vez que se abre la app desde el navegador, hasta que quede instalada.
+// Trato: tú en la entrada y para los estudiantes; usted para las familias (como el resto de la app).
+
+/** Elige el texto según el trato: (tú, usted). */
+type Trato = (tu: string, usted: string) => string;
 
 import { useCapaConAtras } from '../servicios/atras';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useState, type ReactNode } from 'react';
+import { ContextoApp } from '../estado';
 import {
   alCambiarInstalable,
   detectarPlataforma,
@@ -68,53 +73,53 @@ function Marca({ nombre, texto }: { nombre?: string; texto?: string }) {
   );
 }
 
-function Pasos({ plataforma }: { plataforma: Plataforma }) {
+function Pasos({ plataforma, t }: { plataforma: Plataforma; t: Trato }) {
   const ios = versionIos();
   switch (plataforma) {
     case 'ios-safari':
       return (
         <ol className="pasos-instalar">
           <Paso n={1}>
-            Toque el botón Compartir <Marca nombre="compartir" /> en la barra de Safari (abajo en el iPhone, arriba en el iPad). Si no lo ve, toque primero <Marca texto="•••" />.
+            {t('Toca', 'Toque')} el botón Compartir <Marca nombre="compartir" /> en la barra de Safari (abajo en el iPhone, arriba en el iPad). Si no {t('lo ves, toca', 'lo ve, toque')} primero <Marca texto="•••" />.
           </Paso>
           <Paso n={2}>
-            Baje en la lista y toque <Marca nombre="agregar" texto="Agregar a inicio" />.
+            {t('Baja en la lista y toca', 'Baje en la lista y toque')} <Marca nombre="agregar" texto="Agregar a inicio" />.
           </Paso>
           <Paso n={3}>
-            Deje activado «Abrir como app web» y toque <strong>Agregar</strong>. El ícono de la mazorca quedará en la pantalla del celular.
+            {t('Deja activado «Abrir como app web» y toca', 'Deje activado «Abrir como app web» y toque')} <strong>Agregar</strong>. El ícono de la mazorca quedará en la pantalla del celular.
           </Paso>
         </ol>
       );
     case 'ios-otro':
-      if (ios !== null && ios < 16.4) return <AbrirEn navegador="Safari" enlace={null} />;
+      if (ios !== null && ios < 16.4) return <AbrirEn navegador="Safari" enlace={null} t={t} />;
       return (
         <ol className="pasos-instalar">
           <Paso n={1}>
-            Toque el botón Compartir <Marca nombre="compartir" /> (en Chrome está arriba, junto a la dirección).
+            {t('Toca', 'Toque')} el botón Compartir <Marca nombre="compartir" /> (en Chrome está arriba, junto a la dirección).
           </Paso>
           <Paso n={2}>
-            Toque <Marca nombre="agregar" texto="Agregar a pantalla de inicio" />. Si no aparece, abra esta página en Safari.
+            {t('Toca', 'Toque')} <Marca nombre="agregar" texto="Agregar a pantalla de inicio" />. Si no aparece, {t('abre', 'abra')} esta página en Safari.
           </Paso>
           <Paso n={3}>
-            Toque <strong>Agregar</strong>.
+            {t('Toca', 'Toque')} <strong>Agregar</strong>.
           </Paso>
         </ol>
       );
     case 'ios-app':
-      return <AbrirEn navegador="Safari" enlace={ios !== null && ios >= 17 ? enlaceAbrirEnSafari() : null} />;
+      return <AbrirEn navegador="Safari" enlace={ios !== null && ios >= 17 ? enlaceAbrirEnSafari() : null} t={t} />;
     case 'android-app':
-      return <AbrirEn navegador="Chrome" enlace={enlaceAbrirEnChrome()} />;
+      return <AbrirEn navegador="Chrome" enlace={enlaceAbrirEnChrome()} t={t} />;
     case 'android-samsung':
       return (
         <ol className="pasos-instalar">
           <Paso n={1}>
-            Toque el menú <strong>☰</strong> abajo a la derecha.
+            {t('Toca', 'Toque')} el menú <strong>☰</strong> abajo a la derecha.
           </Paso>
           <Paso n={2}>
-            Toque <Marca nombre="agregar" texto="Agregar página a" /> y luego <strong>Pantalla de inicio</strong>.
+            {t('Toca', 'Toque')} <Marca nombre="agregar" texto="Agregar página a" /> y luego <strong>Pantalla de inicio</strong>.
           </Paso>
           <Paso n={3}>
-            Confirme con <strong>Agregar</strong>.
+            {t('Confirma', 'Confirme')} con <strong>Agregar</strong>.
           </Paso>
         </ol>
       );
@@ -122,13 +127,13 @@ function Pasos({ plataforma }: { plataforma: Plataforma }) {
       return (
         <ol className="pasos-instalar">
           <Paso n={1}>
-            Toque el menú <Marca nombre="puntos" /> de Firefox.
+            {t('Toca', 'Toque')} el menú <Marca nombre="puntos" /> de Firefox.
           </Paso>
           <Paso n={2}>
-            Toque <Marca nombre="agregar" texto="Instalar" /> o «Agregar a pantalla de inicio».
+            {t('Toca', 'Toque')} <Marca nombre="agregar" texto="Instalar" /> o «Agregar a pantalla de inicio».
           </Paso>
           <Paso n={3}>
-            Confirme con <strong>Agregar</strong>.
+            {t('Confirma', 'Confirme')} con <strong>Agregar</strong>.
           </Paso>
         </ol>
       );
@@ -136,31 +141,31 @@ function Pasos({ plataforma }: { plataforma: Plataforma }) {
       return (
         <ol className="pasos-instalar">
           <Paso n={1}>
-            Toque el menú <Marca nombre="puntos" /> arriba a la derecha.
+            {t('Toca', 'Toque')} el menú <Marca nombre="puntos" /> arriba a la derecha.
           </Paso>
           <Paso n={2}>
-            Toque <Marca nombre="celular" texto="Instalar aplicación" /> o «Agregar a la pantalla principal».
+            {t('Toca', 'Toque')} <Marca nombre="celular" texto="Instalar aplicación" /> o «Agregar a la pantalla principal».
           </Paso>
           <Paso n={3}>
-            Confirme con <strong>Instalar</strong>.
+            {t('Confirma', 'Confirme')} con <strong>Instalar</strong>.
           </Paso>
         </ol>
       );
     case 'escritorio':
       return (
         <ol className="pasos-instalar">
-          <Paso n={1}>En Chrome o Edge, toque el ícono de instalar al final de la barra de direcciones, o abra el menú del navegador.</Paso>
-          <Paso n={2}>Elija «Instalar La Finca Matemática».</Paso>
+          <Paso n={1}>En Chrome o Edge, {t('toca el ícono de instalar al final de la barra de direcciones, o abre', 'toque el ícono de instalar al final de la barra de direcciones, o abra')} el menú del navegador.</Paso>
+          <Paso n={2}>{t('Elige', 'Elija')} «Instalar La Finca Matemática».</Paso>
         </ol>
       );
   }
 }
 
-function AbrirEn({ navegador, enlace }: { navegador: 'Chrome' | 'Safari'; enlace: string | null }) {
+function AbrirEn({ navegador, enlace, t }: { navegador: 'Chrome' | 'Safari'; enlace: string | null; t: Trato }) {
   return (
     <div className="columna">
       <p>
-        Esta página está abierta dentro de otra aplicación (WhatsApp, Facebook…). Desde aquí no se puede instalar: ábrala en <strong>{navegador}</strong>.
+        Esta página está abierta dentro de otra aplicación (WhatsApp, Facebook…). Desde aquí no se puede instalar: {t('ábrela', 'ábrala')} en <strong>{navegador}</strong>.
       </p>
       {enlace && (
         <a className="boton principal" href={enlace}>
@@ -169,9 +174,11 @@ function AbrirEn({ navegador, enlace }: { navegador: 'Chrome' | 'Safari'; enlace
       )}
       <ol className="pasos-instalar">
         <Paso n={1}>
-          Toque el menú {navegador === 'Safari' ? <Marca texto="•••" /> : <Marca nombre="puntos" />} o el botón Compartir <Marca nombre="compartir" />.
+          {t('Toca', 'Toque')} el menú {navegador === 'Safari' ? <Marca texto="•••" /> : <Marca nombre="puntos" />} o el botón Compartir <Marca nombre="compartir" />.
         </Paso>
-        <Paso n={2}>Elija «Abrir en {navegador}» o «Abrir en el navegador».</Paso>
+        <Paso n={2}>
+          {t('Elige', 'Elija')} «Abrir en {navegador}» o «Abrir en el navegador».
+        </Paso>
         <Paso n={3}>Allá aparecerá de nuevo esta invitación para instalar.</Paso>
       </ol>
     </div>
@@ -182,6 +189,9 @@ function AbrirEn({ navegador, enlace }: { navegador: 'Chrome' | 'Safari'; enlace
 export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () => void; automatica?: boolean }) {
   const { puede, instalada, recien } = useInstalacion();
   useCapaConAtras(true, alCerrar);
+  // Sin sesión (pantalla de entrada) o estudiante: tú. Familia: usted.
+  const adulto = useContext(ContextoApp)?.perfil.rol === 'familia';
+  const t: Trato = (tu, usted) => (adulto ? usted : tu);
   const [plataforma] = useState(detectarPlataforma);
   const [rechazo, setRechazo] = useState(false);
   const [esperando, setEsperando] = useState(plataforma === 'android-chrome' || plataforma === 'android-samsung' || plataforma === 'escritorio');
@@ -212,7 +222,7 @@ export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () =>
         <p className="fila">
           <Icono nombre="check" tamano={28} /> <strong>¡Listo! La Finca Matemática quedó instalada.</strong>
         </p>
-        <p>Ciérrela aquí y ábrala desde el ícono de la mazorca en la pantalla del celular. Funciona sin internet.</p>
+        <p>{t('Ciérrala aquí y ábrela', 'Ciérrela aquí y ábrala')} desde el ícono de la mazorca en la pantalla del celular. Funciona sin internet.</p>
         <button type="button" className="boton principal" onClick={alCerrar}>
           Entendido
         </button>
@@ -221,7 +231,7 @@ export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () =>
   } else if (puede) {
     cuerpo = (
       <>
-        <p>Así queda como una aplicación más del celular: se abre con un toque, a pantalla completa y sin internet.</p>
+        <p>Queda como una aplicación más del celular: se abre con un toque, a pantalla completa y funciona sin internet.</p>
         <button
           type="button"
           className="boton principal brillo"
@@ -245,14 +255,25 @@ export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () =>
       <>
         {!plataforma.endsWith('-app') && (
           <p>
-            {rechazo ? 'Si cambió de opinión, puede instalarla a mano.' : ios ? 'En iPhone y iPad se instala en tres pasos.' : 'Siga estos pasos.'}{' '}
-            <span className="pequeno suave">Si eres estudiante, pide ayuda a un adulto.</span>
+            {rechazo
+              ? t('Si cambiaste de opinión, puedes instalarla a mano.', 'Si cambió de opinión, puede instalarla a mano.')
+              : ios
+                ? 'En iPhone y iPad se instala en tres pasos.'
+                : t('Sigue estos pasos.', 'Siga estos pasos.')}
           </p>
         )}
-        <Pasos plataforma={plataforma} />
+        <Pasos plataforma={plataforma} t={t} />
+        {!adulto && (
+          <p className="hoja-nota">
+            <Icono nombre="apoyo" tamano={22} anim="no" /> Si necesitas ayuda, pídesela a un adulto.
+          </p>
+        )}
         {ios && (
-          <p className="pequeno suave">
-            Importante: la app instalada guarda sus datos aparte de Safari. Al abrirla, vuelva a entrar con el usuario y la contraseña: el avance que ya se subió a la nube aparece ahí.
+          <p className="hoja-nota">
+            <Icono nombre="dato" tamano={22} anim="no" />
+            <span>
+              La app instalada guarda sus datos aparte de Safari. Al abrirla, {t('vuelve', 'vuelva')} a entrar con el usuario y la contraseña: el avance que ya se subió a la nube aparece ahí.
+            </span>
           </p>
         )}
       </>
@@ -262,13 +283,15 @@ export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () =>
   return (
     <div className="velo-instalar" onClick={cerrar}>
       <section className="hoja-instalar tarjeta columna" role="dialog" aria-modal="true" aria-labelledby="titulo-instalar" onClick={(e) => e.stopPropagation()}>
-        <div className="hoja-asa" aria-hidden="true" />
-        <header className="fila hoja-cabeza">
+        <header className="hoja-cabeza">
           <img src="./iconos/icono-apple-180.png" alt="" width={56} height={56} className="hoja-logo" />
-          <div>
-            <h2 id="titulo-instalar">Instale La Finca Matemática</h2>
-            <p className="pequeno suave">Gratis · sin internet · sin anuncios</p>
+          <div className="hoja-cabeza-textos">
+            <h2 id="titulo-instalar">{t('Instala', 'Instale')} La Finca Matemática</h2>
+            <p className="pequeno suave">Gratis · sin anuncios</p>
           </div>
+          <button type="button" className="boton icono" onClick={cerrar} aria-label="Cerrar">
+            <Icono nombre="cerrar" tamano={22} />
+          </button>
         </header>
         {cuerpo}
         {!(recien || instalada) && (

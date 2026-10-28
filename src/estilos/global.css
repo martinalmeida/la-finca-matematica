@@ -3277,8 +3277,8 @@ button:active .icono [class*='a-'] {
   max-width: 520px;
   max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-y: auto;
-  /* Opaca: lo de atrás no se mezcla con los campos del formulario. */
-  background: rgba(255, 255, 255, 0.97);
+  /* Opaca: lo de atrás no se mezcla con el texto ni con los campos del formulario. */
+  background: #ffffff;
   border-radius: var(--radio-grande);
   padding-top: 10px;
   box-shadow: var(--sombra-alta), var(--brillo-interno);
@@ -3289,18 +3289,37 @@ button:active .icono [class*='a-'] {
   from { transform: translateY(40px); opacity: 0; }
 }
 
-.hoja-asa {
-  width: 44px;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(16, 32, 24, 0.2);
-  margin: 0 auto 4px;
+/* Cabecera fija dentro de la hoja: con letra grande la hoja se desplaza y la X sigue a mano. */
+.hoja-cabeza {
+  position: sticky;
+  top: -10px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -10px -16px 0;
+  padding: 14px 16px 10px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(16, 32, 24, 0.06);
 }
-
-.hoja-cabeza { gap: 12px; align-items: center; }
-.hoja-cabeza h2 { margin: 0; font-size: 1.15rem; }
+.hoja-cabeza-textos { flex: 1; min-width: 0; }
+.hoja-cabeza h2 { margin: 0; font-size: 1.1rem; line-height: 1.2; }
 .hoja-cabeza p { margin: 2px 0 0; }
-.hoja-logo { border-radius: 14px; box-shadow: var(--sombra); flex: none; }
+.hoja-logo { border-radius: 14px; box-shadow: var(--sombra); flex: none; width: 48px; height: 48px; }
+
+/* Notas al pie de los pasos (ayuda de un adulto, datos en iPhone). */
+.hoja-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(16, 32, 24, 0.04);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--tinta-suave);
+}
+.hoja-nota .icono { flex: none; }
 
 .pasos-instalar {
   list-style: none;
@@ -3346,6 +3365,9 @@ button:active .icono [class*='a-'] {
 
 :root[data-efectos='ligeros'] .velo-instalar,
 :root[data-efectos='ligeros'] .hoja-instalar { animation: none; }
+/* Gana a los estilos de vidrio de .tarjeta (también con efectos ligeros). */
+.hoja-instalar.tarjeta,
+:root[data-efectos] .hoja-instalar.tarjeta { background: #ffffff; }
 .hoja-instalar p { margin: 0; }
 .hoja-instalar a.boton { text-decoration: none; }
 
