@@ -128,8 +128,8 @@ export default function App() {
         </div>
       )}
       {/* El usuario que juega lleva su propio fondo (sigue sus ajustes de efectos). */}
-      {/* La pantalla de entrada lleva su propio fondo, sobrio y quieto. */}
-      {cuenta?.rol === 'profesor' && !motivo && <Fondo />}
+      {/* El usuario que juega lleva su propio fondo (sigue sus ajustes de efectos). */}
+      {(!cuenta || motivo || cuenta.rol === 'profesor') && <Fondo />}
       {(!cuenta || motivo) && <SinSesion />}
       {contenido}
       <PieAutor />

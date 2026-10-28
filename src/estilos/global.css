@@ -4530,355 +4530,75 @@ button.frase:active {
 
 /* ===================== Entrar (usuario y contraseña) ===================== */
 
-/* Pantalla de entrada: sobria, sin vidrio ni degradados. Franja de marca con curvas de nivel
-   y formulario de estilo institucional. En pantallas anchas, dos columnas. */
-#raiz:has(> .login) {
-  max-width: none;
-}
-
-.login {
-  --l-bosque: #163a28;
-  --l-bosque-2: #1d4a33;
-  --l-verde: #1f7a4a;
-  --l-verde-hover: #186a3f;
-  --l-papel: #f7f5ef;
-  --l-tinta: #15211b;
-  --l-gris: #5b6660;
-  --l-borde: #cfd5d0;
-  --l-error: #b42318;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-  background: var(--l-papel);
-  color: var(--l-tinta);
-  padding-bottom: var(--alto-pie, 44px);
-}
-
-.login-marca {
-  position: relative;
-  overflow: hidden;
-  color: #e9efe9;
-  background: var(--l-bosque);
-  background-image: linear-gradient(180deg, var(--l-bosque-2), var(--l-bosque));
-  padding: calc(28px + env(safe-area-inset-top)) 24px 56px;
-}
-
-.login-topo {
-  position: absolute;
-  inset: 0;
+/* Pantalla de entrada: mismo lenguaje que la app (vidrio sobre el fondo vivo). */
+.entrar-pantalla {
   width: 100%;
-  height: 100%;
-  color: #cfe3d4;
-  pointer-events: none;
-  /* Las curvas se desvanecen hacia donde está el texto. */
-  -webkit-mask-image: linear-gradient(200deg, #000 15%, rgba(0, 0, 0, 0.3) 80%);
-  mask-image: linear-gradient(200deg, #000 15%, rgba(0, 0, 0, 0.3) 80%);
-}
-
-.login-marca-contenido {
-  position: relative;
-  max-width: 440px;
+  max-width: 480px;
   margin: 0 auto;
+  justify-content: center;
+  padding-top: calc(20px + env(safe-area-inset-top));
 }
 
-.login-marca .logo-marca {
-  display: block;
-  border-radius: 13px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-.login-lugar {
-  margin: 22px 0 6px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #a9c4b1;
-}
-
-.login-titulo {
-  margin: 0;
-  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Noto Serif', serif;
-  font-size: 2.1rem;
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-  color: #ffffff;
-}
-
-.login-lema {
-  margin: 12px 0 0;
-  max-width: 30ch;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: #c9d8cd;
-}
-
-.login-panel {
-  position: relative;
-  flex: 1;
+.entrar-marca {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  margin-top: -24px;
-  padding: 28px 24px 20px;
-  border-radius: 20px 20px 0 0;
-  background: var(--l-papel);
+  gap: 14px;
+  padding: 0 4px;
 }
 
-.login-form {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.login-encabezado h2 {
-  margin: 0 0 4px;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-}
-
-.login-encabezado p {
+.entrar-marca h1 {
   margin: 0;
-  font-size: 0.9rem;
-  color: var(--l-gris);
+  font-size: 1.5rem;
 }
 
-.login-campo {
+.entrar {
+  gap: 16px;
+}
+
+.entrar-campo {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.login-campo label {
-  font-size: 0.85rem;
-  font-weight: 600;
+.entrar-campo label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
 }
 
-.login-campo input {
-  width: 100%;
-  height: 52px;
-  padding: 0 14px;
-  border: 1px solid var(--l-borde);
-  border-radius: 10px;
-  background: #ffffff;
-  color: var(--l-tinta);
+.entrar .campo {
+  min-height: 52px;
   font-size: 1rem;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.login-campo input:hover {
-  border-color: #a9b3ad;
-}
-
-.login-campo input:focus {
+.entrar .campo:focus {
   outline: none;
-  border-color: var(--l-verde);
-  box-shadow: 0 0 0 3px rgba(31, 122, 74, 0.18);
+  border-color: var(--verde);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22), inset 0 2px 6px rgba(28, 40, 80, 0.08);
 }
 
-.login-campo input[aria-invalid='true'] {
-  border-color: var(--l-error);
+.entrar .campo[aria-invalid='true'] {
+  border-color: #f59e0b;
 }
 
-.login-clave {
-  position: relative;
-}
-
-.login-clave input {
-  padding-right: 92px;
-}
-
-.login-ver {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  bottom: 6px;
-  min-width: 76px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--l-verde);
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.login-ver:hover {
-  background: rgba(31, 122, 74, 0.08);
-}
-
-.login-ver:focus-visible,
-.login-entrar:focus-visible,
-.boton-instalar-discreto:focus-visible {
-  outline: 2px solid var(--l-verde);
-  outline-offset: 2px;
-}
-
-.login-aviso,
-.login-error {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  line-height: 1.4;
-}
-
-.login-aviso {
-  border: 1px solid #e7d3a1;
-  background: #fbf4e2;
-  color: #6b4a07;
-}
-
-.login-error {
-  border: 1px solid #f1c3be;
-  background: #fdf1f0;
-  color: var(--l-error);
-}
-
-.login-entrar {
-  height: 52px;
-  display: inline-flex;
+.entrar .retro {
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 2px;
-  border: 0;
-  border-radius: 10px;
-  background: var(--l-verde);
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  box-shadow: 0 1px 2px rgba(16, 40, 26, 0.2);
-  transition: background 0.15s, transform 0.1s;
 }
 
-.login-entrar:hover:not(:disabled) {
-  background: var(--l-verde-hover);
-}
-
-.login-entrar:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.login-entrar:disabled {
-  opacity: 0.75;
-  cursor: progress;
-}
-
-.login-giro {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #ffffff;
+.entrar-giro {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
   border-radius: 50%;
-  animation: login-giro 0.7s linear infinite;
+  animation: entrar-giro 0.7s linear infinite;
 }
 
-@keyframes login-giro {
+@keyframes entrar-giro {
   to { transform: rotate(360deg); }
-}
-
-.login-ayuda {
-  margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.45;
-  color: var(--l-gris);
-}
-
-.login-pie {
-  width: 100%;
-  max-width: 400px;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid #e3e1d9;
-  display: flex;
-  justify-content: center;
-}
-
-/* El pie de autoría se integra al papel de la entrada. */
-body:has(.login) .pie-autor {
-  background: rgba(247, 245, 239, 0.96);
-  border-top-color: #e3e1d9;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-.boton-instalar-discreto {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--l-tinta);
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.boton-instalar-discreto:hover {
-  background: rgba(21, 33, 27, 0.05);
-}
-
-/* Computador o tableta horizontal: marca a la izquierda, formulario a la derecha. */
-@media (min-width: 900px) {
-  .login {
-    flex-direction: row;
-    padding-bottom: 0;
-  }
-
-  .login-marca {
-    flex: 1 1 52%;
-    display: flex;
-    align-items: flex-end;
-    padding: 56px 64px calc(72px + var(--alto-pie, 44px));
-  }
-
-  .login-marca-contenido {
-    margin: 0;
-  }
-
-  .login-titulo {
-    font-size: 3.2rem;
-  }
-
-  .login-lema {
-    font-size: 1.05rem;
-  }
-
-  .login-panel {
-    flex: 1 1 48%;
-    justify-content: center;
-    margin: 0;
-    padding: 48px 48px calc(48px + var(--alto-pie, 44px));
-    border-radius: 0;
-  }
-
-  .login-pie {
-    margin-top: 32px;
-  }
-
-  /* El pie queda bajo el formulario, no atravesando la franja de marca. */
-  body:has(.login) .pie-autor {
-    left: auto;
-    right: 0;
-    transform: none;
-    width: 48%;
-    background: transparent;
-    border-top: 0;
-  }
-}
-
-/* Movimiento reducido: sin giro. */
-@media (prefers-reduced-motion: reduce) {
-  .login-giro { animation-duration: 2s; }
 }
 
 .campo-clave {

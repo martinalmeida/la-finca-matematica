@@ -294,32 +294,21 @@ export function InvitacionInstalar({ permitida }: { permitida: boolean }) {
 }
 
 /** Botón "Instalar en este celular" para Bienvenida y Ajustes. */
-/** Botón para instalar la app. «discreto»: enlace de texto con ícono de línea (pantalla de entrada). */
-export function BotonInstalar({ discreto = false }: { discreto?: boolean }) {
+export function BotonInstalar() {
   const { instalada } = useInstalacion();
   const [abierta, setAbierta] = useState(false);
   if (esAppNativa()) return null;
   if (instalada)
-    return discreto ? null : (
+    return (
       <p className="pequeno suave fila">
         <Icono nombre="check" tamano={20} /> La aplicación ya está instalada en este celular.
       </p>
     );
   return (
     <>
-      {discreto ? (
-        <button type="button" className="boton-instalar-discreto" onClick={() => setAbierta(true)}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="6" y="2.5" width="12" height="19" rx="2.5" />
-            <path d="M12 7v7M9 11l3 3 3-3M10.5 18.5h3" />
-          </svg>
-          Instalar en este celular
-        </button>
-      ) : (
-        <button type="button" className="boton secundario" onClick={() => setAbierta(true)}>
-          <Icono nombre="celular" tamano={28} /> Instalar en este celular
-        </button>
-      )}
+      <button type="button" className="boton secundario" onClick={() => setAbierta(true)}>
+        <Icono nombre="celular" tamano={28} /> Instalar en este celular
+      </button>
       {abierta && <HojaInstalar alCerrar={() => setAbierta(false)} />}
     </>
   );
