@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useApp } from '../estado';
 import { bandaDePerfil } from '../almacenamiento/datos';
+import { textoParaVoz } from './numerosEnPalabras';
 
 function vozEspanolLocal(): SpeechSynthesisVoice | null {
   try {
@@ -28,19 +29,6 @@ function fijarLeyendo(clave: string | null) {
 function suscribir(f: () => void) {
   oyentes.add(f);
   return () => oyentes.delete(f);
-}
-
-/** Convierte signos a palabras para que la voz los lea bien. */
-export function textoParaVoz(texto: string): string {
-  return texto
-    .replace(/\$/g, '')
-    .replace(/−/g, ' menos ')
-    .replace(/×/g, ' por ')
-    .replace(/÷/g, ' entre ')
-    .replace(/(\d)\s*%/g, '$1 por ciento')
-    .replace(/[«»"]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 export function detenerVoz() {
