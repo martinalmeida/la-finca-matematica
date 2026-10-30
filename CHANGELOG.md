@@ -9,6 +9,17 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.2.0] - 2026-10-30
+
+### Nuevo
+- Informes del profesor rehechos: una barra de filtros (periodo, grupo, usuarios, operación y tipo de actividad) que controla todo el informe.
+- Secciones: Resumen con indicadores y «Lo más importante», Entrada vs. final, Seguimiento, Evolución en el tiempo, Temas y operaciones, Errores y Comparación de usuarios.
+- Prueba de entrada vs. final con estadística para la tesis: diferencia media con intervalo de confianza del 95 %, prueba t pareada, valor p, d de Cohen, ganancia normalizada de Hake y prueba de Wilcoxon.
+- Alertas de seguimiento: días sin jugar, acierto bajo reciente, atascado en un nivel, muchas pistas, sin prueba de entrada o bajó en la final.
+- Gráficas nuevas: líneas, columnas y barras con meta, pre/post por tema y por usuario, mapas de calor usuario × tema y error × operación; cada una con «Ver tabla».
+- Exportar lo que se ve, con los mismos filtros, a PDF (con portada y definiciones) o a Excel (.xlsx, una hoja por tabla).
+- Cada ficha de usuario trae su informe completo con su ruta nivel por nivel y sus últimas partidas.
+
 ## [1.1.0] - 2026-10-30
 
 ### Nuevo

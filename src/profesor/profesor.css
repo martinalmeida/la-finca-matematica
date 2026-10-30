@@ -1,11 +1,6 @@
 /* ===================== Panel del profesor ===================== */
-/* Series de las gráficas (validadas para daltonismo): naranja = entrada, azul = final y magnitudes. */
 
 .app-profesor {
-  --serie-entrada: #eb6834;
-  --serie-final: #2a78d6;
-  --serie-magnitud: #2a78d6;
-  --pista-grafica: rgba(16, 32, 24, 0.08);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -233,197 +228,6 @@ html.panel-profesor #raiz {
   flex: 1 1 auto;
 }
 
-.tabla-panel tr.apagada {
-  color: var(--tinta-suave);
-}
-
-.tabla-panel .boton.enlace {
-  padding: 0;
-  text-align: left;
-}
-
-/* Cifras */
-.cifras-panel {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
-}
-
-.cifras-panel > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid var(--borde-vidrio);
-}
-
-.cifras-panel span {
-  font-size: 0.8rem;
-  color: var(--tinta-suave);
-  font-weight: 700;
-}
-
-.cifras-panel strong {
-  font-size: 1.35rem;
-  line-height: 1.2;
-}
-
-.cifras-panel small {
-  font-size: 0.78rem;
-  color: var(--tinta-suave);
-  font-weight: 600;
-}
-
-.cifras-panel.grande strong {
-  font-size: 1.7rem;
-}
-
-.rejilla-panel {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-}
-
-.rejilla-panel > .tarjeta {
-  margin: 0;
-}
-
-/* Gráficas: barras finas, extremo redondeado, valor escrito al lado. */
-.g-fila,
-.g-par {
-  display: grid;
-  grid-template-columns: minmax(90px, 34%) minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
-  padding: 2px 0;
-}
-
-.g-par {
-  grid-template-columns: minmax(110px, 40%) minmax(0, 1fr);
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(16, 32, 24, 0.06);
-}
-
-.g-etiqueta {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.g-pista {
-  position: relative;
-  height: 12px;
-  border-radius: 4px;
-  background: var(--pista-grafica);
-  overflow: hidden;
-}
-
-.g-barra {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 0 4px 4px 0;
-  background: var(--serie-magnitud);
-}
-
-.g-barra.entrada {
-  background: var(--serie-entrada);
-}
-
-.g-barra.final {
-  background: var(--serie-final);
-}
-
-.g-valor {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: var(--tinta);
-  white-space: nowrap;
-  min-width: 3.2em;
-  text-align: right;
-}
-
-.g-dobles {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.g-fila-mini {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.g-fila-mini .g-pista {
-  height: 9px;
-}
-
-.g-leyenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.g-leyenda span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.g-muestra {
-  width: 14px;
-  height: 10px;
-  border-radius: 3px;
-  display: inline-block;
-}
-
-.g-muestra.entrada {
-  background: var(--serie-entrada);
-}
-
-.g-muestra.final {
-  background: var(--serie-final);
-}
-
-/* Actividad: un cuadrito por día, más oscuro con más partidas (un solo tono). */
-.g-actividad {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.g-actividad-rejilla {
-  display: grid;
-  grid-template-rows: repeat(7, auto);
-  grid-auto-flow: column;
-  gap: 3px;
-  max-width: 420px;
-}
-
-.g-dia {
-  aspect-ratio: 1;
-  border-radius: 3px;
-  background: var(--pista-grafica);
-}
-
-.g-dia.n1 { background: #9ec5f4; }
-.g-dia.n2 { background: #4f8fe0; }
-.g-dia.n3 { background: #1d5bb0; }
-.g-dia.futuro { visibility: hidden; }
-
-.g-dia.muestra {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  vertical-align: middle;
-}
-
 /* Tarjetas de acceso */
 .tarjeta-acceso {
   border: 2px dashed rgba(16, 32, 24, 0.35);
@@ -487,6 +291,313 @@ html.panel-profesor #raiz {
   }
 }
 
+/* ===================== Informes ===================== */
+
+.informes-pantalla {
+  gap: 14px;
+}
+
+/* Filtros: una sola tarjeta arriba; todo lo de abajo la respeta. En el celular empiezan plegados. */
+.filtros-plegable > summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  cursor: pointer;
+  min-height: 32px;
+  list-style-position: inside;
+}
+
+.filtros-plegable[open] > summary {
+  margin-bottom: 10px;
+}
+
+.filtros-informe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: flex-start;
+}
+
+.filtro-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.filtro-titulo {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tinta-suave);
+}
+
+.filtros-informe .segmentado,
+.informe .segmentado {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 14px;
+  background: rgba(16, 32, 24, 0.07);
+}
+
+.filtros-informe .segmentado button,
+.informe .segmentado button {
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  min-height: 36px;
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+.filtros-informe .segmentado button.activo,
+.informe .segmentado button.activo {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(16, 32, 24, 0.18);
+}
+
+.fechas-filtro {
+  gap: 8px;
+}
+
+.fechas-filtro label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+}
+
+.fechas-filtro .campo {
+  min-height: 40px;
+  padding: 4px 8px;
+}
+
+.filtro-usuarios {
+  flex: 1 1 260px;
+}
+
+.filtro-usuarios summary {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  cursor: pointer;
+  min-height: 36px;
+  list-style-position: inside;
+}
+
+.lista-marcar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 2px 12px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.lista-marcar label,
+.marcar-inactivos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  font-size: 0.9rem;
+}
+
+.lista-marcar input,
+.marcar-inactivos input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.filtro-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+/* Índice de secciones y exportar */
+.barra-informe {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 18px;
+  background: var(--vidrio-fuerte);
+  backdrop-filter: var(--desenfoque);
+  -webkit-backdrop-filter: var(--desenfoque);
+  box-shadow: var(--sombra);
+}
+
+.indice-informe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.indice-informe .chip {
+  text-decoration: none;
+  color: var(--tinta);
+  font-size: 0.85rem;
+}
+
+.acciones-informe {
+  gap: 8px;
+}
+
+.acciones-informe .boton {
+  min-height: 40px;
+  padding: 6px 14px;
+}
+
+/* Secciones */
+.informe {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.informe-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-margin-top: 80px;
+}
+
+.informe-seccion-cabeza h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.informe-seccion-cabeza p {
+  margin: 2px 0 0;
+}
+
+.informe-vacio {
+  margin: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.rejilla-dos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 12px;
+}
+
+.hallazgos {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alertas-alumno,
+.medidores {
+  gap: 8px;
+}
+
+.lista-seguimiento {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 10px;
+}
+
+.tarjeta-seguimiento {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fcfcfb;
+  box-shadow: 0 1px 2px rgba(11, 11, 11, 0.08), 0 0 0 1px rgba(11, 11, 11, 0.06);
+}
+
+/* Portada del PDF */
+.portada-informe {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #102018;
+}
+
+.portada-informe h1 {
+  margin: 0;
+  font-size: 22pt;
+}
+
+.portada-app {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 9pt;
+  color: #52514e;
+}
+
+.portada-institucion {
+  margin: 0;
+  font-weight: 600;
+}
+
+.portada-datos {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.portada-datos > div {
+  display: contents;
+}
+
+.portada-datos dt {
+  font-weight: 700;
+}
+
+.portada-datos dd {
+  margin: 0;
+}
+
+.portada-filtro {
+  display: block;
+}
+
+.definiciones {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.definiciones dt {
+  font-weight: 700;
+}
+
+.definiciones dd {
+  margin: 0;
+}
+
 @media print {
   html.imprimiendo body > *:not(.zona-impresion) {
     display: none !important;
@@ -498,22 +609,12 @@ html.panel-profesor #raiz {
     color: #102018;
     font-size: 11pt;
   }
-  .zona-impresion .tarjeta,
-  .zona-impresion .cifras-panel > div {
+  .zona-impresion .tarjeta {
     background: #fff !important;
     box-shadow: none !important;
     border: 1px solid #d1d5db !important;
     backdrop-filter: none !important;
     break-inside: avoid;
-  }
-  .zona-impresion .tabla-scroll {
-    overflow: visible;
-  }
-  .zona-impresion .g-barra,
-  .zona-impresion .g-muestra,
-  .zona-impresion .g-dia {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
   .salto-pagina {
     break-after: page;
@@ -524,5 +625,24 @@ html.panel-profesor #raiz {
   }
   .impreso-cabeza p {
     margin: 0 0 12px;
+  }
+  .informe-pdf .informe {
+    gap: 16px;
+  }
+  .informe-pdf .informe-seccion {
+    break-before: page;
+  }
+  .informe-pdf .informe-seccion:first-child {
+    break-before: auto;
+  }
+  .informe-pdf .barra-informe,
+  .informe-pdf .segmentado {
+    display: none !important;
+  }
+  .informe-pdf .tarjeta-seguimiento {
+    break-inside: avoid;
+  }
+  .informe-pdf .rejilla-dos {
+    grid-template-columns: 1fr 1fr;
   }
 }

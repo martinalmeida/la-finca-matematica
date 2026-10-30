@@ -1,5 +1,5 @@
-// Panel del profesor: interfaz propia (sin juego). Usuarios, informe global, informe uno a uno
-// y exportaciones. Necesita internet: todo se lee y se escribe en Supabase.
+// Panel del profesor: interfaz propia (sin juego). Usuarios, informes con filtros (del grupo y de
+// cada usuario) y exportaciones. Necesita internet: todo se lee y se escribe en Supabase.
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -12,25 +12,79 @@ import { armarAlumnos, csvEventos, csvPartidas, csvResumen, type Alumno } from '
 import type { Credencial } from './Tarjetas';
 import { descargar, fechaArchivo } from './descargas';
 import Usuarios from './Usuarios';
-import Informe, { InformeGlobal } from './Informe';
-import Detalle, { InformeImpreso } from './Detalle';
+import Detalle from './Detalle';
+import Informes from './reportes/Informes';
+import Reporte from './reportes/Reporte';
+import Portada from './reportes/Portada';
+import { describirFiltros, filtrar, FILTROS_INICIALES } from './metricas';
 import './profesor.css';
 
 type Pestana = 'usuarios' | 'informe' | 'exportar';
 
 const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'usuarios', texto: 'Usuarios', icono: 'personas' },
-  { id: 'informe', texto: 'Informe', icono: 'grafico' },
+  { id: 'informe', texto: 'Informes', icono: 'grafico' },
   { id: 'exportar', texto: 'Exportar', icono: 'carpeta' },
 ];
 
 function Exportar() {
-  const { alumnos, imprimir, ejecutar } = useProfesor();
+  const { alumnos, eventos, imprimir, ejecutar, profesor } = useProfesor();
   const [ocupado, setOcupado] = useState(false);
+  const activos = alumnos.filter((a) => a.fila.activo);
   return (
     <main className="pantalla panel-pantalla">
       <section className="tarjeta columna">
-        <h3>Tablas para Excel o SPSS (CSV)</h3>
+        <h3>Informes con filtros</h3>
+        <p className="pequeno suave" style={{ margin: 0 }}>
+          En la pestaña <strong>Informes</strong> elija el periodo, el grupo, los usuarios y las operaciones, y descargue exactamente lo que ve en PDF o en Excel. Cada ficha de usuario
+          tiene también su informe con los mismos botones.
+        </p>
+      </section>
+      <section className="tarjeta columna">
+        <h3>Todo en un solo archivo</h3>
+        <button
+          type="button"
+          className="boton"
+          disabled={ocupado}
+          onClick={async () => {
+            setOcupado(true);
+            await ejecutar(async () => {
+              const [{ descargarLibro }, { hojasInforme }] = await Promise.all([import('./excel'), import('./reportes/libro')]);
+              const c = filtrar(alumnos, eventos, { ...FILTROS_INICIALES, inactivos: true });
+              const titulo = 'Informe completo';
+              descargarLibro(`finca-informe-completo-${fechaArchivo()}.xlsx`, hojasInforme(c, { titulo, filtros: describirFiltros(c.filtros, alumnos), profesor }), { titulo, autor: profesor });
+            }, 'Excel descargado');
+            setOcupado(false);
+          }}
+        >
+          <Icono nombre="guardar" tamano={24} /> {ocupado ? 'Preparando…' : 'Excel con todos los datos'}
+        </button>
+        <button
+          type="button"
+          className="boton"
+          disabled={!activos.length}
+          onClick={() =>
+            imprimir(
+              'Informes individuales',
+              <>
+                {activos.map((a) => {
+                  const c = filtrar(alumnos, eventos, { ...FILTROS_INICIALES, alumnos: [a.fila.id], inactivos: true });
+                  return (
+                    <div key={a.fila.id} className="salto-pagina impreso informe-pdf">
+                      <Portada titulo={`Informe de ${a.fila.nombre}`} profesor={profesor} filtros={describirFiltros(c.filtros, alumnos)} resumen={`${c.eventos.length} ejercicios`} />
+                      <Reporte c={c} anterior={null} deUnAlumno impreso />
+                    </div>
+                  );
+                })}
+              </>,
+            )
+          }
+        >
+          <Icono nombre="imprimir" tamano={24} /> PDF: un informe por usuario (todos los activos)
+        </button>
+      </section>
+      <section className="tarjeta columna">
+        <h3>Tablas para SPSS, R o Excel (CSV)</h3>
         <p className="pequeno suave" style={{ margin: 0 }}>
           Separadas por punto y coma y con tildes correctas para Excel en español. Incluyen nombres: guárdelas con cuidado.
         </p>
@@ -40,66 +94,9 @@ function Exportar() {
         <button type="button" className="boton" onClick={() => descargar(`finca-partidas-${fechaArchivo()}.csv`, csvPartidas(alumnos))}>
           <Icono nombre="cuaderno" tamano={24} /> Partidas (niveles y pruebas)
         </button>
-        <button
-          type="button"
-          className="boton"
-          disabled={ocupado}
-          onClick={async () => {
-            setOcupado(true);
-            await ejecutar(async () => descargar(`finca-ejercicios-${fechaArchivo()}.csv`, csvEventos(await api.cargarEventos(), alumnos)));
-            setOcupado(false);
-          }}
-        >
-          <Icono nombre="guardar" tamano={24} /> {ocupado ? 'Preparando…' : 'Cada ejercicio respondido'}
+        <button type="button" className="boton" onClick={() => descargar(`finca-ejercicios-${fechaArchivo()}.csv`, csvEventos(eventos, alumnos))}>
+          <Icono nombre="guardar" tamano={24} /> Cada ejercicio respondido
         </button>
-      </section>
-      <section className="tarjeta columna">
-        <h3>Informes en PDF</h3>
-        <p className="pequeno suave" style={{ margin: 0 }}>
-          Se abre la ventana de impresión: elija «Guardar como PDF» o una impresora.
-        </p>
-        <button
-          type="button"
-          className="boton"
-          onClick={() =>
-            imprimir(
-              'Informe global',
-              <div className="impreso">
-                <header className="impreso-cabeza">
-                  <h1>Informe global · La Finca Matemática</h1>
-                  <p>Generado el {new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                </header>
-                <InformeGlobal alumnos={alumnos} />
-              </div>,
-            )
-          }
-        >
-          <Icono nombre="imprimir" tamano={24} /> Informe global
-        </button>
-        <button
-          type="button"
-          className="boton"
-          disabled={!alumnos.some((a) => a.fila.activo)}
-          onClick={() =>
-            imprimir(
-              'Informes individuales',
-              <>
-                {alumnos
-                  .filter((a) => a.fila.activo)
-                  .map((a) => (
-                    <div key={a.fila.id} className="salto-pagina">
-                      <InformeImpreso a={a} />
-                    </div>
-                  ))}
-              </>,
-            )
-          }
-        >
-          <Icono nombre="imprimir" tamano={24} /> Un informe por usuario (todos)
-        </button>
-        <p className="pequeno suave" style={{ margin: 0 }}>
-          El informe de un solo usuario está en su ficha (pestaña Usuarios → tocar el nombre).
-        </p>
       </section>
     </main>
   );
@@ -108,6 +105,7 @@ function Exportar() {
 export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: FilaPerfil; alSalir: () => void; alVencer: () => void }) {
   const [pestana, setPestana] = useState<Pestana>('usuarios');
   const [alumnos, setAlumnos] = useState<Alumno[]>([]);
+  const [eventos, setEventos] = useState<api.EventoRemoto[]>([]);
   const [fotos, setFotos] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -147,8 +145,9 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
 
   const recargar = useCallback(async () => {
     try {
-      const d = await api.cargarDatos();
+      const [d, ev] = await Promise.all([api.cargarDatos(), api.cargarEventos()]);
       setAlumnos(armarAlumnos(d));
+      setEventos(ev);
       setError(null);
       void api.cargarFotos(d.usuarios).then(setFotos);
     } catch (e) {
@@ -200,6 +199,8 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
   const valor = useMemo<EstadoProfesor>(
     () => ({
       alumnos,
+      eventos,
+      profesor: cuenta.nombre,
       fotos,
       recargar,
       avisar,
@@ -212,7 +213,7 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
       agregarCredencial: (c) => setCredenciales((l) => [...l.filter((x) => x.usuario !== c.usuario), c]),
       imprimir: (titulo, contenido) => setImpresion({ titulo, contenido }),
     }),
-    [alumnos, fotos, recargar, avisar, ejecutar, credenciales],
+    [alumnos, eventos, cuenta.nombre, fotos, recargar, avisar, ejecutar, credenciales],
   );
 
   const abierto = detalle ? alumnos.find((a) => a.fila.id === detalle) : undefined;
@@ -232,7 +233,11 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
       </main>
     );
   else if (abierto) cuerpo = <Detalle a={abierto} />;
-  else cuerpo = pestana === 'usuarios' ? <Usuarios /> : pestana === 'informe' ? <Informe /> : <Exportar />;
+  else cuerpo = pestana === 'usuarios' ? <Usuarios /> : pestana === 'informe' ? (
+          <main className="pantalla panel-pantalla">
+            <Informes />
+          </main>
+        ) : <Exportar />;
 
   return (
     <ContextoProfesor.Provider value={valor}>

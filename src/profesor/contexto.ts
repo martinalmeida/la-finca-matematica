@@ -2,10 +2,15 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 import type { Alumno } from './informes';
+import type { EventoRemoto } from './api';
 import type { Credencial } from './Tarjetas';
 
 export type EstadoProfesor = {
   alumnos: Alumno[];
+  /** Cada ejercicio respondido por los usuarios del profesor (para los informes). */
+  eventos: EventoRemoto[];
+  /** Nombre del profesor (portada de los informes). */
+  profesor: string;
   /** URL temporal de la foto de cada usuario que tiene una (por id). */
   fotos: Record<string, string>;
   /** Vuelve a bajar todo de la nube. */

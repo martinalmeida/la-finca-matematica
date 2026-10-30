@@ -117,44 +117,51 @@ Viene **apagada**. Un adulto la activa en **Ajustes → Realidad aumentada (usa 
 
 **Privacidad:** la imagen de la cámara solo se muestra en pantalla; **no se graba, no se guarda y no se envía**. La cámara se apaga al cerrar la escena. Si no hay cámara o no se da el permiso, la escena usa un fondo dibujado y funciona igual. Informe a las familias sobre el uso de la cámara junto con el consentimiento informado.
 
-## 7. Panel docente
+## 7. Panel del profesor
 
-1. En la pantalla de inicio o en «¿Quién va a jugar?», **mantenga presionado el logo durante 3 segundos**.
-2. La primera vez, **cree un PIN** de 4 a 6 cifras y repítalo. Las siguientes veces se pide ese PIN.
-3. El panel muestra una tabla por perfil con:
-   - código y grado;
-   - nivel máximo alcanzado (de 10) y estrellas;
-   - porcentaje de aciertos por operación (suma, resta, multiplicación, división), con el número de ejercicios entre paréntesis;
-   - los tipos de error más frecuentes;
-   - **Entrada → final:** aciertos en la prueba de entrada y en la final, y la diferencia (en familias, también el cuaderno asignado);
-   - la **exigencia** (Refuerzo, Básico o Avanzado), que se puede cambiar ahí mismo, y cuántos ejercicios resolvió paso a paso.
-4. En la misma tabla puede **permitir que repita la prueba final**, **reiniciar** un perfil (borra niveles, semillas, registro y pruebas: vuelve a la prueba de entrada) o **eliminarlo**. Las acciones piden confirmación.
+El profesor entra a la app con **su usuario y su contraseña** (la cuenta se crea una sola vez con `npm run crear-profesor`). El panel necesita internet y tiene tres pestañas:
 
-Si olvida el PIN, restaure una copia de seguridad o borre los datos del sitio en Chrome. Al borrar los datos se pierden los avances.
+- **Usuarios:** crear, editar y buscar cuentas (estudiantes de 1.º a 5.º, familias e Inclusión), imprimir tarjetas de acceso y abrir la ficha de cada usuario.
+- **Informes:** el informe del grupo con filtros (ver la sección 9).
+- **Exportar:** el Excel con todos los datos, un PDF por usuario y las tablas CSV.
 
-## 8. Modo investigación
+La **ficha de un usuario** reúne las acciones de su cuenta (cambiar tipo y grado, contraseña, exigencia, permitir repetir la prueba final, activar o desactivar, reiniciar o eliminar) y **su informe completo**: el mismo de la pestaña Informes, filtrado a esa persona, con su ruta nivel por nivel y sus últimas partidas.
 
-- Viene **desactivado**. Al activarlo, la app guarda un registro detallado de cada ejercicio: fecha, nivel, plantilla, operación, si fue correcto, intentos, pistas usadas, tipo de error, tiempo y si usó el paso a paso. Las preguntas de las pruebas aparecen con la pista `g3:diagnostica`, `g3:final`, etc. Guarda como máximo 3.000 registros por perfil y borra los más antiguos.
-- Los resultados de las pruebas de entrada y final se guardan **siempre** (no dependen de este modo), porque son el resumen que compara el antes y el después.
-- **Actívelo solo con el consentimiento informado firmado por las familias**, como lo exige la tesis.
-- Con el modo apagado, la app guarda solo los resúmenes agregados que muestra la tabla.
+Los datos llegan cuando el celular del usuario tiene señal y sincroniza; lo que todavía no se ha sincronizado no aparece en los informes.
 
-## 9. Exportar los datos
+## 8. Qué se registra
 
-En el panel docente, **«Exportar datos»** descarga archivos al celular, sin internet:
+Cada ejercicio respondido queda registrado con: fecha y hora, ruta, nivel (tema), tipo de ejercicio (plantilla), operación, si fue correcto, cuántos intentos necesitó, cuántas pistas pidió, el tipo de error que detectó la app y el tiempo. También se guardan los niveles y pruebas terminados y el resultado de la prueba de entrada y de la final, tema por tema. Todo se usa **solo** para los informes del profesor; las cuentas no tienen correo ni datos personales más allá del nombre. **Úselo con el consentimiento informado firmado por las familias**, como lo exige la tesis.
 
-- **Resumen CSV:** una fila por perfil con nivel, estrellas, porcentajes por operación, errores frecuentes, exigencia, aciertos de la prueba de entrada y de la final, la diferencia y el detalle por tema (`diagnostica_por_tema` y `final_por_tema`: diez cifras, 1 = acierto, en el orden de los temas). Se abre en Excel o LibreOffice.
-- **Registro CSV:** una fila por ejercicio; solo tiene datos si el modo investigación estuvo activo.
-- **JSON:** todo lo anterior en un solo archivo para análisis.
+## 9. Informes
 
-Los archivos usan **códigos, nunca apodos ni nombres**. Quedan en la carpeta *Descargas* del celular; desde ahí puede pasarlos al computador por cable o Bluetooth.
+En la pestaña **Informes** todo responde a una sola barra de filtros:
 
-## 10. Copia de seguridad
+- **Periodo:** 7, 30 o 90 días, este mes, todo, o fechas exactas. Las flechas de las tarjetas comparan con el periodo anterior de la misma duración.
+- **Grupo** (3.º grado, Familias, Inclusión…), **usuarios** (uno, varios o todos), **operación** y **actividad** (niveles o pruebas). Las cuentas desactivadas solo entran si se marca la casilla.
 
-En **Ajustes → Copia de seguridad**:
+El informe tiene estas secciones (el índice de arriba lleva a cada una):
 
-- **Exportar copia** guarda un archivo `.json` con todos los perfiles y avances del celular. Hágalo con frecuencia, por ejemplo cada semana.
-- **Importar copia** (requiere confirmación de un adulto) **reemplaza** los datos del celular por los de la copia. Sirve si se cambia de celular o se borraron los datos.
+1. **Resumen:** usuarios activos, ejercicios, acierto al primer intento, resueltos, tiempo en tarea, niveles superados, pistas y días activos, y «Lo más importante» en frases cortas.
+2. **Entrada vs. final** (pretest y postest): promedios, diferencia con su intervalo de confianza del 95 %, prueba t para muestras pareadas, valor p, d de Cohen, ganancia normalizada de Hake y prueba de Wilcoxon (recomendable con grupos de menos de 30); cuántos mejoraron, el resultado por tema y por usuario. Usa la última prueba de cada usuario y no depende del periodo.
+3. **Seguimiento:** quién necesita atención y por qué (días sin jugar, acierto bajo reciente, atascado en un nivel, muchas pistas, sin prueba de entrada, bajó en la final).
+4. **Evolución:** acierto, ejercicios, tiempo, usuarios activos y pistas por día, semana o mes, según el periodo.
+5. **Temas y operaciones:** acierto por operación y por tema frente a la meta del 70 %, y el mapa usuario × tema.
+6. **Errores:** tipos de error y su cruce con la operación.
+7. **Usuarios:** tabla comparativa que se ordena por cualquier columna; tocar un nombre abre su ficha.
+
+Cada métrica tiene un **«?»** con su definición, y cada gráfica un **«Ver tabla»** con los números exactos.
+
+Los botones **PDF** y **Excel** descargan **exactamente lo que se ve, con los mismos filtros**:
+
+- **PDF:** se abre la ventana de impresión; elija «Guardar como PDF». Trae portada (institución, quién lo generó, fecha y filtros), todas las secciones con sus gráficas y, al final, cómo se calcula cada métrica.
+- **Excel (.xlsx):** una hoja por tabla: Resumen (con toda la estadística del pre/post), Usuarios, Entrada vs final (con cada pregunta, 1 = acierto), Temas de las pruebas, Evolución, Por operación, Por tema, Por plantilla, Errores, Ejercicios (uno por fila), Partidas y Definiciones. Sirve para SPSS, R o el capítulo de resultados.
+
+En **Exportar** están además el Excel con todos los datos, el PDF de todos los usuarios (uno por página) y las tablas CSV de siempre. Los archivos traen nombres: guárdelos con cuidado.
+
+## 10. Versiones
+
+La versión instalada se ve en *Ajustes → Aplicación* (con sus novedades) y en la cabecera del panel del profesor. La app se actualiza sola cuando hay internet.
 
 ## 11. Videos de ayuda
 
