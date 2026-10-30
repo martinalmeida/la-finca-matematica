@@ -4778,3 +4778,32 @@ button.frase:active {
   outline: 3px solid var(--verde);
   outline-offset: 2px;
 }
+
+/* Versión y novedades (Ajustes y panel del profesor). */
+.novedades {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 10px 14px;
+}
+
+.novedades summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.novedades[open] summary {
+  margin-bottom: 8px;
+}
+
+.novedades ul {
+  margin: 4px 0 0;
+  padding-left: 1.2em;
+}
+
+.novedades li + li {
+  margin-top: 4px;
+}

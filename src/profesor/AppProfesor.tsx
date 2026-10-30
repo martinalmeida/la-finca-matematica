@@ -241,7 +241,9 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
           <Logo tamano={38} />
           <div className="cabecera-textos">
             <h1>Panel del profesor</h1>
-            <div className="pequeno suave">{primerNombre(cuenta)} · {cuenta.usuario}</div>
+            <div className="pequeno suave">
+              {primerNombre(cuenta)} · {cuenta.usuario} · <span title={`Compilada el ${__COMPILACION__}`}>v{__VERSION__}</span>
+            </div>
           </div>
           <button type="button" className="boton icono vidrio-boton" onClick={() => void recargar()} aria-label="Actualizar datos" title="Actualizar datos">
             <Icono nombre="repetir" tamano={26} />

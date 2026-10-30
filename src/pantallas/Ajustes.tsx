@@ -10,7 +10,8 @@ import { pendientes, sincronizarAhora } from '../servicios/sincronizacion';
 import { useVoz } from '../servicios/voz';
 import Icono from '../componentes/Icono';
 import { AUTOR, DERECHOS, PROGRAMA, UNIVERSIDAD } from '../contenido/autoria';
-import { buscarActualizacionAhora, repararCache, VERSION_APP } from '../pwa/registro';
+import { buscarActualizacionAhora, repararCache } from '../pwa/registro';
+import Novedades from '../componentes/Novedades';
 
 export default function Ajustes() {
   const { ajustes, cambiarAjustes, perfil, avisar, salir } = useApp();
@@ -152,8 +153,9 @@ export default function Ajustes() {
       <section className="tarjeta columna">
         <h2>Aplicación</h2>
         <BotonInstalar />
+        <Novedades adulto={adulto} />
         <p className="pequeno suave" style={{ margin: 0 }}>
-          Versión {VERSION_APP}. Se actualiza sola cuando hay internet.
+          Se actualiza sola cuando hay internet.
         </p>
         <button
           type="button"

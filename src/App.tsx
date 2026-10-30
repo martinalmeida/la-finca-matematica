@@ -177,7 +177,7 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
 
   useEffect(() => alListoSinInternet(() => avisar('Lista para usar sin internet')), [avisar]);
   useEffect(() => {
-    if (seActualizo()) avisar('La aplicación se actualizó a la última versión');
+    if (seActualizo()) avisar(`La aplicación se actualizó a la versión ${__VERSION__}`);
   }, [avisar]);
   // En un nivel, una prueba, el reto en pareja o el taller no se recarga por una actualización:
   // se aplica al salir.

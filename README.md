@@ -60,6 +60,16 @@ npm run catalogo   # vuelve a generar docs/PLANTILLAS.md
 
 En *Ajustes → Aplicación* se ve la versión instalada y hay dos botones: **Buscar actualización** y **Reparar la aplicación (borrar caché)**. Este último quita el service worker y toda la caché y vuelve a descargar la app (necesita internet; no borra datos). En Netlify o Cloudflare Pages, `public/_headers` evita que `sw.js` e `index.html` queden en caché del servidor o del navegador.
 
+### Versiones
+
+La app usa [SemVer](https://semver.org/lang/es/) (MAYOR.MENOR.PARCHE) y las novedades de cada versión están en [`CHANGELOG.md`](CHANGELOG.md). La app las muestra en *Ajustes → Aplicación* y la versión aparece en la cabecera del panel del profesor. Para publicar una versión:
+
+1. Escribir sus novedades arriba en `CHANGELOG.md` (`## [1.2.0] - AAAA-MM-DD`).
+2. `npm version minor -m "Versión %s"` (o `patch` para arreglos, `major` si se borra o rompe algo de lo anterior). Sube `package.json`, hace el commit y crea la etiqueta `v1.2.0`.
+3. `git push --follow-tags`.
+
+`tests/version.test.ts` falla si la versión de `package.json` no es la primera del registro de cambios.
+
 ### Opción B: servir desde un computador del colegio en la red local
 
 Sirve para instalar en los celulares sin internet externo, usando el wifi del colegio o un router sin conexión.

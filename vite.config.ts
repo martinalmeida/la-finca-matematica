@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
 
-// Cada build tiene su versión: la del paquete y la hora de compilación (hora de Colombia).
+// Cada build tiene su versión: la del paquete (SemVer, ver CHANGELOG.md) y la hora de compilación
+// (hora de Colombia). La combinación distingue dos builds de la misma versión.
 const paquete = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 const hora = new Date(Date.now() - 5 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
 const VERSION_APP = `${paquete.version} (${hora})`;
@@ -12,7 +13,7 @@ const VERSION_APP = `${paquete.version} (${hora})`;
 export default defineConfig({
   // Rutas relativas: permite servir dist/ desde cualquier carpeta o empaquetarlo con Capacitor.
   base: './',
-  define: { __VERSION_APP__: JSON.stringify(VERSION_APP) },
+  define: { __VERSION_APP__: JSON.stringify(VERSION_APP), __VERSION__: JSON.stringify(paquete.version), __COMPILACION__: JSON.stringify(hora) },
   plugins: [
     react(),
     VitePWA({
