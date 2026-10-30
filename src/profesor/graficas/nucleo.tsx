@@ -111,7 +111,8 @@ export function tituloX(x: string[], i: number): string {
 /** Cada cuántas posiciones se rotula el eje x para que las etiquetas no choquen. */
 export function pasoEtiquetas(n: number, anchoPlot: number, anchoEtiqueta: number): number {
   if (n <= 1) return 1;
-  const caben = Math.max(1, Math.floor(anchoPlot / (anchoEtiqueta + 10)));
+  // 20 px de aire entre etiquetas: con menos, en papel (letra algo mayor) se montaban.
+  const caben = Math.max(1, Math.floor(anchoPlot / (anchoEtiqueta + 20)));
   return Math.max(1, Math.ceil(n / caben));
 }
 

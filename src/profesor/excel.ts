@@ -12,9 +12,12 @@ export type Formato =
   | 'fecha' // texto ISO, Date o milisegundos → fecha de Excel (hora de Colombia)
   | 'fechaHora'
   | 'minutos' // número de minutos, con un decimal
-  | 'pesos';
+  | 'pesos'
+  | 'probabilidad'; // valores p y similares: seis decimales fijos (0,000003), nunca notación científica
 export type Columna = { titulo: string; formato?: Formato; ancho?: number /* caracteres */ };
-export type Celda = string | number | boolean | Date | null | undefined;
+/** Celda con un formato distinto al de su columna (p. ej., un valor p en una columna de valores variados). */
+export type CeldaConFormato = { valor: number | null | undefined; formato: Formato };
+export type Celda = string | number | boolean | Date | CeldaConFormato | null | undefined;
 export type Hoja = {
   nombre: string; // se ajusta a las reglas de Excel (≤31 caracteres, sin []:*?/\, único)
   titulo?: string; // título grande en la fila 1, luego `subtitulo`, una fila vacía y la tabla
@@ -45,6 +48,7 @@ const E = {
   pesos: 10,
   subtitulo: 11,
   nota: 12,
+  probabilidad: 13,
 } as const;
 
 const ESTILO_FORMATO: Record<Formato, number> = {
@@ -56,16 +60,18 @@ const ESTILO_FORMATO: Record<Formato, number> = {
   fechaHora: E.fechaHora,
   minutos: E.minutos,
   pesos: E.pesos,
+  probabilidad: E.probabilidad,
 };
 
 const STYLES_XML =
   '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
   '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-  '<numFmts count="4">' +
+  '<numFmts count="5">' +
   '<numFmt numFmtId="164" formatCode="dd/mm/yyyy"/>' +
   '<numFmt numFmtId="165" formatCode="dd/mm/yyyy hh:mm"/>' +
   '<numFmt numFmtId="166" formatCode="#,##0.0"/>' +
   '<numFmt numFmtId="167" formatCode="&quot;$&quot;#,##0"/>' +
+  '<numFmt numFmtId="168" formatCode="0.000000"/>' +
   '</numFmts>' +
   '<fonts count="4">' +
   '<font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font>' +
@@ -83,7 +89,7 @@ const STYLES_XML =
   '<border><left/><right/><top/><bottom style="thin"><color auto="1"/></bottom><diagonal/></border>' +
   '</borders>' +
   '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
-  '<cellXfs count="13">' +
+  '<cellXfs count="14">' +
   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
   '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
   '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>' +
@@ -97,6 +103,7 @@ const STYLES_XML =
   '<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
   '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
   '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+  '<xf numFmtId="168" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
   '</cellXfs>' +
   '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
   '<dxfs count="0"/><tableStyles count="0"/>' +
@@ -269,6 +276,7 @@ function digitosConMiles(n: number): number {
 
 function celdaXml(ref: string, valor: Celda, formato: Formato, cadenas: Cadenas): CeldaXml | null {
   if (valor === null || valor === undefined) return null;
+  if (typeof valor === 'object' && !(valor instanceof Date)) return celdaXml(ref, valor.valor, valor.formato, cadenas);
   if (typeof valor === 'boolean') return textoCelda(ref, valor ? 'Sí' : 'No', cadenas, E.normal);
 
   const esFecha = formato === 'fecha' || formato === 'fechaHora';
@@ -298,6 +306,8 @@ function celdaXml(ref: string, valor: Celda, formato: Formato, cadenas: Cadenas)
       return numeroCelda(ref, valor, E.minutos, digitosConMiles(valor) + 2);
     case 'pesos':
       return numeroCelda(ref, valor, E.pesos, digitosConMiles(valor) + 1);
+    case 'probabilidad':
+      return numeroCelda(ref, valor, E.probabilidad, 8);
     default:
       return numeroCelda(ref, valor, E.normal, String(valor).length);
   }

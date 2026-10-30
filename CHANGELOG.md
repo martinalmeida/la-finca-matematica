@@ -9,6 +9,17 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.2.2] - 2026-10-30
+
+### Mejorado
+- Filtros de los informes rediseñados: una fila de botones (Periodo, Grupo, Usuarios, Operación, Actividad) con su panel de opciones, conteos para orientarse y los filtros aplicados como chips que se quitan con un toque.
+- Periodo con atajos que muestran sus fechas y un rango personalizado; usuarios con buscador, agrupados por grado y con «Elegir todos» o «Ninguno».
+- La barra de filtros y los botones PDF y Excel quedan fijos arriba al bajar por el informe; en el celular cada panel sale como una hoja desde abajo.
+
+### Arreglado
+- Excel: los valores p se muestran con seis decimales (antes salían en notación científica).
+- PDF: las fechas de las gráficas ya no se montan unas sobre otras.
+
 ## [1.2.1] - 2026-10-30
 
 ### Arreglado

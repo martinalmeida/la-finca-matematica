@@ -79,29 +79,37 @@ export default function Informes({ alumnoId }: { alumnoId?: string }) {
     setExportando(false);
   };
 
+  const botones = (
+    <>
+      <button type="button" className="boton" onClick={pdf} title="Descargar este informe en PDF (con los mismos filtros)">
+        <Icono nombre="imprimir" tamano={20} /> PDF
+      </button>
+      <button type="button" className="boton" onClick={() => void excel()} disabled={exportando} title="Descargar este informe en Excel (con los mismos filtros)">
+        <Icono nombre="guardar" tamano={20} /> {exportando ? 'Preparando…' : 'Excel'}
+      </button>
+    </>
+  );
+
   return (
     <div className="columna informes-pantalla">
-      <FiltrosBarra filtros={filtros} periodo={periodo} alCambiar={cambiar} alumnos={alumnos} deUnAlumno={deUno} resumen={resumen} />
       <div className="barra-informe">
-        <nav className="indice-informe" aria-label="Secciones del informe">
-          {SECCIONES.filter((s) => !(deUno && (s.id === 'seguimiento' || s.id === 'usuarios'))).map((s) => (
-            <a key={s.id} href={`#informe-${s.id}`} className="chip" onClick={(e) => {
+        <FiltrosBarra filtros={filtros} periodo={periodo} alCambiar={cambiar} alumnos={alumnos} eventos={eventos} deUnAlumno={deUno} resumen={resumen} acciones={botones} />
+      </div>
+      <nav className="indice-informe" aria-label="Secciones del informe">
+        {SECCIONES.filter((s) => !(deUno && (s.id === 'seguimiento' || s.id === 'usuarios'))).map((s) => (
+          <a
+            key={s.id}
+            href={`#informe-${s.id}`}
+            className="chip"
+            onClick={(e) => {
               e.preventDefault();
               document.getElementById(`informe-${s.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}>
-              {s.titulo}
-            </a>
-          ))}
-        </nav>
-        <div className="fila acciones-informe">
-          <button type="button" className="boton" onClick={pdf}>
-            <Icono nombre="imprimir" tamano={22} /> PDF
-          </button>
-          <button type="button" className="boton" onClick={() => void excel()} disabled={exportando}>
-            <Icono nombre="guardar" tamano={22} /> {exportando ? 'Preparando…' : 'Excel'}
-          </button>
-        </div>
-      </div>
+            }}
+          >
+            {s.titulo}
+          </a>
+        ))}
+      </nav>
       <Reporte c={c} anterior={anterior} deUnAlumno={deUno} alPulsarAlumno={deUno ? undefined : abrirDetalle} />
     </div>
   );

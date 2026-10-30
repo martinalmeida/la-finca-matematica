@@ -91,7 +91,10 @@ export function GraficaLinea({ x, series, escala, meta, alto = 240, etiquetaY }:
       });
   }
 
-  const paso = pasoEtiquetas(n, plotW, Math.max(...x.map((v) => anchoTexto(etiquetaX(v), 11)), 30));
+  const anchoEtiquetaX = Math.max(...x.map((v) => anchoTexto(etiquetaX(v), 11)), 30);
+  const paso = pasoEtiquetas(n, plotW, anchoEtiquetaX);
+  // La primera fecha va centrada como las demás si cabe a la izquierda; alineada al inicio se montaba con la segunda.
+  const primeraCentrada = anchoIzq >= anchoEtiquetaX / 2;
 
   const mostrar = (i: number) => {
     setActivo(i);
@@ -147,7 +150,7 @@ export function GraficaLinea({ x, series, escala, meta, alto = 240, etiquetaY }:
             ))}
             {x.map((v, i) =>
               i % paso === 0 ? (
-                <text key={i} x={px(i)} y={arriba + plotH + 16} textAnchor={n > 1 && i === 0 ? 'start' : 'middle'} className="viz-eje">
+                <text key={i} x={px(i)} y={arriba + plotH + 16} textAnchor={n > 1 && i === 0 && !primeraCentrada ? 'start' : 'middle'} className="viz-eje">
                   {etiquetaX(v)}
                 </text>
               ) : null,

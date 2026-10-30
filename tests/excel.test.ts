@@ -207,3 +207,20 @@ describe('utilidades', () => {
     expect(p['xl/workbook.xml']).toContain('<sheet name="Hoja1"');
   });
 });
+
+describe('formato por celda', () => {
+  it('un valor p en una columna general sale con seis decimales, sin notación científica', () => {
+    const libro = crearLibro([{ nombre: 'Resumen', columnas: [{ titulo: 'Indicador' }, { titulo: 'Valor' }], filas: [['p', { valor: 0.0000033574, formato: 'probabilidad' }], ['n', 19]] }], { fecha: new Date('2026-10-30T12:00:00Z') });
+    const partes = unzipSync(libro);
+    const estilos = strFromU8(partes['xl/styles.xml']);
+    expect(estilos).toContain('formatCode="0.000000"');
+    const xfs = estilos.match(/<cellXfs count="(\d+)">([\s\S]*?)<\/cellXfs>/)!;
+    expect((xfs[2].match(/<xf /g) ?? []).length).toBe(Number(xfs[1]));
+    const hoja = strFromU8(partes['xl/worksheets/sheet1.xml']);
+    const celda = hoja.match(/<c r="B2" s="(\d+)"><v>([^<]+)<\/v><\/c>/)!;
+    expect(Number(celda[2])).toBeCloseTo(0.0000033574, 12);
+    // El estilo apunta al formato 168 (0.000000).
+    const lista = [...xfs[2].matchAll(/<xf numFmtId="(\d+)"/g)].map((m) => m[1]);
+    expect(lista[Number(celda[1])]).toBe('168');
+  });
+});
