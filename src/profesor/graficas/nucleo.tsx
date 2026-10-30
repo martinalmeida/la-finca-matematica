@@ -15,7 +15,14 @@ export function useAncho<T extends HTMLElement = HTMLDivElement>(): [RefObject<T
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const medir = () => setAncho(Math.floor(el.getBoundingClientRect().width));
+    // En la copia para imprimir (oculta en pantalla hasta el momento de imprimir) no se puede medir:
+    // se usa el ancho de la hoja carta impresa, completa o media si va en una rejilla de dos.
+    const anchoImpreso = () => (el.closest('.rejilla-dos') ? 330 : 680);
+    const medir = () => {
+      const w = Math.floor(el.getBoundingClientRect().width);
+      if (w > 0) setAncho(w);
+      else if (el.closest('.zona-impresion')) setAncho(anchoImpreso());
+    };
     medir();
     if (typeof ResizeObserver === 'undefined') {
       // Sin ResizeObserver (pruebas en jsdom): un ancho razonable para poder dibujar.

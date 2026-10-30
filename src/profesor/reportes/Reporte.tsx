@@ -455,7 +455,7 @@ export default function Reporte({ c, anterior, deUnAlumno, impreso, secciones, a
       {deUnAlumno && c.alumnos[0] && (!secciones || secciones.includes('temas')) && <RutaAlumno a={c.alumnos[0]} partidas={c.partidas} impreso={impreso} />}
 
       {ver('usuarios') && (
-        <Seccion id="usuarios" titulo="Comparación de usuarios" nota="Toque una columna para ordenar y un nombre para ver su informe.">
+        <Seccion id="usuarios" titulo="Comparación de usuarios" nota={impreso ? undefined : 'Toque una columna para ordenar y un nombre para ver su informe.'}>
           <TablaDatos<FilaAlumno>
             clave={(f) => f.id}
             filas={filas}

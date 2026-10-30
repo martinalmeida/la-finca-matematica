@@ -9,6 +9,13 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.2.1] - 2026-10-30
+
+### Arreglado
+- PDF de los informes: las gráficas de «Evolución» (líneas y columnas) salían vacías al imprimir.
+- PDF de los informes: el mapa usuario × tema de Inclusión (23 temas) y la tabla comparativa de usuarios quedaban cortados a la derecha; ahora caben en la hoja.
+- Excel de los informes: el valor p de la prueba t y el de Wilcoxon se guardan exactos (antes, al redondear, un valor muy pequeño aparecía como 0).
+
 ## [1.2.0] - 2026-10-30
 
 ### Nuevo

@@ -1231,4 +1231,40 @@ th[aria-sort='descending'] .viz-orden-icono {
   .viz-tabla tr {
     break-inside: avoid;
   }
+
+  /* En papel no hay desplazamiento: tablas anchas y mapas de muchas columnas se ajustan a la hoja. */
+  .viz-tabla-datos .viz-tabla {
+    width: 100%;
+    font-size: 7.5pt;
+  }
+
+  .viz-tabla-datos .viz-tabla th,
+  .viz-tabla-datos .viz-tabla td {
+    padding: 2px 4px;
+  }
+
+  .viz-orden-icono {
+    display: none;
+  }
+
+  .viz-calor {
+    min-width: 0 !important;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 6.5pt;
+  }
+
+  .viz-calor thead th:first-child,
+  .viz-calor tbody th {
+    width: 16%;
+  }
+
+  .viz-calor-col {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+
+  .viz-calor td {
+    overflow: hidden;
+  }
 }
