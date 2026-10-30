@@ -80,8 +80,6 @@ const V = {
   seriacionAltura: v('6zulsMkKFJU', 'Seriación por altura', 'Cata Lina', '3:15'),
   escribirHasta10: v('wd8h8fAUsJA', 'Aprender a escribir los números hasta el 10', 'Peques Aprenden Jugando', '5:18'),
   secuencias: v('Mk6ZR3h8Q-I', 'Secuencias numéricas para niños pequeños', 'DUCASIDAD - Educación Especial Primaria', '3:52'),
-  mayorMenor: v('Rxj_0DsQzk8', 'Mayor que, menor que e igual', 'Minders', '3:01'),
-  contarEscribir20: v('6vRfrP6PfrY', 'Números del 10 al 20: contar y escribir', 'Profesora Norma Urbina', '12:58'),
   componer10: v('MCv52Le4bGc', 'Componer números hasta el 10', 'Profesora Constanza Olave', '3:28'),
   sumarObjetos: v('FY5oSo9bFwM', 'Sumar juntando objetos', 'Peques Aprenden Jugando', '2:54'),
   restarQuitando: v('_-qI2BK-18U', 'Restar quitando hasta 10', 'ElShowDelNerd', '1:52'),
@@ -89,7 +87,6 @@ const V = {
   sumar: v('oexd_Dfic_Q', 'Aprendiendo a sumar', 'Happy Learning', '4:47'),
   restar: v('42vjqtleG9E', 'Aprendiendo a restar', 'Happy Learning', '4:33'),
   sumarDedos: v('POEJVNbBegQ', 'Cómo sumar con ayuda de mis dedos', 'Lore Hernández', '1:27'),
-  decenasUnidadesPeques: v('FKIs7Bp51Bw', 'Las decenas y las unidades', 'Peques Aprenden Jugando', '8:10'),
   // Familias
   plata: v('35Ho7YOdQUs', 'Suma y resta con dinero', 'Daniel Carreón', '12:00'),
   sumarMental: v('mDpDqe7IDVs', 'Cómo sumar mentalmente al instante', 'Matemóvil', '3:59'),
@@ -123,15 +120,17 @@ export const videosLecciones: Record<Pista, Video[]> = {
   g3: [V.trucosTablas, V.repartir, V.divisionAgrupar, V.multDivParientes, V.dividirConTablas, V.divisionResiduo, V.divisionesPaso, V.residuo, V.dosOperaciones, V.problemasMultDiv],
   g4: [V.sumaRestaGrandes, V.multDosCifras, V.divisionResiduo, V.divisionesPaso, V.dividirDosCifras, V.pruebaDivision, V.residuo, V.dobleTripleMitad, V.combinadas, V.interpretarTablas],
   g5: [V.redondear, V.multTresCifras, V.dividirDosCifras, V.cuatroOperaciones, V.decimas, V.compararDecimales, V.sumarDecimales, V.multDecimales, V.dividirDecimal, V.problemasDecimales],
-  // Inclusión: un video por nivel (23), de los 7 bloques en orden.
+  // Inclusión: un video por nivel (33), de los 8 bloques en orden. Los niveles de un mismo
+  // tema repiten su video a propósito: ver de nuevo lo conocido ayuda (ver repetidosPermitidos).
   inclusion: [
-    V.clasificar, V.tamanosComparar, V.unoMuchosNinguno, V.masMenosIgual,
-    V.numeros1a3, V.numeros1a5, V.seriacionAltura,
-    V.contarHasta10, V.escribirHasta10, V.secuencias, V.mayorMenor,
-    V.contarEscribir20, V.anteriorPosterior, V.componer10,
+    V.clasificar, V.clasificar, V.clasificar,
+    V.tamanosComparar, V.tamanosComparar, V.clasificar, V.seriacionAltura,
+    V.unoMuchosNinguno, V.unoMuchosNinguno, V.masMenosIgual, V.masMenosIgual,
+    V.numeros1a3, V.numeros1a3, V.numeros1a3, V.escribirHasta10, V.numeros1a3,
+    V.numeros1a5, V.numeros1a5, V.numeros1a5, V.escribirHasta10, V.numeros1a5,
+    V.contarHasta10, V.componer10, V.contarHasta10, V.escribirHasta10, V.secuencias,
     V.sumarObjetos, V.restarQuitando, V.cuentoSuma,
-    V.sumar, V.restar, V.sumarDedos, V.problemasSumaResta,
-    V.decenasUnidadesPeques, V.sumaRestaSinLlevar,
+    V.sumar, V.restar, V.problemasSumaResta, V.sumarDedos,
   ],
   familia: [V.plata, V.vuelto, V.multiplicarCeros, V.problemasMultUna, V.residuo, V.presupuesto, V.porcentajes, V.reglaDeTres, V.unidadesPeso, V.ganancia],
   'fam-basica': [V.plata, V.vuelto, V.multiplicarCeros, V.problemasMultUna, V.divisionAgrupamiento, V.residuo, V.tresFactores, V.presupuesto, V.estimarRedondeando, V.presupuesto3],
@@ -141,6 +140,9 @@ export const videosLecciones: Record<Pista, Video[]> = {
 
 /** Videos que se repiten a propósito dentro de una misma ruta (el tema es el mismo). */
 export const repetidosPermitidos: Partial<Record<Pista, string[]>> = {
+  // Inclusión: los niveles del mismo tema (mirar y emparejar, tamaños, cantidades, los números
+  // hasta 3, hasta 5 y hasta 10, escribir los números) vuelven a ver su video: la repetición ayuda.
+  inclusion: [V.clasificar.id, V.tamanosComparar.id, V.unoMuchosNinguno.id, V.masMenosIgual.id, V.numeros1a3.id, V.numeros1a5.id, V.escribirHasta10.id, V.contarHasta10.id],
   // «Arrobas y kilos» y «Comparar unidades de peso»: no hay un video en español sobre arrobas
   // con la equivalencia colombiana (1 arroba = 12,5 kilos); se usa el de conversión de peso.
   'fam-avanzada': [V.unidadesPeso.id],

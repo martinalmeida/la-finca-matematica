@@ -2,6 +2,7 @@
 
 import { DibujoObjeto } from '../Ilustraciones';
 import type { PropsInteraccion } from './tipos';
+import { guiaInclusion } from './contarEnVoz';
 import { letraOpcion, opcionDeTecla, useTeclas } from '../../servicios/teclas';
 
 export default function Emparejar({ ej, bloqueado, onResponder, fallidas, correcta }: PropsInteraccion) {
@@ -14,16 +15,18 @@ export default function Emparejar({ ej, bloqueado, onResponder, fallidas, correc
     return true;
   }, !bloqueado);
   if (i.tipo !== 'emparejar') return null;
+  const guia = guiaInclusion(ej, fallidas, bloqueado);
   return (
     <div className="emparejar" role="group" aria-label="Elige un grupo">
       {i.opciones.map((n, k) => {
         const fallo = fallidas.some((f) => Number(f) === n);
         const ok = correcta !== null && Number(correcta) === n;
+        const guiar = guia !== null && !fallo && Number(guia) === n;
         return (
           <button
             key={n}
             type="button"
-            className={`grupo-emparejar vidrio ${fallo ? 'fallida' : ''} ${ok ? 'correcta' : ''}`}
+            className={`grupo-emparejar vidrio ${fallo ? 'fallida' : ''} ${ok ? 'correcta' : ''} ${guiar ? 'guia' : ''}`}
             disabled={bloqueado || fallo}
             onClick={() => onResponder(n)}
             aria-label={`Grupo de ${n}`}

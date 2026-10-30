@@ -1,6 +1,6 @@
-// Prueba de progresión: un estudiante simulado aprueba todos los niveles de cada ruta (10, o 23 en Inclusión).
+// Prueba de progresión: un estudiante simulado aprueba todos los niveles de cada ruta (10, o 33 en Inclusión).
 import { describe, expect, it } from 'vitest';
-import { aciertosParaAprobar, BANDAS, dificultadPregunta, generarNivel, nivelMaximo, PREGUNTAS_POR_NIVEL } from '../src/juego/motor';
+import { aciertosParaAprobar, BANDAS, dificultadPregunta, generarNivel, nivelMaximo, PREGUNTAS_POR_NIVEL, preguntasPorNivel } from '../src/juego/motor';
 import { aplicarResultado, calcularEstrellas, etapaPlanta } from '../src/juego/progresion';
 import { progresoVacio, TODAS_LAS_PISTAS } from '../src/almacenamiento/datos';
 import type { Banda, Ejercicio } from '../src/juego/tipos';
@@ -50,21 +50,23 @@ describe('reglas de aprobación y estrellas', () => {
 });
 
 describe('progresión de todos los niveles en cada ruta', () => {
-  it('las rutas con pruebas tienen 10 niveles e Inclusión 23', () => {
-    for (const pista of TODAS_LAS_PISTAS) expect(nivelMaximo(pista), pista).toBe(pista === 'inclusion' ? 23 : 10);
+  it('las rutas con pruebas tienen 10 niveles e Inclusión 33', () => {
+    for (const pista of TODAS_LAS_PISTAS) expect(nivelMaximo(pista), pista).toBe(pista === 'inclusion' ? 33 : 10);
   });
   it('la planta crece igual que antes en 10 niveles y llega a cosecha al final de la ruta', () => {
     expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => etapaPlanta(n))).toEqual(['semilla', 'semilla', 'brote', 'brote', 'planta', 'planta', 'flor', 'flor', 'fruto', 'fruto', 'cosecha']);
-    expect(etapaPlanta(22, 23)).toBe('fruto');
-    expect(etapaPlanta(23, 23)).toBe('cosecha');
+    expect(etapaPlanta(26, 33)).toBe('flor');
+    expect(etapaPlanta(27, 33)).toBe('fruto');
+    expect(etapaPlanta(32, 33)).toBe('fruto');
+    expect(etapaPlanta(33, 33)).toBe('cosecha');
   });
   for (const pista of TODAS_LAS_PISTAS) {
-    it(`${pista}: 10 preguntas por nivel, se desbloquea de uno en uno hasta el último`, () => {
+    it(`${pista}: ${preguntasPorNivel(pista)} preguntas por nivel, se desbloquea de uno en uno hasta el último`, () => {
       let p = progresoVacio();
       const maximo = nivelMaximo(pista);
       for (let nivel = 1; nivel <= maximo; nivel++) {
         const ejercicios = generarNivel({ codigo: 'FM-1-SIMU', pista, nivel, intento: 1 });
-        expect(ejercicios.length).toBe(PREGUNTAS_POR_NIVEL);
+        expect(ejercicios.length).toBe(preguntasPorNivel(pista as never));
         // Casi sin enunciados repetidos (en Inclusión la repetición es parte de la rutina).
         if (pista !== 'inclusion') expect(new Set(ejercicios.map((e) => e.enunciado)).size).toBeGreaterThanOrEqual(PREGUNTAS_POR_NIVEL - 2);
         expect(nivel).toBe(p.nivelMaximoDesbloqueado);

@@ -1,7 +1,7 @@
 // Qué se muestra en la realidad aumentada para cada ejercicio. Va aparte de EscenaRA
 // para que three.js y LocAR.js solo se descarguen cuando alguien abre la cámara.
 
-import type { Ejercicio, Objeto } from '../juego/tipos';
+import type { Ejercicio, Figura, Objeto, Recipiente } from '../juego/tipos';
 
 export type ConfigEscena =
   /** Tocar cada objeto para contarlo. */
@@ -25,11 +25,46 @@ function recipienteDelTexto(texto: string): { nombre: string; dibujo: Objeto } |
   return r ? { nombre: r[1], dibujo: r[2] } : null;
 }
 
+/** Recipiente de la interacción «poner» que se puede dibujar en la cámara (no personas ni áreas sin forma). */
+function recipienteDibujable(r: Recipiente): { nombre: string; dibujo: Objeto } | null {
+  return r.dibujo && r.dibujo !== 'nino' && r.dibujo !== 'adulto' && r.dibujo !== 'mula' ? { nombre: r.nombre, dibujo: r.dibujo } : null;
+}
+
+/** Objetos que se pueden contar en una figura de Inclusión (canasta con objetos o marco con dibujos). */
+function objetosDeFigura(f: Figura): { objeto: Objeto; cantidad: number } | null {
+  if ('marco' in f) return f.objeto && f.marco > 0 ? { objeto: f.objeto, cantidad: f.marco } : null;
+  if ('objeto' in f && f.cantidad) return { objeto: f.objeto, cantidad: f.cantidad };
+  return null;
+}
+
 /** Escena que corresponde a un ejercicio, si tiene objetos para ver en la cámara. */
 export function escenaDe(ej: Ejercicio): ConfigEscena | null {
   const i = ej.interaccion;
   const recipiente = recipienteDelTexto(ej.enunciado);
   if (i.tipo === 'contar') return { modo: 'contar', objeto: i.objeto, cantidad: i.cantidad };
+  // Inclusión: poner en la canasta, llenar el marco, emparejar y las canastas para comparar.
+  if (i.tipo === 'poner') {
+    const r = recipienteDibujable(i.recipiente);
+    return r ? { modo: 'canasta', objeto: i.objeto, dentro: 0, fuera: i.cantidad, quitar: false, recipiente: r } : { modo: 'contar', objeto: i.objeto, cantidad: i.cantidad };
+  }
+  if (i.tipo === 'marco') return { modo: 'contar', objeto: i.objeto ?? 'semilla', cantidad: i.cantidad };
+  if (i.tipo === 'emparejar') return { modo: 'contar', objeto: i.objeto, cantidad: Number(ej.respuesta) };
+  if (i.tipo === 'figuras') {
+    // El modelo o la opción correcta; si la correcta es la canasta vacía, la otra que tenga objetos.
+    const correcta = i.opciones.find((o) => o.id === String(ej.respuesta));
+    const candidatas = [i.modelo, correcta?.figura, ...i.opciones.map((o) => o.figura)];
+    for (const f of candidatas) {
+      const c = f && objetosDeFigura(f);
+      if (c) return { modo: 'contar', ...c };
+    }
+    return null;
+  }
+  if (ej.dibujo?.tipo === 'figuras') {
+    for (const o of ej.dibujo.figuras) {
+      const c = objetosDeFigura(o.figura);
+      if (c) return { modo: 'contar', ...c };
+    }
+  }
   // Sin un recipiente en el enunciado no se pone una canasta inventada: se cuentan los objetos.
   if (i.tipo === 'arrastrar' && i.modo === 'juntar' && i.a + i.b <= 20)
     return recipiente ? { modo: 'canasta', objeto: i.objeto, dentro: i.a, fuera: i.b, quitar: false, recipiente } : { modo: 'contar', objeto: i.objeto, cantidad: i.a + i.b };

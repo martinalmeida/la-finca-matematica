@@ -1,8 +1,9 @@
 // Figuras del pre-número (Inclusión): formas de colores, objetos grandes o pequeños, canastas con
 // uno, muchos o ninguno, torres de cajas, lazos, velas, botellas y lápices. No llevan números:
-// se comparan mirando.
+// se comparan mirando. También la cara del dado y el marco de 10 (ver la cantidad sin contar).
 
-import type { ColorFigura, CosaAlta, Figura, FormaFigura } from '../juego/tipos';
+import type { ReactNode } from 'react';
+import type { ColorFigura, CosaAlta, Figura, FormaFigura, Objeto } from '../juego/tipos';
 import { DibujoObjeto } from './Ilustraciones';
 import Recipiente from './Recipiente';
 import { claro, medio, oscuro, TONOS } from './paleta';
@@ -101,6 +102,62 @@ function Lazo({ largo, tamano }: { largo: number; tamano: number }) {
   );
 }
 
+/** Puntos de cada cara del dado (lienzo de 40): esquinas, centro y los del medio a los lados. */
+const PUNTOS_DADO: Record<number, [number, number][]> = {
+  1: [[20, 20]],
+  2: [[11, 11], [29, 29]],
+  3: [[11, 11], [20, 20], [29, 29]],
+  4: [[11, 11], [29, 11], [11, 29], [29, 29]],
+  5: [[11, 11], [29, 11], [20, 20], [11, 29], [29, 29]],
+  6: [[11, 11], [29, 11], [11, 20], [29, 20], [11, 29], [29, 29]],
+};
+
+/** Puntos de la cara del dado con n puntos (1 a 6). */
+export function puntosDado(n: number): [number, number][] {
+  return PUNTOS_DADO[Math.min(6, Math.max(1, Math.round(n)))];
+}
+
+function Dado({ puntos, tamano }: { puntos: number; tamano: number }) {
+  return (
+    <svg className="figura-dado" width={tamano} height={tamano} viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <rect x="2" y="2" width="36" height="36" rx="8" fill="#ffffff" stroke={oscuro('d')} strokeWidth="1.6" />
+      <rect x="4" y="4" width="32" height="32" rx="6.5" fill="none" stroke="rgba(16, 32, 24, 0.08)" strokeWidth="2" />
+      {puntosDado(puntos).map(([x, y], k) => (
+        <circle key={k} cx={x} cy={y} r="4.2" fill="#1f2937" />
+      ))}
+    </svg>
+  );
+}
+
+/** Orden de llenado del marco de 10: fila de arriba de izquierda a derecha, luego la de abajo. */
+export const CASILLAS_MARCO = 10;
+
+/** Ficha redonda de las casillas llenas cuando no hay objeto. */
+export function FichaMarco({ tamano }: { tamano: number }) {
+  return (
+    <svg width={tamano} height={tamano} viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <circle cx="20" cy="20" r="16" fill={medio('r')} stroke={oscuro('r')} strokeWidth="2" />
+      <ellipse cx="14" cy="13" rx="5" ry="3" fill={claro('r')} opacity="0.7" />
+    </svg>
+  );
+}
+
+/** Marco de 10: dos filas de cinco casillas; `casilla(k)` dibuja cada una (para hacerlas tocables). */
+export function MarcoDiez({ llenas, objeto, celda, casilla, className = '' }: { llenas: number; objeto?: Objeto; celda: number; casilla?: (k: number, contenido: ReactNode) => ReactNode; className?: string }) {
+  return (
+    <span className={`marco-diez ${className}`} style={{ ['--celda' as string]: `${celda}px` }}>
+      {Array.from({ length: CASILLAS_MARCO }, (_, k) => {
+        const contenido = k < llenas ? objeto ? <DibujoObjeto objeto={objeto} tamano={Math.round(celda * 0.78)} etiqueta="" /> : <FichaMarco tamano={Math.round(celda * 0.78)} /> : null;
+        return casilla ? casilla(k, contenido) : (
+          <span key={k} className={`marco-casilla ${k < llenas ? 'llena' : ''}`}>
+            {contenido}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 /** Dibujo de una figura. `tamano` es el de la figura más grande (escala 1). */
 export function DibujoFigura({ figura, tamano = 80 }: { figura: Figura; tamano?: number }) {
   if ('forma' in figura) return <Forma forma={figura.forma} color={figura.color} tamano={Math.round(tamano * (figura.escala ?? 1))} />;
@@ -126,6 +183,8 @@ export function DibujoFigura({ figura, tamano = 80 }: { figura: Figura; tamano?:
       </span>
     );
   }
+  if ('dado' in figura) return <Dado puntos={figura.dado} tamano={Math.round(tamano * 1.1)} />;
+  if ('marco' in figura) return <MarcoDiez llenas={figura.marco} objeto={figura.objeto} celda={Math.max(22, Math.round(tamano * 0.36))} className="figura-marco" />;
   if (figura.cantidad !== undefined) {
     return (
       <Recipiente forma="canasta" pequeno className="figura-canasta" aria-hidden="true" style={{ width: Math.round(tamano * 1.5) }}>

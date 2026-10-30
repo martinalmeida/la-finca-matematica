@@ -17,7 +17,7 @@ export default function Ajustes() {
   const { ajustes, cambiarAjustes, perfil, avisar, salir } = useApp();
   const voz = useVoz();
   const adulto = perfil.rol === 'familia';
-  const [pin, setPin] = useState<null | 'salir' | 'ra'>(null);
+  const [pin, setPin] = useState<null | 'salir'>(null);
   const [revisando, setRevisando] = useState(false);
   const [saliendo, setSaliendo] = useState(false);
 
@@ -41,11 +41,10 @@ export default function Ajustes() {
     return (
       <main className="pantalla">
         <PinAdulto
-          texto={pin === 'salir' ? 'Para cerrar la sesión, un adulto debe resolver:' : 'La realidad aumentada usa la cámara. Para activarla, un adulto debe resolver:'}
+          texto="Para cerrar la sesión, un adulto debe resolver:"
           alCancelar={() => setPin(null)}
           alAprobar={() => {
-            if (pin === 'ra') cambiar('realidadAumentada', true);
-            else void cerrarSesion();
+            void cerrarSesion();
             setPin(null);
           }}
         />
@@ -118,13 +117,12 @@ export default function Ajustes() {
             <span className="fila" style={{ flexWrap: 'nowrap' }}>
               <Icono nombre="camara" tamano={28} /> Realidad aumentada (usa la cámara)
             </span>
-            <span className="pequeno suave"> Los objetos de la finca quedan puestos alrededor, sobre lo que ve la cámara, y se buscan girando el celular. No usa el GPS. La imagen no se graba ni se envía. Para activarla se pide un adulto.</span>
+            <span className="pequeno suave">
+              {' '}
+              En el celular viene encendida: en los ejercicios con objetos aparece el botón «Ver en mi finca». Los objetos quedan puestos alrededor, sobre lo que ve la cámara, y se buscan girando el celular. No usa el GPS. La imagen no se graba ni se envía.
+            </span>
           </span>
-          <input
-            type="checkbox"
-            checked={ajustes.realidadAumentada}
-            onChange={(e) => (e.target.checked ? setPin('ra') : cambiar('realidadAumentada', false))}
-          />
+          <input type="checkbox" checked={ajustes.realidadAumentada} onChange={(e) => cambiarAjustes({ ...ajustes, realidadAumentada: e.target.checked, raElegida: true })} />
         </label>
       </section>
 

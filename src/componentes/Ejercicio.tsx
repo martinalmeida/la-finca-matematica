@@ -281,12 +281,13 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
         )}
         <div className="fila">
           <BotonEscuchar texto={lectura} clave={ej.id} etiqueta={adulto ? 'Escuchar de nuevo' : 'Escuchar otra vez'} />
-          {ajustes.realidadAumentada && escena && estado === 'jugando' && !prueba && (
-            <button type="button" className="boton boton-camara" onClick={() => setVerEscena(true)}>
-              <Icono nombre="camara" tamano={28} /> {adulto ? 'Ver con la cámara' : 'Verlo en mi finca'}
-            </button>
-          )}
         </div>
+        {/* Realidad aumentada: botón grande en todo ejercicio con objetos (en el celular viene encendida). */}
+        {ajustes.realidadAumentada && escena && estado === 'jugando' && !prueba && (
+          <button type="button" className="boton boton-camara grande" onClick={() => setVerEscena(true)}>
+            <Icono nombre="camara" tamano={32} /> {adulto ? 'Ver con la cámara' : 'Ver en mi finca'}
+          </button>
+        )}
       </div>
 
       {paso === 'abierto' && estado === 'jugando' && <PasoAPaso key={ej.id} ej={ej} alTerminar={() => setPaso('hecho')} />}
@@ -344,7 +345,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
           ej={ej}
           bloqueado={estado !== 'jugando' || paso === 'abierto'}
           onResponder={responder}
-          fallidas={prueba || inclusion ? [] : fallidas}
+          fallidas={prueba ? [] : fallidas}
           errores={errores}
           correcta={estado !== 'jugando' && !prueba ? ej.respuesta : null}
         />

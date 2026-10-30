@@ -64,7 +64,11 @@ export type Figura =
   /** Una vela, una botella o un lápiz parado: alto de 0,4 a 1 (para ordenar por altura). */
   | { cosa: CosaAlta; alto: number }
   /** El botón «igual» (dos grupos con la misma cantidad). */
-  | { igual: true };
+  | { igual: true }
+  /** Cara de un dado con 1 a 6 puntos (reconocer la cantidad sin contar). */
+  | { dado: number }
+  /** Marco de 10: dos filas de cinco casillas con `cantidad` llenas (con el objeto o con fichas). */
+  | { marco: number; objeto?: Objeto };
 
 /** Una figura que se puede tocar: el id es la respuesta; la etiqueta, lo que se lee en voz alta. */
 export type OpcionFigura = { id: string; etiqueta: string; figura: Figura };
@@ -111,8 +115,12 @@ export type Interaccion =
   | { tipo: 'trazar'; cifra: number }
   /** Elegir el grupo de dibujos que tiene la cantidad pedida (Inclusión). */
   | { tipo: 'emparejar'; objeto: Objeto; opciones: number[] }
-  /** Tocar la figura que se pide (Inclusión, sin números). */
-  | { tipo: 'figuras'; opciones: OpcionFigura[] }
+  /** Tocar la figura que se pide (Inclusión, sin números). Con `modelo`, se muestra arriba «igual a este». */
+  | { tipo: 'figuras'; opciones: OpcionFigura[]; modelo?: Figura }
+  /** Poner `cantidad` objetos en el recipiente tocándolos uno por uno (se cuentan en voz alta). Respuesta: cuántos quedaron dentro. */
+  | { tipo: 'poner'; objeto: Objeto; cantidad: number; disponibles: number; recipiente: Recipiente }
+  /** Llenar el marco de 10 hasta `cantidad` tocando casillas. Respuesta: cuántas quedaron llenas. */
+  | { tipo: 'marco'; cantidad: number; objeto?: Objeto }
   /** Llevar cada figura a su canasta. La respuesta es el número de canasta de cada figura, «0,1,1,0». */
   | { tipo: 'clasificar'; items: OpcionFigura[]; grupos: [OpcionFigura, OpcionFigura] }
   /** Tocar las figuras en orden (del más bajo al más alto). La respuesta son los id en orden, «a|b|c». */

@@ -7,6 +7,7 @@ import { claveLocal, encolarEvento, encolarPartida, type Partida, type TipoParti
 import type { Banda, Grado, Operacion, Pista } from '../juego/tipos';
 import { bandaPorPuntaje, rutaFamiliaPorPuntaje, type ResultadoPrueba } from '../juego/pruebas';
 import { uuid } from '../juego/perfil';
+import { aRutaNueva, RUTA_INCLUSION } from './rutaInclusion';
 
 export type Rol = 'estudiante' | 'familia';
 export type TipoUsuario = 'estudiante' | 'familia' | 'inclusion';
@@ -83,6 +84,8 @@ export type Progreso = {
   semillas: number;
   insignias: string[];
   etapaPlanta: EtapaPlanta;
+  /** Versión de la ruta (solo Inclusión; ver rutaInclusion.ts). */
+  ruta?: number;
 };
 
 
@@ -97,6 +100,8 @@ export type Ajustes = {
   videos: boolean;
   /** Realidad aumentada con la cámara. Apagada hasta que un adulto la active. */
   realidadAumentada: boolean;
+  /** La persona ya eligió encender o apagar la realidad aumentada (entonces se respeta su elección). */
+  raElegida?: boolean;
 };
 
 /** Resumen agregado por usuario: alimenta los informes del profesor y la vista de familias. */
@@ -203,7 +208,10 @@ export function bandaDe(p: Perfil, f: Fuente): Banda {
 
 export function progresoDe(f: Fuente, pista: Pista): Progreso {
   const v = f(`progreso:${pista}`);
-  return v && typeof v === 'object' ? { ...progresoVacio(), ...(v as Partial<Progreso>) } : progresoVacio();
+  const p = v && typeof v === 'object' ? { ...progresoVacio(), ...(v as Partial<Progreso>) } : progresoVacio();
+  // Inclusión cambió de ruta en la versión 1.3: el avance viejo se ubica en la ruta nueva al leerlo.
+  if (pista === 'inclusion') return v && typeof v === 'object' ? aRutaNueva(p) : { ...p, ruta: RUTA_INCLUSION };
+  return p;
 }
 
 export function resumenDe(f: Fuente): Resumen {
@@ -343,8 +351,22 @@ function equipoModesto(): boolean {
 
 export const ajustesPorDefecto: Ajustes = { tamanoLetra: 'normal', sonido: true, vibracion: true, audioEnunciados: true, efectos: 'completos', videos: true, realidadAumentada: false };
 
+/** Celular o tableta (pantalla táctil sin mouse): ahí la realidad aumentada viene encendida. */
+export function esCelular(): boolean {
+  try {
+    return window.matchMedia('(pointer: coarse)').matches && !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  } catch {
+    return false;
+  }
+}
+
 export function leerAjustes(): Ajustes {
-  return { ...ajustesPorDefecto, ...(movimientoReducido() || equipoModesto() ? { efectos: 'ligeros' as const } : {}), ...leer<Partial<Ajustes>>(K.ajustes, {}) };
+  const guardados = leer<Partial<Ajustes>>(K.ajustes, {});
+  const a: Ajustes = { ...ajustesPorDefecto, ...(movimientoReducido() || equipoModesto() ? { efectos: 'ligeros' as const } : {}), ...guardados };
+  // En el celular la realidad aumentada está encendida para todos, salvo que alguien la haya apagado
+  // en Ajustes (también para quienes la tenían apagada antes de la versión 1.3, cuando venía apagada).
+  if (!a.raElegida && esCelular()) a.realidadAumentada = true;
+  return a;
 }
 
 

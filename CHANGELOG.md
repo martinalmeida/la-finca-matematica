@@ -9,6 +9,18 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.3.0] - 2026-10-30
+
+### Nuevo
+- Ruta de Inclusión rehecha para niños con síndrome de Down, autismo y otras formas de aprender: 8 bloques y 33 niveles cortos de 5 actividades, que llegan hasta el 10 (antes, 23 niveles de 10 actividades hasta el 100).
+- Actividades nuevas, todas tocando: «Igual a este» con un modelo, puntos como en el dado, llenar el marco de 10, «Pon 3 en la canasta» y contar tocando, con la voz diciendo «uno, dos, tres…» en cada toque.
+- Aprendizaje sin error en Inclusión: como mucho 2 opciones en los primeros bloques y 3 después; la opción equivocada se desvanece y queda marcada la correcta, sin equis ni vibración.
+- Ocho lecciones nuevas de Inclusión (una por bloque) y un video para cada nivel.
+- Realidad aumentada encendida en todos los celulares y tabletas, para todos los usuarios, con el botón grande «Ver en mi finca» en cada ejercicio con objetos. Se apaga en Ajustes sin PIN; en el computador viene apagada.
+
+### Cambiado
+- Quien ya jugaba la ruta anterior de Inclusión queda en el nivel equivalente de la nueva y conserva sus semillas y su finca. En los informes del profesor, lo jugado antes aparece aparte como «Inclusión (ruta anterior)».
+
 ## [1.2.2] - 2026-10-30
 
 ### Mejorado

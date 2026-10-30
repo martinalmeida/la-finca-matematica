@@ -10,9 +10,9 @@ const MUESTRA = 2000;
 /** Veces que el usuario simulado entra a cada nivel. */
 const ENTRADAS = 15;
 
-/** Inclusión, niveles 1 a 7: pre-número (sin cifras), el banco es más chico por naturaleza. */
-const preNumero = (pista: string, nivel: number) => pista === 'inclusion' && nivel <= 7;
-const minimos = (pista: string, nivel: number) => (preNumero(pista, nivel) ? { preguntas: 500, frases: 25 } : { preguntas: 1000, frases: 40 });
+/** Inclusión (toda la ruta, hasta 10, con pocas opciones y una consigna fija): el banco es más chico por naturaleza. */
+const preNumero = (pista: string) => pista === 'inclusion';
+const minimos = (pista: string) => (preNumero(pista) ? { preguntas: 500, frases: 25 } : { preguntas: 1000, frases: 40 });
 
 describe('banco de preguntas', () => {
   for (const [pista, def] of Object.entries(definiciones)) {
@@ -27,7 +27,7 @@ describe('banco de preguntas', () => {
           exactas.add(huella(ej));
           frases.add(frase(ej));
         }
-        const min = minimos(pista, nivel);
+        const min = minimos(pista);
         expect(exactas.size, 'preguntas distintas').toBeGreaterThanOrEqual(min.preguntas);
         expect(frases.size, 'situaciones distintas').toBeGreaterThanOrEqual(min.frases);
       });

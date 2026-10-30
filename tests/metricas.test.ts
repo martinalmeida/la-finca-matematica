@@ -121,3 +121,22 @@ describe('métricas', () => {
     for (const v of mapa.valor.values()) expect(v).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe('ruta anterior de Inclusión en los informes', () => {
+  it('separa lo jugado antes y lo nombra con los títulos de entonces', async () => {
+    const { separarRutaAnterior, separarPartidasAnteriores, nombreTema, nombrePista } = await import('../src/profesor/metricas');
+    const ev = separarRutaAnterior([
+      { pista: 'inclusion', plantilla: 'inc-contar', nivel: 8 },
+      { pista: 'inclusion', plantilla: 'in-contar', nivel: 8 },
+      { pista: 'g3', plantilla: 'g3-tablas', nivel: 2 },
+    ]);
+    expect(ev.map((e) => e.pista)).toEqual(['inclusion-anterior', 'inclusion', 'g3']);
+    expect(nombreTema('inclusion-anterior', 8)).toBe('Contar de uno en uno hasta 10');
+    expect(nombrePista('inclusion-anterior')).toBe('Inclusión (ruta anterior)');
+    const pa = separarPartidasAnteriores([
+      { pista: 'inclusion', tipo: 'nivel', total: 10 },
+      { pista: 'inclusion', tipo: 'nivel', total: 5 },
+    ]);
+    expect(pa.map((p) => p.pista)).toEqual(['inclusion-anterior', 'inclusion']);
+  });
+});

@@ -16,7 +16,7 @@ import Detalle from './Detalle';
 import Informes from './reportes/Informes';
 import Reporte from './reportes/Reporte';
 import Portada from './reportes/Portada';
-import { describirFiltros, filtrar, FILTROS_INICIALES } from './metricas';
+import { describirFiltros, filtrar, FILTROS_INICIALES, separarPartidasAnteriores, separarRutaAnterior } from './metricas';
 import './profesor.css';
 
 type Pestana = 'usuarios' | 'informe' | 'exportar';
@@ -146,8 +146,9 @@ export default function AppProfesor({ cuenta, alSalir, alVencer }: { cuenta: Fil
   const recargar = useCallback(async () => {
     try {
       const [d, ev] = await Promise.all([api.cargarDatos(), api.cargarEventos()]);
-      setAlumnos(armarAlumnos(d));
-      setEventos(ev);
+      // Lo jugado en la ruta anterior de Inclusión queda aparte (sus niveles eran otros).
+      setAlumnos(armarAlumnos({ ...d, partidas: separarPartidasAnteriores(d.partidas) }));
+      setEventos(separarRutaAnterior(ev));
       setError(null);
       void api.cargarFotos(d.usuarios).then(setFotos);
     } catch (e) {

@@ -130,13 +130,14 @@ describe('generadores de ejercicios', () => {
   for (const pista of PISTAS) {
     const def = definiciones[pista];
     describe(pista, () => {
-      it('cada plantilla está registrada y se usa en algún tema; hay 10 temas (23 en Inclusión, en bloques)', () => {
+      it('cada plantilla está registrada y se usa en algún tema; hay 10 temas (33 en Inclusión, en 8 bloques)', () => {
         const usadas = new Set(def.temas.flatMap((t) => [...t.usos, ...(t.prueba ? [t.prueba] : [])].map((u) => u.plantilla.id)));
         for (const p of def.plantillas) expect(usadas.has(p.id), p.id).toBe(true);
         for (const id of usadas) expect(def.plantillas.some((p) => p.id === id), `${id} no está en plantillas`).toBe(true);
         expect(new Set(def.plantillas.map((p) => p.id)).size).toBe(def.plantillas.length);
         if (def.bloques) {
-          expect(def.temas.length).toBe(23);
+          expect(def.temas.length).toBe(33);
+          expect(def.bloques.length).toBe(8);
           expect(def.bloques.reduce((s, b) => s + b.niveles, 0)).toBe(def.temas.length);
         } else expect(def.temas.length).toBe(10);
       });

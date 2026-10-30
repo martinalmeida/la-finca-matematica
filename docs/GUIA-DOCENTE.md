@@ -75,25 +75,28 @@ Además encuentran consejos para acompañar a sus hijos y el avance de los niño
 
 ## 4. Grado Inclusión
 
-Para niños con autismo y otras formas de aprender. Se elige como un grado más al crear el perfil. No tiene prueba de entrada ni prueba final: el niño va directo a su ruta de **7 niveles**, cada uno partido en pasos cortos (23 en total, de 10 actividades cada uno). En la app se nombran «1.1», «1.2»…: el primer número es el nivel y el segundo, el paso. Cada nivel tiene su lección y cada paso su video de introducción.
+Para niños con **síndrome de Down**, **autismo** y otras formas de aprender. Se elige como un grado más al crear el perfil. No tiene prueba de entrada ni prueba final: el niño va directo a su ruta de **8 bloques**, partidos en **33 niveles cortos de 5 actividades** cada uno, y **llega hasta el 10**. En la app se nombran «1.1», «1.2»…: el primer número es el bloque y el segundo, el nivel. Cada bloque tiene su lección y cada nivel su video de introducción.
 
-1. **Pre-número (sin cifras):** 1.1 clasificar por color, forma y tamaño (llevar cada figura a su canasta y encontrar la diferente); 1.2 alto/bajo, grande/pequeño, largo/corto; 1.3 uno, muchos y ninguno; 1.4 más, menos e igual.
-2. **Números del 1 al 3:** 2.1 reconocer y contar 1, 2 y 3 (y repasarlos con el dedo); 2.2 emparejar cantidad y número; 2.3 ordenar 3 objetos por su altura.
-3. **Números del 1 al 10:** 3.1 contar de uno en uno; 3.2 conocer los números de dos en dos (1 y 2, luego 3 y 4… hasta 10); 3.3 completar secuencias (1, 2, __); 3.4 mayor y menor.
-4. **Números del 1 al 20:** 4.1 contar y escribir el número con el dedo; 4.2 antes, después y entre; 4.3 partir un número (el 5 es 3 y 2).
-5. **Unir y quitar con objetos:** 5.1 juntar dos grupos y contar todo; 5.2 quitar y contar lo que queda; 5.3 cuentos cortos con dibujos («Tenía 2, llegó 1»).
-6. **Suma y resta:** 6.1 sumas hasta 5 y luego hasta 10; 6.2 restas hasta 5 y luego hasta 10; 6.3 sin dibujos (ayuda en la recta); 6.4 problemas sencillos.
-7. **Extensión:** 7.1 decena y unidad con cajas de 10; 7.2 sumas y restas hasta 20 y luego hasta 100, sin llevar.
-
-Dentro de cada paso las actividades avanzan poco a poco: por ejemplo, en 6.1 las primeras sumas llegan a 5 y las últimas a 10.
+1. **Mirar y emparejar (sin números):** 1.1 igual a este (tocar el dibujo idéntico al modelo); 1.2 mismo color; 1.3 misma forma.
+2. **Grande, pequeño y en orden:** 2.1 grande y pequeño; 2.2 alto y bajo, largo y corto; 2.3 cada uno en su canasta (por color y por forma); 2.4 del más pequeño al más grande.
+3. **¿Cuántos hay? (sin contar):** 3.1 uno y muchos; 3.2 la canasta vacía; 3.3 dónde hay más y dónde hay menos; 3.4 igual de muchos que el modelo.
+4. **Los números 1, 2 y 3:** 4.1 contar tocando (la app dice «uno, dos, tres» con cada toque); 4.2 puntos como en el dado; 4.3 este número, estos dibujos; 4.4 repasar el 1, el 2 y el 3; 4.5 poner 1, 2 o 3 en la canasta.
+5. **Los números 4 y 5:** lo mismo que el bloque 4, con el 4 y el 5.
+6. **Del 6 al 10:** 6.1 contar tocando hasta 10; 6.2 llenar el marco de 10; 6.3 cuántos hay en el marco; 6.4 repasar del 6 al 10; 6.5 qué número sigue.
+7. **Juntar y quitar hasta 5:** 7.1 juntar en la canasta; 7.2 quitar y contar lo que queda; 7.3 cuentos cortos con dibujos.
+8. **Juntar y quitar hasta 10:** 8.1 juntar; 8.2 quitar; 8.3 cuentos con dibujos; 8.4 sumar y quitar con dibujos.
 
 Cómo está pensado:
 
-- **Nunca se pierde.** Si se equivoca, no hay vibración ni marca roja: aparece el dibujo de ayuda y un mensaje tranquilo, y vuelve a intentarlo; a la tercera, la app le dice la respuesta para que la toque. Siempre termina el nivel con 3 estrellas.
-- **Rutina predecible:** al empezar cada nivel aparece una agenda **«Primero… Después…»** (qué va a hacer y qué gana).
-- **Pantalla calmada:** colores suaves, sin brillos ni animaciones (solo la cifra que se dibuja sola), efectos ligeros siempre, botones más grandes, letra más espaciada y voz más lenta. Cada enunciado se lee en voz alta.
-- **Pausa:** el botón ⏸ abre un descanso con un círculo que crece y se encoge despacio para respirar; se sigue cuando el niño quiera.
+- **De lo concreto al número:** primero se toca y se mueve (poner en la canasta, llenar el marco de 10, contar tocando), luego se mira el dibujo y al final aparece la cifra. Todo se hace **tocando**; no hace falta arrastrar.
+- **Aprendizaje sin error:** como mucho **2 opciones** en los bloques 1 a 4 y **3** después. Si toca la equivocada, esa se desvanece y queda marcada la correcta; no hay vibración, ni equis, ni mensaje de error. A la tercera, la app le dice la respuesta. **Nunca se pierde:** siempre termina el nivel con 3 estrellas.
+- **Sesiones cortas:** 5 actividades por nivel.
+- **Rutina predecible:** al empezar cada nivel aparece una agenda **«Primero… Después…»**; la consigna es una sola, corta y siempre igual dentro del nivel, y se lee en voz alta.
+- **Pantalla calmada:** colores suaves, sin brillos ni animaciones, botones grandes (al menos 60 px), letra más espaciada y voz más lenta.
+- **Pausa:** el botón ⏸ (o la tecla Escape en el computador) abre un descanso con un círculo que crece y se encoge despacio para respirar.
 - El **Taller de números** (abajo) queda en *Aprender* solo para este grado.
+
+Si un niño ya venía jugando la ruta anterior (hasta el 100), al actualizar la app queda en el nivel equivalente de la ruta nueva (ante la duda, un poco antes) y conserva sus semillas y su finca. En los informes, lo que jugó antes aparece aparte como «Inclusión (ruta anterior)».
 
 ## 5. Taller de números (Inclusión)
 
@@ -107,9 +110,11 @@ Cada cifra guarda hasta 3 estrellas. El reconocimiento funciona sin internet y d
 
 ## 6. Realidad aumentada (cámara)
 
-Viene **apagada**. Un adulto la activa en **Ajustes → Realidad aumentada (usa la cámara)**, resolviendo una multiplicación. Usa la librería libre [LocAR.js](https://github.com/AR-js-org/locar.js) con three.js, empaquetadas dentro de la app (funciona sin internet).
+En los **celulares y tabletas viene encendida para todos** (estudiantes, familias e Inclusión): en cada ejercicio con objetos aparece el botón grande **«Ver en mi finca»** y la cámara solo se abre al tocarlo. El navegador pide permiso la primera vez. Se apaga en *Ajustes → Realidad aumentada* (sin PIN). En el computador viene apagada y se puede encender en Ajustes.
 
-- En los ejercicios con objetos (contar, juntar, quitar) aparece el botón **«Verlo en mi finca»**. La cámara muestra el salón o el patio y los huevos, naranjas o mazorcas del problema **quedan puestos alrededor del niño**, a 2 o 3 metros: al girar el celular, los objetos se quedan en su sitio, como si estuvieran ahí. El niño los busca y los toca para contarlos (cada uno recibe su número) o para meterlos en la canasta o sacarlos.
+Usa la librería libre [LocAR.js](https://github.com/AR-js-org/locar.js) con three.js, empaquetadas dentro de la app (funciona sin internet).
+
+- En los ejercicios con objetos (contar, juntar, quitar) aparece el botón **«Ver en mi finca»** («Ver con la cámara» para las familias). La cámara muestra el salón o el patio y los huevos, naranjas o mazorcas del problema **quedan puestos alrededor del niño**, a 2 o 3 metros: al girar el celular, los objetos se quedan en su sitio, como si estuvieran ahí. El niño los busca y los toca para contarlos (cada uno recibe su número) o para meterlos en la canasta o sacarlos.
 - En el Taller, **«Contar cosas de verdad»**: el niño apunta a huevos, frutas o piedras reales y toca cada una; el número queda pegado encima aunque mueva el celular.
 - La app **no usa el GPS ni pide la ubicación**: los objetos se ponen cerca del niño, así que funciona dentro del salón.
 - En iPhone aparece el botón **«Permitir el movimiento»** (el sistema pide permiso para usar los sensores). En celulares o computadores sin sensores, se mira alrededor **arrastrando el dedo**.

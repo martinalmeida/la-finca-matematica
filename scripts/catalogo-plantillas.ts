@@ -18,7 +18,7 @@ const nombres: Record<Pista, string> = {
 };
 let md =
   '# Catálogo de plantillas\n\nGenerado automáticamente desde `src/contenido/plantillas` (`npm run catalogo`).\n\n' +
-  'Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas; Inclusión tiene 23 niveles en 7 bloques y no hace pruebas. La columna «Prueba» es la plantilla de la pregunta de ese tema en la prueba diagnóstica y en la final.\n\n';
+  'Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas; Inclusión tiene 33 niveles en 8 bloques, de 5 actividades cada uno, llega hasta el 10 y no hace pruebas. La columna «Prueba» es la plantilla de la pregunta de ese tema en la prueba diagnóstica y en la final.\n\n';
 const ids = new Set<string>();
 for (const [pista, def] of Object.entries(definiciones) as [Pista, (typeof definiciones)[Pista]][]) {
   def.plantillas.forEach((p) => ids.add(p.id));

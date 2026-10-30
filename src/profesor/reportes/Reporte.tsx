@@ -16,6 +16,7 @@ import {
   matrizErrores,
   nombrePista,
   ordenarPistas,
+  rutaVigente,
   porOperacion,
   porTema,
   prePost,
@@ -124,7 +125,7 @@ export default function Reporte({ c, anterior, deUnAlumno, impreso, secciones, a
   const pistasPrueba = pp.temas.map((t) => t.pista);
   const [pistaTemas, setPistaTemas] = useState<Pista | null>(null);
   const pistaElegida = pistaTemas && pistasPrueba.includes(pistaTemas) ? pistaTemas : pistasPrueba[0] ?? null;
-  const pistasJuego = useMemo(() => ordenarPistas([...new Set(c.eventos.filter((e) => e.tipo === 'nivel').map((e) => e.pista as Pista))]), [c]);
+  const pistasJuego = useMemo(() => ordenarPistas([...new Set(c.eventos.filter((e) => e.tipo === 'nivel').map((e) => e.pista))].filter(rutaVigente)), [c]);
   const pistasTema = useMemo(() => ordenarPistas([...new Set(temas.map((t) => t.id.split('|')[0] as Pista))]), [temas]);
   const [pistaTema, setPistaTema] = useState<Pista | null>(null);
   const pistaTemaElegida = pistaTema && pistasTema.includes(pistaTema) ? pistaTema : pistasTema[0] ?? null;
@@ -540,7 +541,7 @@ function RutaAlumno({ a, partidas, impreso }: { a: Alumno; partidas: PartidaRemo
           vacio="Sin partidas en el periodo."
           columnas={[
             { id: 't', titulo: 'Fecha', valor: (p) => p.t, formato: (x) => new Date(String(x)).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'America/Bogota' }) },
-            { id: 'que', titulo: 'Actividad', valor: (p) => (p.tipo === 'nivel' ? `Nivel ${etiquetaNivel(p.pista as never, p.nivel ?? 1)}${p.repaso ? ' (repaso)' : ''}` : p.tipo === 'prueba-final' ? 'Prueba final' : 'Prueba de entrada') },
+            { id: 'que', titulo: 'Actividad', valor: (p) => (p.tipo === 'nivel' ? `Nivel ${rutaVigente(p.pista) ? etiquetaNivel(p.pista, p.nivel ?? 1) : `${p.nivel ?? ''} (ruta anterior)`}${p.repaso ? ' (repaso)' : ''}` : p.tipo === 'prueba-final' ? 'Prueba final' : 'Prueba de entrada') },
             { id: 'pts', titulo: 'Aciertos', valor: (p) => `${p.aciertos} de ${p.total}`, alinear: 'der' },
             { id: 'est', titulo: 'Estrellas', valor: (p) => p.estrellas, formato: (x) => (x === null ? '—' : Number(x) ? '★'.repeat(Number(x)) : '0') },
             { id: 'min', titulo: 'Minutos', valor: (p) => (p.ms_total ?? 0) / 60000, formato: (x) => fmtNum(Number(x), 1), alinear: 'der' },

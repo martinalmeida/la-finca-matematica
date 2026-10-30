@@ -30,12 +30,16 @@ export default function VisualPista({ visual }: { visual: Visual }) {
     case 'figuras':
       return (
         <div className="visual-figuras" role="img" aria-label={visual.figuras.map((f) => f.etiqueta).join(', ')}>
-          {visual.figuras.map((f) => (
-            <span key={f.id} className="visual-figura">
-              <DibujoFigura figura={f.figura} tamano={56} />
-              <span className="pequeno">{f.etiqueta}</span>
-            </span>
-          ))}
+          {visual.figuras.map((f) => {
+            // El dado y el marco de 10 se miran para saber cuántos: van grandes.
+            const grande = 'dado' in f.figura || 'marco' in f.figura;
+            return (
+              <span key={f.id} className={`visual-figura ${grande ? 'visual-figura-grande' : ''}`}>
+                <DibujoFigura figura={f.figura} tamano={grande ? 90 : 56} />
+                <span className="pequeno">{f.etiqueta}</span>
+              </span>
+            );
+          })}
         </div>
       );
     case 'dinero':

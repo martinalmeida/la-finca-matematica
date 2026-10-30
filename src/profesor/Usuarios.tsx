@@ -85,7 +85,7 @@ function CamposTipo({ tipo, grado, alTipo, alGrado }: { tipo: TipoUsuario; grado
           </div>
         </fieldset>
       )}
-      {tipo === 'inclusion' && <p className="pequeno suave" style={{ margin: 0 }}>Ruta tranquila de 23 niveles, sin pruebas y sin perder.</p>}
+      {tipo === 'inclusion' && <p className="pequeno suave" style={{ margin: 0 }}>Ruta tranquila de {nivelMaximo('inclusion')} niveles cortos (hasta el 10), sin pruebas y sin perder.</p>}
       {tipo === 'familia' && <p className="pequeno suave" style={{ margin: 0 }}>Hace una prueba de entrada y recibe el cuaderno de familias que le corresponde.</p>}
     </>
   );

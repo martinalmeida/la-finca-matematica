@@ -10,13 +10,15 @@ type Props = {
   correcta: Respuesta | null;
   onElegir: (r: Respuesta) => void;
   etiqueta?: string;
+  /** Inclusión, tras un intento fallido: la correcta late suave (las fallidas se desvanecen). */
+  guia?: Respuesta | null;
 };
 
 export function textoOpcion(o: Respuesta): string {
   return typeof o === 'number' ? num(o) : o;
 }
 
-export default function Opciones({ opciones, bloqueado, fallidas, correcta, onElegir, etiqueta = 'Elige una respuesta' }: Props) {
+export default function Opciones({ opciones, bloqueado, fallidas, correcta, onElegir, etiqueta = 'Elige una respuesta', guia = null }: Props) {
   // Textos o cifras largas ($1.020.000) van en una sola columna: en dos no caben con letra grande.
   const esTexto = opciones.some((o) => (typeof o === 'string' && o.length > 6) || textoOpcion(o).length > 7);
   const fallo = (o: Respuesta) => fallidas.some((f) => String(f) === String(o));
@@ -32,11 +34,12 @@ export default function Opciones({ opciones, bloqueado, fallidas, correcta, onEl
       {opciones.map((o, k) => {
         const fallo = fallidas.some((f) => String(f) === String(o));
         const ok = correcta !== null && String(correcta) === String(o);
+        const guiar = guia !== null && !fallo && !ok && String(guia) === String(o);
         return (
           <button
             key={String(o)}
             type="button"
-            className={`opcion ${typeof o === 'string' ? 'texto' : ''} ${fallo ? 'incorrecta' : ''} ${ok ? 'correcta' : ''}`}
+            className={`opcion ${typeof o === 'string' ? 'texto' : ''} ${fallo ? 'incorrecta' : ''} ${ok ? 'correcta' : ''} ${guiar ? 'guia' : ''}`}
             disabled={bloqueado || fallo}
             onClick={() => onElegir(o)}
             aria-label={`${textoOpcion(o)}${fallo ? ', ya lo intentaste' : ''}${ok ? ', correcta' : ''}`}

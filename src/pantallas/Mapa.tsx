@@ -9,7 +9,7 @@ import { CabeceraVidrio } from '../componentes/Red';
 import { bandaDePerfil, haceDiagnostica, leerProgreso, leerPruebas, marcarHistoriaVista, pistaDePerfil } from '../almacenamiento/datos';
 import { barrasBanda, barrasGrado, etiquetaNivel, nivelConTotal, nivelParaPracticar, rangoNumeros, RESUMEN_GRADO, unidadesDe, type Unidad } from '../juego/complejidad';
 import { lecciones } from '../contenido/lecciones';
-import { BANDAS, nivelMaximo, temaDe } from '../juego/motor';
+import { BANDAS, nivelMaximo, preguntasPorNivel, temaDe } from '../juego/motor';
 import { hayCosechaNueva } from '../juego/silo';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
@@ -119,7 +119,7 @@ export default function Mapa() {
                       <span className={`chip complejidad c-${u.complejidad.id}`}>
                         <Medidor barras={u.complejidad.barras} /> {u.complejidad.nombre}
                       </span>
-                      <span className="suave">{bloque ? `${niveles.length} niveles de 10 actividades` : '10 preguntas'}</span>
+                      <span className="suave">{bloque ? `${niveles.length} niveles de ${preguntasPorNivel(pista)} actividades` : `${preguntasPorNivel(pista)} preguntas`}</span>
                     </div>
                   </div>
                 </header>

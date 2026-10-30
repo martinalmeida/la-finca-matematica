@@ -31,6 +31,8 @@ const TEXTOS: Record<Interaccion['tipo'], { titulo: string; texto: Texto }> = {
   emparejar: { titulo: 'Número y cantidad', texto: ['Toca el grupo que tiene la cantidad pedida.', 'Toque el grupo que tiene la cantidad pedida.'] },
   figuras: { titulo: 'Tocar el dibujo', texto: ['Mira bien los dibujos y toca el que se pide.', 'Mire bien los dibujos y toque el que se pide.'] },
   clasificar: { titulo: 'Clasificar', texto: ['Toca una figura y luego la canasta donde va.', 'Toque una figura y luego la canasta donde va.'] },
+  poner: { titulo: 'Poner en la canasta', texto: ['Toca un dibujo y entra a la canasta. Si sobra, tócalo otra vez y sale. Luego toca «Listo».', 'Toque un dibujo y entra al recipiente; tóquelo otra vez y sale. Luego toque «Listo».'] },
+  marco: { titulo: 'Llenar el marco', texto: ['Toca el marco: cada toque llena una casilla. Si te pasas, toca una llena y se quita. Luego toca «Listo».', 'Toque el marco: cada toque llena una casilla; tocar una llena la quita. Luego toque «Listo».'] },
   ordenar: { titulo: 'Ordenar', texto: ['Toca los dibujos en orden, del más bajo al más alto.', 'Toque los dibujos en orden, del más bajo al más alto.'] },
 };
 

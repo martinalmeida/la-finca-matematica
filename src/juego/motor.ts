@@ -10,6 +10,13 @@ import { reducirOpciones } from './apoyo';
 import { frase, huella, type Vistas } from './vistas';
 
 export const PREGUNTAS_POR_NIVEL = 10;
+/** Inclusión: sesiones cortas (5 actividades) para sostener la atención sin cansar. */
+export const PREGUNTAS_INCLUSION = 5;
+
+/** Actividades de cada nivel de una ruta. */
+export function preguntasPorNivel(pista: Pista): number {
+  return pista === 'inclusion' ? PREGUNTAS_INCLUSION : PREGUNTAS_POR_NIVEL;
+}
 /** Dificultad de las preguntas de las pruebas (diagnóstica y final). */
 export const D_PRUEBA = 0.5;
 
@@ -149,13 +156,14 @@ export function generarNivel({ codigo, pista, nivel, intento, repaso = false, ba
   const preguntas = nuevasUsadas();
   const ejercicios: Ejercicio[] = [];
 
-  for (let i = 0; i < PREGUNTAS_POR_NIVEL; i++) {
+  const total = preguntasPorNivel(pista);
+  for (let i = 0; i < total; i++) {
     const grupo = porDimension.get(dimensiones[i % dimensiones.length])!;
     // Preferir los usos menos repetidos en este nivel.
     const minimo = Math.min(...grupo.map((u) => usadas.get(u) ?? 0));
     const uso = rng.elegir(grupo.filter((u) => (usadas.get(u) ?? 0) === minimo));
     usadas.set(uso, minimo + 1);
-    const d = pista === 'inclusion' ? dificultadPregunta('basico', i) : dificultadPregunta(banda, i);
+    const d = pista === 'inclusion' ? dificultadPregunta('basico', i, total) : dificultadPregunta(banda, i, total);
     ejercicios.push(construirSinRepetir(pista, { uso, d, nivel }, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, apoyo, preguntas, vistas));
   }
   return ejercicios;

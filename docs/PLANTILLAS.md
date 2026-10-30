@@ -1,10 +1,10 @@
 # Catálogo de plantillas
 
-Total: **139 plantillas distintas** en 10 rutas (algunas se comparten entre grados).
+Total: **142 plantillas distintas** en 10 rutas (algunas se comparten entre grados).
 
 Generado automáticamente desde `src/contenido/plantillas` (`npm run catalogo`).
 
-Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas; Inclusión tiene 23 niveles en 7 bloques y no hace pruebas. La columna «Prueba» es la plantilla de la pregunta de ese tema en la prueba diagnóstica y en la final.
+Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas; Inclusión tiene 33 niveles en 8 bloques, de 5 actividades cada uno, llega hasta el 10 y no hace pruebas. La columna «Prueba» es la plantilla de la pregunta de ese tema en la prueba diagnóstica y en la final.
 
 ## 1.º grado (14 plantillas, números hasta 100)
 
@@ -12,14 +12,14 @@ Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas; Inclusión tiene 23 n
 | --- | --- | --- | --- |
 | `g1-contar` | comprension | suma | Contar tocando objetos de la finca |
 | `g1-comparar` | comprension | resta | Comparar dos cantidades: ¿quién tiene más o menos? |
-| `g1-siguiente` | comprension | suma | Número anterior y siguiente en la recta (postes del camino) |
+| `g1-siguiente` | comprension | suma | Número anterior y siguiente en la recta (postes, sillas, puestos…) |
 | `g1-recta` | procedimiento | suma | Sumar o restar dando saltos en la recta numérica |
 | `g1-suma-cambio` | problemas | suma | Cambio-aumentar: tenía, recibió más, ¿cuántos tiene? |
-| `g1-juntar` | problemas | suma | Juntar arrastrando frutas a una canasta |
+| `g1-juntar` | problemas | suma | Juntar dos grupos arrastrando: frutas, huevos, mazorcas… |
 | `g1-calculo` | procedimiento | suma | Cálculo de suma o resta con apoyo de objetos |
-| `g1-quitar` | problemas | resta | Quitar arrastrando: la mula se lleva mazorcas |
+| `g1-quitar` | problemas | resta | Quitar arrastrando: la mula se lleva mazorcas, se venden frutas… |
 | `g1-completar` | comprension | resta | Completar a 10 (o a 20): ¿cuántos faltan? |
-| `g1-decenas` | comprension | suma | Decenas y unidades con cajas de 10 |
+| `g1-decenas` | comprension | suma | Decenas y unidades con cajas, bolsas o canastas de 10 |
 | `g1-diferencia` | problemas | resta | Comparación: ¿cuántos más tiene uno que otro? |
 | `g1-reparto` | aplicacion | division | Repartir en 2 o 3 partes iguales arrastrando |
 | `g1-tabla` | aplicacion | suma | Leer una tabla sencilla de la cosecha |
@@ -210,60 +210,70 @@ Cada ruta tiene 10 temas (niveles 1 a 10) de 10 preguntas; Inclusión tiene 23 n
 | 9 | Dividir con resultado decimal | g5-decimal-division | g5-decimal-division |
 | 10 | Problemas con números decimales | g5-decimal-problema, g5-decimal-suma-resta, g5-decimal-mult, g5-decimal-division | g5-decimal-problema |
 
-## Inclusión (24 plantillas, números hasta 100)
+## Inclusión (24 plantillas, números hasta 10)
 
 | Plantilla | Dimensión | Operación | Descripción |
 | --- | --- | --- | --- |
-| `inc-clasificar` | comprension | mixta | Clasificar figuras en dos canastas por color, forma o tamaño |
-| `inc-diferente` | procedimiento | mixta | Tocar la figura que no es como las demás (color, forma o tamaño) |
-| `inc-tamanos` | comprension | mixta | Alto y bajo, grande y pequeño, largo y corto: tocar el que se pide |
-| `inc-cuantos-hay` | comprension | mixta | Uno, muchos o ninguno: tocar la canasta que se pide |
-| `inc-mas-menos` | procedimiento | mixta | Más, menos o igual: comparar dos canastas sin contar con números |
-| `inc-contar` | comprension | suma | Contar tocando de uno en uno |
-| `inc-trazar` | procedimiento | suma | Repasar una cifra con el dedo sobre la guía punteada |
-| `inc-emparejar` | comprension | suma | Número y cantidad: tocar el grupo que tiene ese número de dibujos |
-| `inc-numeral` | procedimiento | suma | Cantidad y número: mirar el grupo y tocar su número |
-| `inc-ordenar` | problemas | mixta | Ordenar 3 objetos por su altura |
-| `inc-reconocer` | comprension | suma | Reconocer las cifras de dos en dos (1 y 2, 3 y 4… 9 y 10) |
-| `inc-secuencia` | procedimiento | suma | Completar una secuencia de números (1, 2, __) |
-| `inc-mayor-menor` | problemas | resta | Comparar dos números hasta 10: ¿cuál es mayor o menor? |
-| `g1-siguiente` | comprension | suma | Número anterior y siguiente en la recta (postes del camino) |
-| `inc-entre` | procedimiento | suma | ¿Qué número va entre dos números? (hasta 20) |
-| `inc-descomponer` | problemas | resta | Descomponer un número: el 5 es 3 y 2 |
-| `g1-juntar` | problemas | suma | Juntar arrastrando frutas a una canasta |
-| `g1-quitar` | problemas | resta | Quitar arrastrando: la mula se lleva mazorcas |
-| `inc-cuento` | problemas | suma | Cuentos cortos con dibujos: «Tenía 2, llegó 1» |
-| `inc-operar` | procedimiento | suma | Sumas y restas hasta 5 y luego hasta 10, con o sin dibujos |
-| `inc-problema-juntar` | problemas | suma | Problemas de juntar hasta 5 y luego hasta 10 |
-| `inc-problema-comparar` | problemas | resta | Problemas de comparar hasta 5 y luego hasta 10 |
-| `inc-decenas` | comprension | suma | Decenas y unidades con cajas de 10, hasta 30, 60 y 99 |
-| `inc-calculo` | procedimiento | suma | Sumas y restas hasta 20 y luego hasta 99 sin llevar |
+| `in-igual` | comprension | mixta | Igual a este: tocar el dibujo idéntico al modelo (2 opciones) |
+| `in-mismo-color` | comprension | mixta | Mismo color: tocar la figura del color del modelo (2 opciones, colores muy distintos) |
+| `in-misma-forma` | comprension | mixta | Misma forma: tocar la figura de la forma del modelo (2 opciones, formas muy distintas) |
+| `in-grande-pequeno` | comprension | mixta | Grande y pequeño: dos del mismo objeto, tocar el que se pide |
+| `in-alto-largo` | comprension | mixta | Alto y bajo, largo y corto: dos cosas, tocar la que se pide |
+| `in-clasificar` | procedimiento | mixta | Cada uno en su canasta: 4 figuras en 2 canastas, primero por color y después por forma |
+| `in-ordenar` | problemas | mixta | Del más pequeño al más grande: ordenar 3 cosas muy distintas en altura o tamaño |
+| `in-uno-muchos` | comprension | mixta | Uno y muchos: dos canastas (1 y de 6 a 9), tocar la que se pide |
+| `in-vacia` | comprension | mixta | Nada: dos canastas (vacía y con algunos), tocar la que se pide |
+| `in-mas` | procedimiento | mixta | ¿Dónde hay más? Y luego ¿dónde hay menos? Dos canastas con mucha diferencia |
+| `in-igual-cantidad` | procedimiento | mixta | Igual de muchos: tocar la canasta que tiene tantos como el modelo (hasta 4) |
+| `in-contar` | comprension | suma | Contar tocando: cada toque dice el número |
+| `in-dado` | comprension | suma | Puntos como en el dado: ver la cantidad sin contar uno por uno |
+| `in-emparejar` | comprension | suma | Este número, estos dibujos: tocar el grupo que tiene esa cantidad |
+| `in-numeral` | procedimiento | suma | Estos dibujos, este número: mirar el grupo y tocar su número |
+| `in-trazar` | procedimiento | suma | Repasar una cifra con el dedo sobre la guía punteada (y el 10 como un 1 y un 0) |
+| `in-poner` | procedimiento | suma | Poner una cantidad en la canasta tocando uno por uno |
+| `in-marco` | procedimiento | suma | Llenar el marco de 10 hasta la cantidad pedida |
+| `in-leer-marco` | comprension | suma | ¿Cuántos hay en el marco de 10? Mirar y tocar el número (3 opciones) |
+| `in-sigue` | procedimiento | suma | ¿Qué número sigue? Contar hacia adelante dentro del 1 al 10, con dibujos |
+| `in-juntar` | problemas | suma | Juntar dos grupos en la canasta y contar todo (hasta 5 o hasta 10) |
+| `in-quitar` | problemas | resta | Quitar y contar lo que queda (hasta 5 o hasta 10) |
+| `in-cuento` | problemas | suma | Cuentos cortos con dibujos: «Tenía 2, llegó 1» (hasta 5 o hasta 10) |
+| `in-operar` | procedimiento | suma | Sumar y quitar con dibujos, hasta 10 |
 
 | Nivel | Bloque | Tema | Plantillas usadas |
 | --- | --- | --- | --- |
-| 1.1 | Antes de los números | Clasificar por color, forma y tamaño | inc-clasificar, inc-diferente |
-| 1.2 | Antes de los números | Alto y bajo, grande y pequeño, largo y corto | inc-tamanos |
-| 1.3 | Antes de los números | Uno, muchos y ninguno | inc-cuantos-hay |
-| 1.4 | Antes de los números | Más, menos e igual | inc-mas-menos |
-| 2.1 | Números del 1 al 3 | Reconocer y contar 1, 2 y 3 | inc-contar, inc-trazar |
-| 2.2 | Números del 1 al 3 | Cantidad y número | inc-emparejar, inc-numeral |
-| 2.3 | Números del 1 al 3 | Ordenar 3 objetos por su altura | inc-ordenar |
-| 3.1 | Números del 1 al 10 | Contar de uno en uno hasta 10 | inc-contar |
-| 3.2 | Números del 1 al 10 | Conocer los números de dos en dos | inc-reconocer, inc-trazar |
-| 3.3 | Números del 1 al 10 | Completar la fila: 1, 2, __ | inc-secuencia |
-| 3.4 | Números del 1 al 10 | Mayor y menor | inc-mayor-menor |
-| 4.1 | Números del 1 al 20 | Contar y escribir hasta 20 | inc-contar |
-| 4.2 | Números del 1 al 20 | Antes, después y entre | g1-siguiente, inc-entre |
-| 4.3 | Números del 1 al 20 | Partir un número: el 5 es 3 y 2 | inc-descomponer |
-| 5.1 | Unir y quitar con objetos | Juntar dos grupos y contar todo | g1-juntar |
-| 5.2 | Unir y quitar con objetos | Quitar y contar lo que queda | g1-quitar |
-| 5.3 | Unir y quitar con objetos | Cuentos cortos con dibujos | inc-cuento |
-| 6.1 | Suma y resta | Sumas hasta 5 y luego hasta 10 | inc-operar |
-| 6.2 | Suma y resta | Restas hasta 5 y luego hasta 10 | inc-operar |
-| 6.3 | Suma y resta | Sumar y restar sin dibujos | inc-operar |
-| 6.4 | Suma y resta | Problemas sencillos | inc-problema-juntar, inc-problema-comparar |
-| 7.1 | Decenas y números hasta 100 | Decena y unidad | inc-decenas |
-| 7.2 | Decenas y números hasta 100 | Sumas y restas hasta 20 y hasta 100 | inc-calculo |
+| 1.1 | Mirar y emparejar | Igual a este | in-igual |
+| 1.2 | Mirar y emparejar | Mismo color | in-mismo-color |
+| 1.3 | Mirar y emparejar | Misma forma | in-misma-forma |
+| 2.1 | Grande, pequeño y en orden | Grande y pequeño | in-grande-pequeno |
+| 2.2 | Grande, pequeño y en orden | Alto y bajo, largo y corto | in-alto-largo |
+| 2.3 | Grande, pequeño y en orden | Cada uno en su canasta | in-clasificar |
+| 2.4 | Grande, pequeño y en orden | Del más pequeño al más grande | in-ordenar |
+| 3.1 | ¿Cuántos hay? | Uno y muchos | in-uno-muchos |
+| 3.2 | ¿Cuántos hay? | Nada: la canasta vacía | in-vacia |
+| 3.3 | ¿Cuántos hay? | ¿Dónde hay más? | in-mas |
+| 3.4 | ¿Cuántos hay? | Igual de muchos | in-igual-cantidad |
+| 4.1 | Los números 1, 2 y 3 | Contar tocando hasta 3 | in-contar |
+| 4.2 | Los números 1, 2 y 3 | Puntos como en el dado (1 a 3) | in-dado |
+| 4.3 | Los números 1, 2 y 3 | Este número, estos dibujos (1 a 3) | in-emparejar, in-numeral |
+| 4.4 | Los números 1, 2 y 3 | Repasar el 1, el 2 y el 3 | in-trazar |
+| 4.5 | Los números 1, 2 y 3 | Poner 1, 2 o 3 en la canasta | in-poner |
+| 5.1 | Los números 4 y 5 | Contar tocando hasta 5 | in-contar |
+| 5.2 | Los números 4 y 5 | Dado hasta 5 | in-dado |
+| 5.3 | Los números 4 y 5 | Este número, estos dibujos (1 a 5) | in-emparejar, in-numeral |
+| 5.4 | Los números 4 y 5 | Repasar el 4 y el 5 | in-trazar |
+| 5.5 | Los números 4 y 5 | Poner hasta 5 en la canasta | in-poner |
+| 6.1 | Los números del 6 al 10 | Contar tocando hasta 10 | in-contar |
+| 6.2 | Los números del 6 al 10 | Llenar el marco de 10 | in-marco |
+| 6.3 | Los números del 6 al 10 | ¿Cuántos hay en el marco? | in-leer-marco |
+| 6.4 | Los números del 6 al 10 | Repasar del 6 al 10 | in-trazar |
+| 6.5 | Los números del 6 al 10 | ¿Qué número sigue? | in-sigue |
+| 7.1 | Juntar y quitar hasta 5 | Juntar en la canasta (hasta 5) | in-juntar |
+| 7.2 | Juntar y quitar hasta 5 | Quitar y contar lo que queda (hasta 5) | in-quitar |
+| 7.3 | Juntar y quitar hasta 5 | Cuentos con dibujos (hasta 5) | in-cuento |
+| 8.1 | Juntar y quitar hasta 10 | Juntar hasta 10 | in-juntar |
+| 8.2 | Juntar y quitar hasta 10 | Quitar hasta 10 | in-quitar |
+| 8.3 | Juntar y quitar hasta 10 | Cuentos con dibujos (hasta 10) | in-cuento |
+| 8.4 | Juntar y quitar hasta 10 | Sumar y quitar con dibujos | in-operar |
 
 ## Familias: prueba de entrada y final (9 plantillas, números hasta 100.000.000)
 

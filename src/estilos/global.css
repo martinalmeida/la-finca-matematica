@@ -3787,6 +3787,15 @@ button.frase:active {
   background: linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(204, 251, 241, 0.95));
 }
 
+/* «Ver en mi finca»: grande y a todo lo ancho, para que se vea en cada ejercicio con objetos. */
+.boton.boton-camara.grande {
+  width: 100%;
+  min-height: var(--boton-principal);
+  font-size: 1.1rem;
+  font-weight: 800;
+  justify-content: center;
+}
+
 .escena-ra {
   position: fixed;
   inset: 0;
@@ -4353,6 +4362,209 @@ button.frase:active {
   font-weight: 800;
 }
 
+/* Opciones anchas (marcos de 10): una por fila en celular. */
+.figuras-anchas {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+/* «Igual a este»: el modelo grande arriba, en una tarjeta resaltada. */
+.figuras-modelo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 16px;
+  border-radius: var(--radio-grande);
+  border: 3px dashed rgba(37, 99, 235, 0.45);
+  background: rgba(239, 246, 255, 0.92);
+  min-width: 0;
+}
+
+.figuras-modelo-rotulo {
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e3a8a;
+  font-size: 1.1rem;
+  font-weight: 800;
+  box-shadow: 0 2px 6px -2px rgba(28, 40, 80, 0.3);
+}
+
+.figuras-modelo-dibujo {
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+  min-height: 120px;
+}
+
+/* Dado: cara blanca con puntos. */
+.figura-dado {
+  filter: drop-shadow(0 3px 4px rgba(28, 40, 80, 0.25));
+}
+
+/* Marco de 10: dos filas de cinco casillas, se llena de izquierda a derecha y arriba primero. */
+.marco-diez {
+  display: inline-grid;
+  grid-template-columns: repeat(5, var(--celda, 28px));
+  gap: 3px;
+  padding: 4px;
+  max-width: 100%;
+  border-radius: 10px;
+  background: #7c4a1e;
+  box-shadow: 0 4px 10px -6px rgba(80, 40, 10, 0.6);
+}
+
+.marco-casilla {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-width: 0;
+  border-radius: 6px;
+  background: #fffaf0;
+  border: 0;
+  padding: 0;
+}
+
+.marco-casilla > svg {
+  max-width: 88%;
+  max-height: 88%;
+}
+
+/* Llenar el marco: casillas grandes que se encogen parejo en pantallas angostas. */
+.marco-diez.marco-tocable {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, var(--celda)));
+  justify-content: center;
+  align-self: center;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 16px;
+}
+
+.marco-tocable .marco-casilla {
+  min-height: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: inset 0 2px 5px rgba(80, 40, 10, 0.25);
+}
+
+.marco-tocable .marco-casilla:not(.llena) {
+  background: #fffaf0 radial-gradient(circle, rgba(124, 74, 30, 0.12) 0 22%, transparent 23%);
+}
+
+.marco-tocable .marco-casilla.llena {
+  background: #fef3c7;
+}
+
+.marco-casilla:focus-visible {
+  outline: 3px solid var(--azul);
+  outline-offset: 1px;
+}
+
+/* Poner en la canasta: objetos grandes que se tocan (no se arrastran). */
+.poner-recipiente {
+  align-self: center;
+  width: min(100%, 420px);
+}
+
+.poner-recipiente .recipiente-dentro {
+  min-height: 140px;
+  align-content: center;
+  gap: 6px;
+}
+
+.ficha-poner {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border-radius: 18px;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--brillo-interno), 0 4px 10px -6px rgba(28, 40, 80, 0.35);
+  transition: transform 0.2s var(--resorte);
+}
+
+.ficha-poner:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.poner-recipiente .ficha-poner {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Al entrar a la canasta: cae desde abajo con un saltico. */
+.ficha-poner.entra {
+  animation: entrar-canasta 0.35s var(--resorte);
+}
+
+@keyframes entrar-canasta {
+  from {
+    transform: translateY(70px) scale(0.6);
+    opacity: 0.3;
+  }
+}
+
+/* El lugar del que salió: queda marcado para devolverlo ahí. */
+.hueco-poner {
+  background: transparent;
+  border: 2px dashed rgba(16, 32, 24, 0.22);
+  box-shadow: none;
+}
+
+/* Contador vivo: puntos, la cifra y la palabra. */
+.cuenta-viva {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 96px;
+}
+
+.cuenta-puntos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  min-height: 18px;
+}
+
+.cuenta-punto {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--verde);
+}
+
+.cuenta-cifra {
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+.cuenta-palabra {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--verde-oscuro);
+}
+
+/* Contar tocando (Inclusión): al tocarlos todos, «¡Hay tres naranjas!». */
+.hay-total {
+  margin: 0;
+  padding: 10px 16px;
+  align-self: center;
+  border-radius: 20px;
+  background: rgba(220, 252, 231, 0.92);
+  border: 2px solid #4ade80;
+  color: #14532d;
+  font-size: 1.6rem;
+  font-weight: 800;
+  text-align: center;
+}
+
 .clasificar-canastas {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4434,6 +4646,10 @@ button.frase:active {
   padding: 4px 0;
 }
 
+.visual-figura-grande {
+  max-width: 100%;
+}
+
 /* El dibujo del cuento se ve grande: es parte de la pregunta. */
 .dibujo-enunciado .visual-grupo svg {
   width: 40px;
@@ -4487,6 +4703,69 @@ button.frase:active {
   width: 60px;
   height: 60px;
   min-height: 0;
+}
+
+/* Objetos para contar más grandes (dedos pequeños, motricidad fina). */
+:root[data-grado='inclusion'] .objeto-tocable {
+  width: 64px;
+  height: 64px;
+}
+
+:root[data-grado='inclusion'] .objeto-tocable .marca {
+  min-width: 28px;
+  height: 28px;
+  font-size: 1rem;
+}
+
+/* Aprendizaje sin error: la opción equivocada se desvanece (sin ✗, sin tachar, sin sacudir)
+   y la correcta late suave para guiar. */
+:root[data-grado='inclusion'] .opcion.incorrecta,
+:root[data-grado='inclusion'] .figura-opcion.fallida,
+:root[data-grado='inclusion'] .grupo-emparejar.fallida {
+  opacity: 0.15;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: var(--borde-vidrio);
+  color: inherit;
+  text-decoration: none;
+  animation: none;
+  transition: opacity 0.5s ease;
+}
+
+:root[data-grado='inclusion'] .opcion.incorrecta .icono {
+  display: none;
+}
+
+:root[data-grado='inclusion'] .guia {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.45), var(--sombra);
+  animation: latido-guia 1.8s ease-in-out infinite !important;
+  animation-duration: 1.8s !important;
+  animation-iteration-count: infinite !important;
+}
+
+@keyframes latido-guia {
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 8px rgba(96, 165, 250, 0.25), var(--sombra);
+  }
+}
+
+/* Lo que también se mueve: el objeto que entra a la canasta. */
+:root[data-grado='inclusion'] .ficha-poner.entra {
+  animation-duration: 0.35s !important;
+}
+
+/* Con efectos ligeros o movimiento reducido, la correcta queda resaltada pero quieta. */
+:root[data-efectos='ligeros'] .guia {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-grado='inclusion'] .guia,
+  :root[data-grado='inclusion'] .ficha-poner.entra {
+    animation: none !important;
+  }
 }
 
 .agenda {

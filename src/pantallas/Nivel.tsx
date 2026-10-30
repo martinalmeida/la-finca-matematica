@@ -2,7 +2,9 @@ import { useMemo, useRef, useState } from 'react';
 import { useCapaConAtras } from '../servicios/atras';
 import { useApp } from '../estado';
 import Ejercicio, { type ResultadoEjercicio } from '../componentes/Ejercicio';
-import { generarNivel, temaDe } from '../juego/motor';
+import { generarNivel, preguntasPorNivel, temaDe } from '../juego/motor';
+
+const NOMBRES_CANTIDAD: Record<number, string> = { 5: 'Cinco', 10: 'Diez' };
 import { leerVistas } from '../juego/vistas';
 import { focoEnControl, useTeclas } from '../servicios/teclas';
 import { etiquetaNivel, nivelConTotal, unidadDe } from '../juego/complejidad';
@@ -61,7 +63,8 @@ function IntroNivel({ nivel, tema, idea, video, adulto, alEmpezar }: { nivel: st
 
 /** Inclusión: antes de empezar se muestra qué va a pasar (rutina predecible). */
 function Agenda({ tema, alEmpezar }: { tema: string; alEmpezar: () => void }) {
-  const texto = `Primero: ${tema}. 10 actividades, una por una. Después: ¡una planta nueva en tu finca!`;
+  const n = preguntasPorNivel('inclusion');
+  const texto = `Primero: ${tema}. ${NOMBRES_CANTIDAD[n] ?? n} actividades, una por una. Después: ¡una planta nueva en tu finca!`;
   useLecturaAutomatica(`agenda-${tema}`, texto);
   useEnterPara(alEmpezar);
   return (
@@ -71,7 +74,7 @@ function Agenda({ tema, alEmpezar }: { tema: string; alEmpezar: () => void }) {
         <span>
           <Icono nombre="lapiz" tamano={32} anim="no" /> {tema}
         </span>
-        <span className="pequeno suave">10 actividades, una por una</span>
+        <span className="pequeno suave">{n} actividades, una por una</span>
       </div>
       <div className="agenda-paso">
         <span className="agenda-etiqueta">Después</span>

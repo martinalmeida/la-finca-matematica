@@ -1,6 +1,6 @@
 // Ruta de cada grado: 10 niveles, uno por tema. Cada tema es una «unidad» con su lección,
 // y la complejidad sube de dos en dos temas (Inicio → Básico → Intermedio → Avanzado → Reto).
-// Inclusión agrupa sus 23 niveles en 7 bloques: cada bloque es una unidad con su lección.
+// Inclusión agrupa sus niveles en bloques: cada bloque es una unidad con su lección.
 
 import type { Banda, Grado, Pista } from './tipos';
 import { BANDAS, definicion, esFamilia, nivelMaximo } from './motor';
@@ -25,8 +25,8 @@ export type Unidad = {
   complejidad: Complejidad;
 };
 
-/** Complejidad de cada bloque de Inclusión (7 bloques). */
-const COMPLEJIDAD_BLOQUE = [0, 0, 1, 2, 2, 3, 4];
+/** Complejidad de cada bloque: se reparte pareja de 0 a 4 entre los bloques de la ruta. */
+const complejidadBloque = (k: number, total: number) => (total <= 1 ? 0 : Math.round((4 * k) / (total - 1)));
 
 /** Las unidades de la ruta (un tema cada una, o los bloques), con su complejidad. */
 export function unidadesDe(pista: Pista): Unidad[] {
@@ -34,7 +34,7 @@ export function unidadesDe(pista: Pista): Unidad[] {
   if (bloques) {
     let inicio = 1;
     return bloques.map((b, k) => {
-      const u = { indice: k, inicio, fin: inicio + b.niveles - 1, titulo: b.titulo, complejidad: COMPLEJIDADES[COMPLEJIDAD_BLOQUE[k] ?? 4] };
+      const u = { indice: k, inicio, fin: inicio + b.niveles - 1, titulo: b.titulo, complejidad: COMPLEJIDADES[complejidadBloque(k, bloques.length)] };
       inicio = u.fin + 1;
       return u;
     });

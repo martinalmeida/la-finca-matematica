@@ -10,6 +10,26 @@ import { nombresOperacion, OPERACIONES } from '../juego/informes';
 import { GRUPOS, nombreGrupo, type Alumno, type Grupo } from './informes';
 import type { EventoRemoto, PartidaRemota } from './api';
 import { gananciaNormalizada, media, mediana, pareado, type Pareado } from './estadistica';
+import { definiciones } from '../contenido/pistas';
+import { PISTA_INCLUSION_ANTERIOR, TITULOS_INCLUSION_ANTERIOR } from '../almacenamiento/rutaInclusion';
+
+// ───────────── Ruta anterior de Inclusión ─────────────
+
+/** ¿El ejercicio es de la ruta anterior de Inclusión? (las plantillas nuevas empiezan por «in-»). */
+const esInclusionAnterior = (e: Pick<EventoRemoto, 'pista' | 'plantilla'>) => e.pista === 'inclusion' && !e.plantilla.startsWith('in-');
+
+/** Lo jugado en la ruta anterior de Inclusión queda aparte, con sus títulos de entonces. */
+export function separarRutaAnterior<T extends Pick<EventoRemoto, 'pista' | 'plantilla'>>(eventos: T[]): T[] {
+  return eventos.map((e) => (esInclusionAnterior(e) ? { ...e, pista: PISTA_INCLUSION_ANTERIOR } : e));
+}
+
+/** Partidas de la ruta anterior de Inclusión: los niveles nuevos tienen 5 actividades; los de antes, 10. */
+export function separarPartidasAnteriores<T extends Pick<PartidaRemota, 'pista' | 'tipo' | 'total'>>(partidas: T[]): T[] {
+  return partidas.map((p) => (p.pista === 'inclusion' && p.tipo === 'nivel' && p.total === 10 ? { ...p, pista: PISTA_INCLUSION_ANTERIOR } : p));
+}
+
+/** ¿La ruta tiene definición en el juego actual? (la ruta anterior de Inclusión ya no). */
+const rutaVigente = (p: string): p is Pista => p in definiciones;
 
 // ───────────── Filtros ─────────────
 
@@ -248,6 +268,7 @@ export function porOperacion(c: Conjunto): FilaDesglose[] {
 
 /** Nombre de un tema (pista + nivel) con el grupo, si hay varios. */
 export function nombreTema(pista: string, nivel: number): string {
+  if (pista === PISTA_INCLUSION_ANTERIOR) return TITULOS_INCLUSION_ANTERIOR[nivel - 1] ?? `Nivel ${nivel}`;
   try {
     return temaDe(pista as Pista, nivel).titulo;
   } catch {
@@ -261,8 +282,9 @@ const NOMBRE_PISTA: Record<string, string> = {
   'fam-intermedia': 'Familias · intermedia',
   'fam-avanzada': 'Familias · avanzada',
   inclusion: 'Inclusión',
+  [PISTA_INCLUSION_ANTERIOR]: 'Inclusión (ruta anterior)',
 };
-const ORDEN_PISTAS = ['g1', 'g2', 'g3', 'g4', 'g5', 'familia', 'fam-basica', 'fam-intermedia', 'fam-avanzada', 'inclusion'];
+const ORDEN_PISTAS = ['g1', 'g2', 'g3', 'g4', 'g5', 'familia', 'fam-basica', 'fam-intermedia', 'fam-avanzada', 'inclusion', PISTA_INCLUSION_ANTERIOR];
 /** Orden de las rutas en selectores y tablas: grados, familias e Inclusión. */
 export const ordenarPistas = <T extends string>(lista: T[]): T[] => [...lista].sort((a, b) => ORDEN_PISTAS.indexOf(a) - ORDEN_PISTAS.indexOf(b));
 
@@ -523,6 +545,8 @@ export function filasAlumnos(c: Conjunto, ahora = Date.now()): FilaAlumno[] {
 }
 
 /** Mapa alumno × tema: % al primer intento de cada alumno en cada tema (solo una pista a la vez). */
+export { rutaVigente };
+
 export function mapaAlumnoTema(c: Conjunto, pista: Pista): { temas: { id: string; etiqueta: string }[]; valor: Map<string, number>; n: Map<string, number> } {
   const temas = definicion(pista).temas.map((t, k) => ({ id: String(k + 1), etiqueta: `${k + 1}. ${t.titulo}` }));
   const ok = new Map<string, number>();
