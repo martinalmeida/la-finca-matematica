@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Teclado from '../Teclado';
+import { useTeclas } from '../../servicios/teclas';
 import type { PropsInteraccion } from './tipos';
 
 export default function Algoritmo({ ej, bloqueado, onResponder, correcta }: PropsInteraccion) {
@@ -12,6 +13,25 @@ export default function Algoritmo({ ej, bloqueado, onResponder, correcta }: Prop
   const [cifras, setCifras] = useState<string[]>(() => Array(ancho).fill(''));
   const [llevadas, setLlevadas] = useState<string[]>(() => Array(ancho).fill(''));
   const [foco, setFoco] = useState<{ fila: 'r' | 'l'; col: number }>({ fila: 'r', col: ancho - 1 });
+  // En computador: las flechas mueven la casilla activa (las cifras y Enter van por el Teclado).
+  useTeclas((e) => {
+    if (i.tipo !== 'algoritmo') return false;
+    const hayLlevar = (col: number) => i.operacion === 'resta' || col !== ancho - 1;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const col = Math.min(ancho - 1, Math.max(0, foco.col + (e.key === 'ArrowLeft' ? -1 : 1)));
+      setFoco({ fila: foco.fila === 'l' && !hayLlevar(col) ? 'r' : foco.fila, col });
+      return true;
+    }
+    if (e.key === 'ArrowUp' && hayLlevar(foco.col)) {
+      setFoco({ fila: 'l', col: foco.col });
+      return true;
+    }
+    if (e.key === 'ArrowDown') {
+      setFoco({ fila: 'r', col: foco.col });
+      return true;
+    }
+    return false;
+  }, !bloqueado);
   if (i.tipo !== 'algoritmo') return null;
 
   const signo = i.operacion === 'suma' ? '+' : i.operacion === 'resta' ? '−' : '×';
@@ -94,7 +114,7 @@ export default function Algoritmo({ ej, bloqueado, onResponder, correcta }: Prop
         ))}
       </div>
       <p className="pequeno suave centro" style={{ margin: 0 }}>
-        Empieza por la derecha (las unidades). Toca una casilla para escribir en ella. {i.operacion !== 'multiplicacion' ? `Las casillas pequeñas son para ${etiquetaLlevar.toLowerCase()}.` : ''}
+        Empieza por la derecha (las unidades). Toca una casilla para escribir en ella (en computador también con las flechas). {i.operacion !== 'multiplicacion' ? `Las casillas pequeñas son para ${etiquetaLlevar.toLowerCase()}.` : ''}
       </p>
       <Teclado
         valor={valor}

@@ -15,6 +15,7 @@ import { sonar } from '../servicios/sonido';
 import { detenerVoz, useVoz } from '../servicios/voz';
 import { num } from '../contenido/contexto';
 import Icono from './Icono';
+import { useTapaTeclas } from '../servicios/teclas';
 
 export type { ConfigEscena } from './escenaConfig';
 
@@ -28,6 +29,8 @@ type Props = {
 };
 
 export default function EscenaRA({ config, titulo, instruccion, mensaje, alCerrar }: Props) {
+  // Ventana encima: las teclas no le llegan a lo que quedó debajo.
+  useTapaTeclas();
   const { ajustes, perfil } = useApp();
   useCapaConAtras(true, alCerrar);
   const adulto = perfil?.rol === 'familia';

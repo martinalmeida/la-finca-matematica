@@ -22,6 +22,7 @@ import {
   type Plataforma,
 } from '../pwa/registro';
 import Icono from './Icono';
+import { useTapaTeclas } from '../servicios/teclas';
 
 const CLAVE_POSPUESTO = 'finca-instalar-pospuesto';
 
@@ -187,6 +188,8 @@ function AbrirEn({ navegador, enlace, t }: { navegador: 'Chrome' | 'Safari'; enl
 
 /** Hoja inferior con el botón de instalar o los pasos para este celular. */
 export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () => void; automatica?: boolean }) {
+  // Ventana encima: las teclas no le llegan a lo que quedó debajo.
+  useTapaTeclas();
   const { puede, instalada, recien } = useInstalacion();
   useCapaConAtras(true, alCerrar);
   // Sin sesión (pantalla de entrada) o estudiante: tú. Familia: usted.

@@ -11,6 +11,7 @@ import Icono from './Icono';
 import { sonar } from '../servicios/sonido';
 import { useApp } from '../estado';
 import { useLecturaAutomatica } from '../servicios/voz';
+import { focoEnControl, useTeclas } from '../servicios/teclas';
 
 type Texto = [nino: string, adulto: string];
 
@@ -160,6 +161,12 @@ export default function AsiSeResponde({ tipo, adulto, alContinuar }: { tipo: Int
   const [logrado, setLogrado] = useState(!CON_DEMO.includes(tipo));
   const texto = info.texto[adulto ? 1 : 0];
   useLecturaAutomatica(`asi-${tipo}`, `${info.titulo}. ${texto}`);
+  // En computador, Enter sigue (cuando ya no hay un ejemplo por hacer con el teclado).
+  useTeclas((e) => {
+    if (e.key !== 'Enter' || focoEnControl()) return false;
+    alContinuar();
+    return true;
+  }, logrado);
   return (
     <section className="vidrio tarjeta columna asi-se-responde" aria-live="polite">
       <span className="chip pequeno" style={{ alignSelf: 'flex-start' }}>

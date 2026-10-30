@@ -2,7 +2,7 @@
 // multiplicación de varias cifras, división con divisor de 2 cifras, residuo en contexto,
 // tablas de datos, proporcionalidad simple, fracciones como reparto y problemas compuestos.
 
-import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Plantilla, Uso } from '../../juego/tipos';
+import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Objeto, Plantilla, Uso } from '../../juego/tipos';
 import { adulto, mayus, num, persona, pesos } from '../contexto';
 import { plantillasDecimales } from './decimales';
 import { conCifras, dif, distractores, distractoresTipicos, lerp, mezclarOpciones, modoRespuesta, pn, pt, redondear } from './util';
@@ -99,6 +99,21 @@ const valorPosicional: Plantilla = {
   },
 };
 
+const cuantosMin = (g: 'f' | 'm') => (g === 'f' ? 'cuántas' : 'cuántos');
+const cuantosMay = (g: 'f' | 'm') => (g === 'f' ? 'Cuántas' : 'Cuántos');
+
+/** Grupos iguales para la propiedad distributiva: a grupos de b. */
+const escenasDistributiva: { texto: (a: number, b: number) => string; cosa: string; g: 'f' | 'm'; dibujo: Objeto }[] = [
+  { texto: (a, b) => `En la finca hay ${a} lotes con ${b} árboles de cacao cada uno.`, cosa: 'árboles', g: 'm', dibujo: 'arbol-cacao' },
+  { texto: (a, b) => `En el vivero hay ${a} mesones con ${b} plántulas de cacao cada uno.`, cosa: 'plántulas', g: 'f', dibujo: 'mata' },
+  { texto: (a, b) => `En la vereda hay ${a} fincas con ${b} matas de café cada una.`, cosa: 'matas', g: 'f', dibujo: 'arbol-cafe' },
+  { texto: (a, b) => `La panadería del pueblo hizo ${b} panes cada día durante ${a} días.`, cosa: 'panes', g: 'm', dibujo: 'pan' },
+  { texto: (a, b) => `${a} socios de la cooperativa entregaron ${b} kilos de cacao cada uno.`, cosa: 'kilos', g: 'm', dibujo: 'bulto' },
+  { texto: (a, b) => `En la finca recogieron ${b} huevos cada semana durante ${a} semanas.`, cosa: 'huevos', g: 'm', dibujo: 'huevo' },
+  { texto: (a, b) => `En ${a} lotes de la finca hay ${b} árboles de aguacate en cada uno.`, cosa: 'árboles', g: 'm', dibujo: 'arbol-aguacate' },
+  { texto: (a, b) => `La cooperativa repartió ${b} bolsas para vivero a cada una de ${a} veredas.`, cosa: 'bolsas', g: 'f', dibujo: 'bolsa' },
+];
+
 const distributiva: Plantilla = {
   id: 'g5-distributiva',
   dimension: 'comprension',
@@ -113,14 +128,15 @@ const distributiva: Plantilla = {
     const parteGrande = grande ? Math.floor(b / 100) * 100 : Math.floor(b / 10) * 10;
     const resto = b - parteGrande;
     const quien = persona(rng);
-    const contexto = `En la finca hay ${a} lotes con ${b} árboles de cacao cada uno.`;
+    const escena = rng.elegir(escenasDistributiva);
+    const contexto = escena.texto(a, b);
     const completar = rng.azar(0.4);
     if (completar) {
       const calc: Calculo = { op: 'resta', a: b, b: parteGrande };
       return {
         enunciado: `${contexto} Para calcular ${a} × ${b}, ${quien.nombre} piensa: ${a} × ${parteGrande} + ${a} × ☐. ¿Qué número va en el cuadro?`,
         instruccion: 'Completa la descomposición',
-        ilustracion: 'arbol-cacao',
+        ilustracion: escena.dibujo,
         datos: { a, b, parteGrande },
         respuesta: resto,
         ...modo(ctx, resto, calc, [b, parteGrande, resto + 10]),
@@ -136,9 +152,9 @@ const distributiva: Plantilla = {
     const respuesta = a * b;
     const calc: Calculo = { op: 'multiplicacion', a, b };
     return {
-      enunciado: `${contexto} ${quien.nombre} calcula cuántos árboles hay así: ${a} × ${parteGrande} + ${a} × ${resto}. ¿Cuántos árboles hay?`,
+      enunciado: `${contexto} ${quien.nombre} calcula ${cuantosMin(escena.g)} ${escena.cosa} hay así: ${a} × ${parteGrande} + ${a} × ${resto}. ¿${cuantosMay(escena.g)} ${escena.cosa} hay?`,
       instruccion: 'Descompón y suma',
-      ilustracion: 'arbol-cacao',
+      ilustracion: escena.dibujo,
       datos: { a, b },
       respuesta,
       ...modo(ctx, respuesta, calc, [a * parteGrande + resto, a * parteGrande]),
@@ -148,7 +164,7 @@ const distributiva: Plantilla = {
         { tipo: 'texto', texto: `${a} × ${parteGrande} = ${num(a * parteGrande)}\n${a} × ${resto} = ${a * resto}` },
         `${num(a * parteGrande)} + ${a * resto}.`,
       ],
-      explicacion: `${a} × ${b} = ${num(a * parteGrande)} + ${a * resto} = ${num(respuesta)} árboles.`,
+      explicacion: `${a} × ${b} = ${num(a * parteGrande)} + ${a * resto} = ${num(respuesta)} ${escena.cosa}.`,
     };
   },
 };
@@ -203,6 +219,30 @@ const fraccionReparto: Plantilla = {
   },
 };
 
+/** ¿Es razonable? Repartos (a ÷ b): el texto termina justo antes del número propuesto. */
+const escenasRazonableDiv: { texto: (a: string, b: number, quien: string) => string; unidad: string; dibujo?: Objeto }[] = [
+  { texto: (a, b, q) => `La cooperativa empacó ${a} kilos de cacao en sacos de ${b} kilos. ${q} dice que llenaron`, unidad: ' sacos', dibujo: 'bulto' },
+  { texto: (a, b, q) => `En el vivero acomodaron ${a} plántulas en bandejas de ${b}. ${q} dice que llenaron`, unidad: ' bandejas', dibujo: 'mata' },
+  { texto: (a, b, q) => `La quesera recibió ${a} litros de leche en ${b} días, la misma cantidad cada día. ${q} dice que cada día recibió`, unidad: ' litros' },
+  { texto: (a, b, q) => `Se empacaron ${a} naranjas en canastillas de ${b}. ${q} dice que se llenaron`, unidad: ' canastillas', dibujo: 'naranja' },
+  { texto: (a, b, q) => `La cooperativa repartió ${a} bolsas para vivero entre ${b} socios por igual. ${q} dice que a cada uno le tocaron`, unidad: ' bolsas', dibujo: 'bolsa' },
+  { texto: (a, b, q) => `En ${b} días la finca recogió ${a} huevos, la misma cantidad cada día. ${q} dice que cada día recogió`, unidad: ' huevos', dibujo: 'huevo' },
+  { texto: (a, b, q) => `En la finca hay ${a} árboles de cacao sembrados en ${b} lotes iguales. ${q} dice que en cada lote hay`, unidad: ' árboles', dibujo: 'arbol-cacao' },
+  { texto: (a, b, q) => `La panadería repartió ${a} panes entre ${b} tiendas por igual. ${q} dice que a cada tienda le tocaron`, unidad: ' panes', dibujo: 'pan' },
+];
+
+/** ¿Es razonable? Grupos iguales (a × b). */
+const escenasRazonableMult: { texto: (a: number, b: number, quien: string) => string; unidad: string; dibujo?: Objeto }[] = [
+  { texto: (a, b, q) => `En la finca hay ${a} árboles de cacao y cada uno dio ${b} mazorcas. ${q} dice que en total hay`, unidad: ' mazorcas', dibujo: 'mazorca' },
+  { texto: (a, b, q) => `En el vivero hay ${a} bandejas con ${b} plántulas cada una. ${q} dice que en total hay`, unidad: ' plántulas', dibujo: 'mata' },
+  { texto: (a, b, q) => `La quesera recibe ${a} litros de leche al día. ${q} dice que en ${b} días recibe`, unidad: ' litros' },
+  { texto: (a, b, q) => `Cada uno de los ${b} socios de la cooperativa entregó ${a} kilos de café. ${q} dice que entre todos entregaron`, unidad: ' kilos', dibujo: 'bulto' },
+  { texto: (a, b, q) => `La panadería del pueblo hace ${a} panes al día. ${q} dice que en ${b} días hace`, unidad: ' panes', dibujo: 'pan' },
+  { texto: (a, b, q) => `En ${b} fincas de la vereda hay ${a} árboles de aguacate en cada una. ${q} dice que en total hay`, unidad: ' árboles', dibujo: 'arbol-aguacate' },
+  { texto: (a, b, q) => `La finca recoge ${a} huevos cada semana. ${q} dice que en ${b} semanas recoge`, unidad: ' huevos', dibujo: 'huevo' },
+  { texto: (a, b, q) => `En la vereda hay ${b} lotes con ${a} matas de café cada uno. ${q} dice que en total hay`, unidad: ' matas', dibujo: 'arbol-cafe' },
+];
+
 const razonable: Plantilla = {
   id: 'g5-razonable',
   dimension: 'comprension',
@@ -218,13 +258,18 @@ const razonable: Plantilla = {
     let pista3: string;
     let a: number;
     let b: number;
+    let unidad: string;
+    let dibujo: Objeto | undefined;
     if (division) {
       b = rng.entero(12, 98);
       const q = rng.entero(lerp(12, 40, dif(ctx)), lerp(80, 400, dif(ctx)));
       a = b * q;
       real = q;
       estimacion = redondear(q, 10 ** (cifrasDe(q) - 1));
-      enunciadoBase = `La cooperativa empacó ${num(a)} kilos de cacao en sacos de ${b} kilos. ${quien.nombre} dice que llenaron`;
+      const e = rng.elegir(escenasRazonableDiv);
+      enunciadoBase = e.texto(num(a), b, quien.nombre);
+      unidad = e.unidad;
+      dibujo = e.dibujo;
       pista3 = `${num(a)} ÷ ${b} es más o menos ${num(redondear(a, 10 ** (cifrasDe(a) - 2)))} ÷ ${redondear(b, 10)}.`;
     } else {
       a = rng.entero(lerp(21, 120, dif(ctx)), lerp(99, 999, dif(ctx)));
@@ -233,7 +278,10 @@ const razonable: Plantilla = {
       const ra = redondear(a, 10 ** (cifrasDe(a) - 1));
       const rb = redondear(b, 10);
       estimacion = ra * rb;
-      enunciadoBase = `En ${rng.elegir(['la finca', 'la vereda Llana Caliente', 'el lote de don Ramiro'])} hay ${a} árboles de cacao y cada uno dio ${b} mazorcas. ${quien.nombre} dice que en total hay`;
+      const e = rng.elegir(escenasRazonableMult);
+      enunciadoBase = e.texto(a, b, quien.nombre);
+      unidad = e.unidad;
+      dibujo = e.dibujo;
       pista3 = `${a} es cerca de ${ra} y ${b} es cerca de ${rb}: ${ra} × ${rb} = ${num(ra * rb)}.`;
     }
     const esRazonable = rng.azar(0.5);
@@ -245,9 +293,9 @@ const razonable: Plantilla = {
     else opcionesEst.push(estimacion * 100);
     const distrEst = opcionesEst.slice(1);
     return {
-      enunciado: `${enunciadoBase} ${num(propuesto)}${division ? ' sacos' : ''}. ¿Es razonable? Después, elige la mejor estimación.`,
+      enunciado: `${enunciadoBase} ${num(propuesto)}${unidad}. ¿Es razonable? Después, elige la mejor estimación.`,
       instruccion: '¿Tiene sentido?',
-      ilustracion: division ? 'bulto' : 'mazorca',
+      ilustracion: dibujo,
       datos: { a, b, propuesto },
       respuesta: `${esRaz ? 'si' : 'no'}:${estimacion}`,
       distractores: distrEst,
@@ -316,9 +364,15 @@ const multAlgoritmo: Plantilla = {
       `Cada uno de los ${b} cajones de fermentación tiene ${num(a)} granos de cacao.`,
       `La cooperativa despacha ${num(a)} kilos de cacao cada semana durante ${b} semanas.`,
       `En ${b} veredas de San Vicente hay ${num(a)} árboles de aguacate en cada una.`,
+      `La quesera recibe ${num(a)} litros de leche cada mes. Así durante ${b} meses.`,
+      `La panadería del pueblo vende ${num(a)} panes al mes durante ${b} meses.`,
+      `Cada una de las ${b} fincas sembró ${num(a)} plántulas de café.`,
+      `La chiva recorre ${num(a)} metros en cada viaje y hace ${b} viajes.`,
+      `Cada uno de los ${b} galpones de la granja produjo ${num(a)} huevos en el año.`,
     ]);
+    const cuenta = rng.elegir([`Resuelve cifra por cifra: ${num(a)} × ${b}.`, `Multiplica cifra por cifra: ${num(a)} × ${b}.`]);
     return {
-      enunciado: `${contexto} Resuelve cifra por cifra: ${num(a)} × ${b}.`,
+      enunciado: `${contexto} ${cuenta}`,
       instruccion: 'Multiplica cifra por cifra',
       datos: { a, b },
       respuesta,
@@ -351,7 +405,16 @@ const multVarias: Plantilla = {
     const calc: Calculo = { op: 'multiplicacion', a, b };
     const quien = persona(rng);
     return {
-      enunciado: `${quien.nombre} ayuda a hacer las cuentas en la cooperativa de cacaoteros. Calcula: ${num(a)} × ${num(b)}.`,
+      enunciado: `${rng.elegir([
+        `${quien.nombre} ayuda a hacer las cuentas en la cooperativa de cacaoteros.`,
+        `Cada socio de la cooperativa entregó ${num(a)} kilos de cacao y hay ${num(b)} socios.`,
+        `En ${num(b)} fincas de San Vicente hay ${num(a)} árboles de cacao en cada una.`,
+        `La panadería del pueblo hace ${num(a)} panes al día. Así trabajó ${num(b)} días.`,
+        `Cada bolsa trae ${num(a)} semillas de hortalizas y la huerta escolar compró ${num(b)} bolsas.`,
+        `El vivero llena ${num(a)} bolsas al día durante ${num(b)} días.`,
+        `Cada camión lleva ${num(a)} kilos de café y en el año salieron ${num(b)} camiones.`,
+        `La quesera recibe ${num(a)} litros de leche al día durante ${num(b)} días.`,
+      ])} ${rng.elegir(['Calcula:', 'Resuelve:'])} ${num(a)} × ${num(b)}.`,
       instruccion: 'Multiplica',
       datos: { a, b },
       respuesta,
@@ -367,6 +430,24 @@ const multVarias: Plantilla = {
   },
 };
 
+/** Repartos exactos en grupos grandes (días, fincas, camiones…): caben cocientes de hasta 3 cifras. */
+const escenasDivision: { texto: (a: string, b: number) => string; dibujo?: Objeto }[] = [
+  { texto: (a, b) => `En la cooperativa se reparten ${a} kilos de abono en ${b} partes iguales.`, dibujo: 'bulto' },
+  { texto: (a, b) => `La cooperativa recibió ${a} kilos de cacao seco en ${b} días, la misma cantidad cada día.`, dibujo: 'bulto' },
+  { texto: (a, b) => `El vivero reparte ${a} plántulas de cacao entre ${b} fincas por igual.`, dibujo: 'mata' },
+  { texto: (a, b) => `En ${b} días la quesera recibió ${a} litros de leche, la misma cantidad cada día.` },
+  { texto: (a, b) => `En la finca hay ${a} árboles de cacao sembrados en ${b} lotes iguales.`, dibujo: 'arbol-cacao' },
+  { texto: (a, b) => `La cooperativa reparte ${a} bolsas para vivero entre ${b} socios por igual.`, dibujo: 'bolsa' },
+  { texto: (a, b) => `Se mandaron ${a} naranjas al mercado en ${b} camiones con la misma cantidad.`, dibujo: 'naranja' },
+  { texto: (a, b) => `Se despacharon ${a} kilos de café en ${b} viajes iguales del camión.`, dibujo: 'bulto' },
+  { texto: (a, b) => `Una granja vendió ${a} huevos en ${b} semanas, la misma cantidad cada semana.`, dibujo: 'huevo' },
+  { texto: (a, b) => `Para arreglar el camino de herradura, sus ${a} metros se dividen en ${b} tramos iguales.` },
+  { texto: (a, b) => `La panadería reparte ${a} panes entre ${b} tiendas de las veredas por igual.`, dibujo: 'pan' },
+  { texto: (a, b) => `La cooperativa empacó ${a} tabletas de chocolate en ${b} cajas grandes iguales.`, dibujo: 'caja' },
+  { texto: (a, b) => `Se reparten ${a} semillas de maíz entre ${b} familias de la vereda por igual.`, dibujo: 'semilla' },
+  { texto: (a, b) => `Se mandan ${a} aguacates a Bucaramanga en ${b} camiones con la misma cantidad.`, dibujo: 'aguacate' },
+];
+
 const divDos: Plantilla = {
   id: 'g5-division',
   dimension: 'procedimiento',
@@ -379,10 +460,11 @@ const divDos: Plantilla = {
     const q = conCifras(rng, lerp(2, 3, dif(ctx)));
     const a = b * q;
     const calc: Calculo = { op: 'division', a, b };
+    const escena = rng.elegir(escenasDivision);
     return {
-      enunciado: `En la cooperativa se reparten ${num(a)} kilos de abono en ${b} partes iguales. Calcula: ${num(a)} ÷ ${b}.`,
+      enunciado: `${escena.texto(num(a), b)} ${rng.elegir(['Calcula:', 'Resuelve:'])} ${num(a)} ÷ ${b}.`,
       instruccion: 'Divide',
-      ilustracion: 'bulto',
+      ilustracion: escena.dibujo,
       datos: { a, b },
       respuesta: q,
       ...modo(ctx, q, calc, [q + 10, Math.max(1, q - 10), q * 10]),
@@ -486,6 +568,33 @@ const multProblema: Plantilla = {
   },
 };
 
+/** Empacar todo en paquetes iguales: [enunciado, unidad de la respuesta]. Todos hablan de kilos de cacao o café, o de bultos. */
+const empacarExacto: ((total: string, b: number, sobra: string) => [string, string])[] = [
+  (t, b, s) => [`En el secadero hay ${t} kilos de cacao seco. Se empacan en sacos de ${b} kilos.${s} ¿Cuántos sacos se llenan?`, 'sacos'],
+  (t, b, s) => [`En el beneficiadero hay ${t} kilos de café pergamino para empacar en costales de ${b} kilos.${s} ¿Cuántos costales se necesitan?`, 'costales'],
+  (t, b, s) => [`La cooperativa compró ${t} kilos de cacao seco a los socios y los guarda en bultos de ${b} kilos.${s} ¿Cuántos bultos arma?`, 'bultos'],
+  (t, b, s) => [`Llegaron ${t} kilos de abono al centro de acopio y se reparten en bultos de ${b} kilos.${s} ¿Cuántos bultos salen?`, 'bultos'],
+  (t, b, s) => [`Para exportar, la asociación empaca ${t} kilos de cacao seco en sacos de ${b} kilos.${s} ¿Cuántos sacos manda?`, 'sacos'],
+];
+
+/** Repartir plata en partes iguales. */
+const repartirPlata: ((total: string, b: number, sobra: string, quien: string) => string)[] = [
+  (t, b, s, q) => `${mayus(q)} reparte ${t} en partes iguales entre ${b} trabajadores de la cosecha.${s} ¿Cuántos pesos recibe cada uno?`,
+  (t, b, s) => `La junta de acción comunal recogió ${t} y los reparte por igual entre ${b} familias para arreglar sus techos.${s} ¿Cuántos pesos le tocan a cada familia?`,
+  (t, b, s) => `La cooperativa ganó ${t} en la feria y los reparte por igual entre ${b} socios.${s} ¿Cuánta plata recibe cada socio?`,
+  (t, b, s, q) => `${mayus(q)} pagó ${t} por ${b} jornales de recolección de café, todos al mismo precio.${s} ¿Cuánto pagó por cada jornal?`,
+  (t, b, s) => `La escuela recibió ${t} para la huerta y los reparte por igual entre ${b} grupos.${s} ¿Cuántos pesos recibe cada grupo?`,
+];
+
+/** Llevar la carga en viajes iguales. */
+const viajesExactos: ((total: string, b: number, sobra: string) => string)[] = [
+  (t, b, s) => `La mula hizo ${b} viajes por el camino de herradura y llevó ${t} kilos de café, la misma cantidad en cada viaje.${s} ¿Cuántos kilos llevó en cada viaje?`,
+  (t, b, s) => `El yip de la vereda bajó ${t} kilos de cacao seco al pueblo en ${b} viajes iguales.${s} ¿Cuántos kilos llevó en cada viaje?`,
+  (t, b, s) => `En ${b} días de cosecha se recogieron ${t} kilos de café cereza, la misma cantidad cada día.${s} ¿Cuántos kilos se recogieron por día?`,
+  (t, b, s) => `La chiva subió ${t} kilos de abono a la vereda en ${b} viajes con la misma carga.${s} ¿Cuántos kilos subió en cada viaje?`,
+  (t, b, s) => `Entre ${b} socios entregaron ${t} kilos de cacao seco a la cooperativa, todos la misma cantidad.${s} ¿Cuántos kilos entregó cada socio?`,
+];
+
 const divProblema: Plantilla = {
   id: 'g5-division-problema',
   dimension: 'problemas',
@@ -500,19 +609,21 @@ const divProblema: Plantilla = {
     let q: number;
     let enunciado: string;
     let unidad: string;
+    const quien = adulto(rng).nombre;
     if (variante === 0) {
       q = rng.entero(lerp(8, 40, dif(ctx)), lerp(40, 400, dif(ctx)));
-      enunciado = `En el secadero hay ${num(b * q)} kilos de cacao seco. Se empacan en sacos de ${b} kilos.${sobra} ¿Cuántos sacos se llenan?`;
-      unidad = 'sacos';
+      const [t, u] = rng.elegir(empacarExacto)(num(b * q), b, sobra);
+      enunciado = t;
+      unidad = u;
     } else if (variante === 1) {
       // Tope del total a repartir (en 4.º, hasta $1.000.000).
       const tope = pn(ctx, 'maxPesos', LIMITE);
       q = Math.min(rng.entero(20, 60), Math.floor(tope / b / 1000)) * 1000;
-      enunciado = `${mayus(adulto(rng).nombre)} reparte ${pesos(b * q)} en partes iguales entre ${b} trabajadores de la cosecha.${sobra} ¿Cuántos pesos recibe cada uno?`;
+      enunciado = rng.elegir(repartirPlata)(pesos(b * q), b, sobra, quien);
       unidad = 'pesos';
     } else {
       q = rng.entero(lerp(10, 30, dif(ctx)), lerp(60, 150, dif(ctx)));
-      enunciado = `La mula hizo ${b} viajes por el camino de herradura y llevó ${num(b * q)} kilos de café, la misma cantidad en cada viaje.${sobra} ¿Cuántos kilos llevó en cada viaje?`;
+      enunciado = rng.elegir(viajesExactos)(num(b * q), b, sobra);
       unidad = 'kilos';
     }
     const a = b * q;
@@ -537,6 +648,36 @@ const divProblema: Plantilla = {
   },
 };
 
+/** Residuo en contexto: el texto recibe n (ya escrito), k y quién. */
+type EscenaResiduo = { texto: (n: string, k: number, quien: string) => string; unidad: string; dibujo?: Objeto };
+
+/** Lo que sobra también necesita su viaje, su bandeja o su turno: se suma uno. */
+const residuoViajes: EscenaResiduo[] = [
+  { texto: (n, k) => `El carro de la cooperativa lleva ${k} bultos por viaje. ¿Cuántos viajes necesita para llevar ${n} bultos de cacao hasta el casco urbano?`, unidad: 'viajes', dibujo: 'bulto' },
+  { texto: (n, k) => `En la chiva caben ${k} pasajeros. ¿Cuántos viajes debe hacer para llevar ${n} personas a la fiesta patronal?`, unidad: 'viajes' },
+  { texto: (n, k) => `En cada bandeja del vivero caben ${k} plántulas. ¿Cuántas bandejas se necesitan para ${n} plántulas de café?`, unidad: 'bandejas', dibujo: 'mata' },
+  { texto: (n, k) => `En el restaurante escolar almuerzan ${k} niños por turno. ¿Cuántos turnos se necesitan para que almuercen ${n} niños?`, unidad: 'turnos' },
+  { texto: (n, k) => `Cada bulto de abono alcanza para ${k} matas de café. ¿Cuántos bultos hay que comprar para abonar ${n} matas?`, unidad: 'bultos', dibujo: 'bulto' },
+];
+
+/** Solo cuentan los paquetes llenos: el cociente. */
+const residuoCompletos: EscenaResiduo[] = [
+  { texto: (n, k) => `En el secadero hay ${n} kilos de cacao seco y se empacan en sacos de ${k} kilos. ¿Cuántos sacos se llenan completos?`, unidad: 'sacos', dibujo: 'bulto' },
+  { texto: (n, k) => `La cooperativa tiene ${n} tabletas de chocolate y las empaca en cajas de ${k}. ¿Cuántas cajas se llenan completas?`, unidad: 'cajas', dibujo: 'caja' },
+  { texto: (n, k, q) => `${q} tiene ${n} naranjas y las empaca en canastillas de ${k}. ¿Cuántas canastillas llena completas?`, unidad: 'canastillas', dibujo: 'naranja' },
+  { texto: (n, k) => `En el vivero hay ${n} bolsas con tierra y se organizan en filas de ${k}. ¿Cuántas filas completas se forman?`, unidad: 'filas', dibujo: 'bolsa' },
+  { texto: (n, k) => `La quesera recibió ${n} litros de leche y hace un queso grande con cada ${k} litros. ¿Cuántos quesos grandes puede hacer?`, unidad: 'quesos' },
+];
+
+/** Lo que queda por fuera: el residuo. */
+const residuoSobran: EscenaResiduo[] = [
+  { texto: (n, k, q) => `${q} empaca ${n} aguacates en cajas de ${k}. ¿Cuántos aguacates quedan por fuera de las cajas llenas?`, unidad: 'aguacates', dibujo: 'aguacate' },
+  { texto: (n, k, q) => `${q} empaca ${n} mandarinas en mallas de ${k}. ¿Cuántas mandarinas quedan por fuera de las mallas llenas?`, unidad: 'mandarinas', dibujo: 'mandarina' },
+  { texto: (n, k) => `En la panadería hicieron ${n} panes y los empacan en bolsas de ${k}. ¿Cuántos panes quedan sueltos?`, unidad: 'panes', dibujo: 'pan' },
+  { texto: (n, k) => `La escuela recibió ${n} hojas y las reparte en paquetes de ${k}. ¿Cuántas hojas sobran después de armar los paquetes?`, unidad: 'hojas' },
+  { texto: (n, k, q) => `${q} siembra ${n} semillas de cacao en surcos de ${k}. ¿Cuántas semillas le sobran al completar los surcos?`, unidad: 'semillas', dibujo: 'semilla' },
+];
+
 const residuoContexto: Plantilla = {
   id: 'g5-residuo',
   dimension: 'problemas',
@@ -549,39 +690,28 @@ const residuoContexto: Plantilla = {
     const r = rng.entero(1, k - 1);
     const n = k * q + r;
     const tipo = rng.elegir(['viajes', 'completos', 'sobran'] as const);
-    let enunciado: string;
-    let respuesta: number;
-    let unidad: string;
-    let explicacion: string;
-    if (tipo === 'viajes') {
-      enunciado = `El carro de la cooperativa lleva ${k} bultos por viaje. ¿Cuántos viajes necesita para llevar ${num(n)} bultos de cacao hasta el casco urbano?`;
-      respuesta = q + 1;
-      unidad = 'viajes';
-      explicacion = `${num(n)} ÷ ${k} = ${q} y sobran ${r}. Esos ${r} bultos también necesitan un viaje: ${q + 1} viajes.`;
-    } else if (tipo === 'completos') {
-      enunciado = `En el secadero hay ${num(n)} kilos de cacao seco y se empacan en sacos de ${k} kilos. ¿Cuántos sacos se llenan completos?`;
-      respuesta = q;
-      unidad = 'sacos';
-      explicacion = `${num(n)} ÷ ${k} = ${q} y sobran ${r} kilos, que no alcanzan para otro saco: ${q} sacos completos.`;
-    } else {
-      enunciado = `${mayus(adulto(rng).nombre)} empaca ${num(n)} aguacates en cajas de ${k}. ¿Cuántos aguacates quedan por fuera de las cajas llenas?`;
-      respuesta = r;
-      unidad = 'aguacates';
-      explicacion = `${num(n)} ÷ ${k} = ${q} cajas y sobran ${r} aguacates.`;
-    }
+    const e = rng.elegir(tipo === 'viajes' ? residuoViajes : tipo === 'completos' ? residuoCompletos : residuoSobran);
+    const enunciado = e.texto(num(n), k, mayus(adulto(rng).nombre));
+    const respuesta = tipo === 'viajes' ? q + 1 : tipo === 'completos' ? q : r;
+    const explicacion =
+      tipo === 'viajes'
+        ? `${num(n)} ÷ ${k} = ${q} y sobran ${r}. Esos ${r} también necesitan uno más: ${q + 1} ${e.unidad}.`
+        : tipo === 'completos'
+          ? `${num(n)} ÷ ${k} = ${q} y sobran ${r}, que no alcanzan para otro: ${q} ${e.unidad}.`
+          : `${num(n)} ÷ ${k} = ${q} y sobran ${r} ${e.unidad}.`;
     const calc: Calculo = { op: 'division', a: n, b: k, redondearArriba: tipo === 'viajes' };
     return {
       enunciado,
       instruccion: '¿Qué hago con lo que sobra?',
-      ilustracion: tipo === 'sobran' ? 'aguacate' : 'bulto',
+      ilustracion: e.dibujo,
       datos: { n, k },
       respuesta,
-      unidad,
+      unidad: e.unidad,
       ...modo(ctx, respuesta, calc, tipo === 'viajes' ? [q] : tipo === 'completos' ? [q + 1, r] : [q, k - r]),
       calculo: calc,
       permiteResiduo: true,
       pistas: [
-        tipo === 'viajes' ? '¿Se pueden dejar bultos sin llevar?' : tipo === 'completos' ? 'Un saco a medio llenar, ¿cuenta como completo?' : 'Lo que sobra es el residuo de la división.',
+        tipo === 'viajes' ? '¿Se puede dejar algo por fuera?' : tipo === 'completos' ? 'Uno a medio llenar, ¿cuenta como completo?' : 'Lo que sobra es el residuo de la división.',
         { tipo: 'texto', texto: `${num(n)} ÷ ${k} = ${q}, residuo ${r}` },
         `${k} × ${q} = ${num(k * q)} y ${num(n)} − ${num(k * q)} = ${r}.`,
       ],
@@ -664,7 +794,12 @@ const dosPasos: Plantilla = {
       const respuesta = r + v * s;
       const calc: Calculo = { op: 'suma', a: r, b: v * s };
       return {
-        enunciado: `${mayus(quien.nombre)} tenía cacao guardado en la bodega. Vendió ${v} kilos cada semana durante ${s} semanas y le quedaron ${num(r)} kilos.${sobra} ¿Cuántos kilos tenía al principio?`,
+        enunciado: rng.elegir([
+          `${mayus(quien.nombre)} tenía cacao guardado en la bodega. Vendió ${v} kilos cada semana durante ${s} semanas y le quedaron ${num(r)} kilos.${sobra} ¿Cuántos kilos tenía al principio?`,
+          `En el beneficiadero había café pergamino. Despacharon ${v} kilos cada semana durante ${s} semanas y quedaron ${num(r)} kilos.${sobra} ¿Cuántos kilos había al principio?`,
+          `La cooperativa tenía abono en la bodega. Entregó ${v} kilos cada semana a los socios durante ${s} semanas y le quedaron ${num(r)} kilos.${sobra} ¿Cuántos kilos tenía antes de empezar?`,
+          `${mayus(quien.nombre)} guardó maíz para las gallinas. Les dio ${v} kilos cada semana durante ${s} semanas y todavía tiene ${num(r)} kilos.${sobra} ¿Cuántos kilos guardó?`,
+        ]),
         instruccion: 'Busca cuánto había al principio',
         datos: { v, s, r },
         respuesta,
@@ -685,21 +820,28 @@ const dosPasos: Plantilla = {
       const r = rng.entero(1, 50) * 1000;
       const t = nb * precio + r;
       const calc: Calculo = { op: 'division', a: t - r, b: nb };
+      const [cosas, una] = rng.elegir([
+        ['bultos de abono', 'cada bulto'],
+        ['bultos de cal', 'cada bulto'],
+        ['sacos de concentrado para las gallinas', 'cada saco'],
+        ['rollos de alambre de púas', 'cada rollo'],
+        ['costales de semilla de maíz', 'cada costal'],
+      ]);
       return {
-        enunciado: `${mayus(quien.nombre)} tenía ${pesos(t)}. Compró ${nb} bultos de abono, todos al mismo precio, y le quedaron ${pesos(r)}.${sobra} ¿Cuánto costó cada bulto? (Precios ilustrativos.)`,
-        instruccion: 'Busca el precio de cada bulto',
-        ilustracion: 'bulto',
+        enunciado: `${mayus(quien.nombre)} tenía ${pesos(t)}. Compró ${nb} ${cosas}, todos al mismo precio, y le quedaron ${pesos(r)}.${sobra} ¿Cuánto costó ${una}? (Precios ilustrativos.)`,
+        instruccion: `Busca el precio de ${una}`,
+        ilustracion: /bulto|saco|costal/.test(cosas) ? 'bulto' : 'moneda',
         datos: { t, nb, r },
         respuesta: precio,
         unidad: 'pesos',
         ...modo(ctx, precio, calc, [Math.round(t / nb / 1000) * 1000, t - r]),
         calculo: calc,
         pistas: [
-          'Primero averigua cuánto gastó en total en los bultos.',
-          { tipo: 'texto', texto: `gastó: ${pesos(t)} − ${pesos(r)}\ncada bulto: gastado ÷ ${nb}` },
+          'Primero averigua cuánto gastó en total.',
+          { tipo: 'texto', texto: `gastó: ${pesos(t)} − ${pesos(r)}\n${una}: gastado ÷ ${nb}` },
           `${pesos(t)} − ${pesos(r)} = ${pesos(t - r)}; ahora divide entre ${nb}.`,
         ],
-        explicacion: `Gastó ${pesos(t - r)}; ${pesos(t - r)} ÷ ${nb} = ${pesos(precio)} cada bulto.`,
+        explicacion: `Gastó ${pesos(t - r)}; ${pesos(t - r)} ÷ ${nb} = ${pesos(precio)} ${una}.`,
       };
     }
     // Vuelto: 2 pasos, o 3 con un segundo artículo si d es alto.
@@ -709,11 +851,14 @@ const dosPasos: Plantilla = {
     const n2 = tres ? rng.entero(2, 6) : 0;
     const p2 = tres ? rng.entero(2, 12) * 500 : 0;
     const gasto = n1 * p1 + n2 * p2;
+    // Artículos que se cuentan en femenino («cada una»).
+    const [art1, art2] = rng.barajar(['libras de fríjol', 'libras de arroz', 'libras de queso', 'libras de carne', 'panelas', 'libras de café molido', 'bolsas de leche']);
+    const lugarV = rng.elegir(['En el mercado del pueblo', 'En la tienda de la vereda', 'En la plaza de San Vicente']);
     const billete = Math.ceil((gasto + 1) / 50000) * 50000;
     const respuesta = billete - gasto;
     const calc: Calculo = { op: 'resta', a: billete, b: gasto };
     return {
-      enunciado: `En el mercado del pueblo, ${quien.nombre} compra ${n1} libras de fríjol a ${pesos(p1)} cada una${tres ? ` y ${n2} panelas a ${pesos(p2)} cada una` : ''}. Paga con ${pesos(billete)}.${sobra} ¿Cuánto le devuelven? (Precios ilustrativos.)`,
+      enunciado: `${lugarV}, ${quien.nombre} compra ${n1} ${art1} a ${pesos(p1)} cada una${tres ? ` y ${n2} ${art2} a ${pesos(p2)} cada una` : ''}. Paga con ${pesos(billete)}.${sobra} ${rng.elegir(['¿Cuánto le devuelven?', '¿Cuánto le dan de vueltas?'])} (Precios ilustrativos.)`,
       instruccion: 'Calcula el vuelto',
       ilustracion: 'moneda',
       datos: { n1, p1, n2, p2, billete },
@@ -775,7 +920,8 @@ const valorUnitario: Plantilla = {
   generar(ctx): EjercicioBase {
     const { rng } = ctx;
     const modoV = pt(ctx, 'modo', 'regla');
-    const producto = rng.elegir(['café', 'cacao seco', 'aguacate', 'naranja', 'panela']);
+    const producto = rng.elegir(['café', 'cacao seco', 'aguacate', 'naranja', 'panela', 'yuca', 'mandarina', 'limón', 'queso', 'frijol']);
+    const lugar = rng.elegir(['En el mercado del pueblo', 'En la tienda de la vereda', 'En la plaza de San Vicente', 'En la cooperativa']);
     const precio = rng.entero(10, 120) * 100;
     const nota = ' (Precio ilustrativo.)';
     if (modoV === 'mult') {
@@ -783,7 +929,7 @@ const valorUnitario: Plantilla = {
       const respuesta = precio * k;
       const calc: Calculo = { op: 'multiplicacion', a: k, b: precio };
       return {
-        enunciado: `En la cooperativa, el kilo de ${producto} se paga a ${pesos(precio)}.${nota} ¿Cuánto se paga por ${k} kilos?`,
+        enunciado: `${lugar}, el kilo de ${producto} se paga a ${pesos(precio)}.${nota} ${rng.elegir([`¿Cuánto se paga por ${k} kilos?`, `Ayuda a saber cuánta plata reciben por ${k} kilos.`])}`,
         instruccion: 'Precio total',
         ilustracion: 'moneda',
         datos: { precio, k },
@@ -801,7 +947,7 @@ const valorUnitario: Plantilla = {
       const total = precio * k;
       const calc: Calculo = { op: 'division', a: total, b: k };
       return {
-        enunciado: `${mayus(adulto(rng).nombre)} pagó ${pesos(total)} por ${k} kilos de ${producto}.${nota} ¿Cuánto costó cada kilo?`,
+        enunciado: `${lugar}, ${adulto(rng).nombre} pagó ${pesos(total)} por ${k} kilos de ${producto}.${nota} ${rng.elegir(['¿Cuánto costó cada kilo?', '¿A cómo le salió el kilo?'])}`,
         instruccion: 'Precio de un kilo',
         ilustracion: 'moneda',
         datos: { total, k },
@@ -821,7 +967,7 @@ const valorUnitario: Plantilla = {
     const respuesta = m * precio;
     const calc: Calculo = { op: 'multiplicacion', a: precio, b: m };
     return {
-      enunciado: `En el mercado del pueblo, ${a} kilos de ${producto} cuestan ${pesos(total)}.${nota} ¿Cuánto cuestan ${m} kilos al mismo precio?`,
+      enunciado: `${lugar}, ${a} kilos de ${producto} cuestan ${pesos(total)}.${nota} ${rng.elegir([`¿Cuánto cuestan ${m} kilos al mismo precio?`, `¿Cuánto hay que pagar por ${m} kilos?`])}`,
       instruccion: 'Primero el precio de 1 kilo',
       ilustracion: 'moneda',
       datos: { a, total, m },
@@ -846,26 +992,29 @@ const tablaSacos: Plantilla = {
     const semanas = [rng.entero(lerp(100, 600, dif(ctx)), lerp(500, 3000, dif(ctx))), 0, 0].map((x, i) => (i === 0 ? x : rng.entero(lerp(100, 600, dif(ctx)), lerp(500, 3000, dif(ctx)))));
     const [s1, s2, s3] = semanas;
     const k = rng.elegir([25, 40, 50, 60, 62, 70]);
+    const producto = rng.elegir(['cacao', 'café pergamino']);
+    const quien = rng.elegir(['La cooperativa', 'El centro de acopio de la vereda', 'La asociación de productoras']);
+    const [paq, gp] = rng.elegir([['sacos', 'm'], ['costales', 'm'], ['bultos', 'm']] as const);
     const total = s1 + s2 + s3;
     const sobranModo = rng.azar(0.3);
     const q = Math.floor(total / k);
     const r = total % k;
     const respuesta = sobranModo ? r : q;
     const conExtra = dif(ctx) > 0.6;
-    const encabezados = conExtra ? ['Semana', 'Kilos de cacao', 'Socios que entregaron'] : ['Semana', 'Kilos de cacao'];
+    const encabezados = conExtra ? ['Semana', `Kilos de ${producto}`, 'Socios que entregaron'] : ['Semana', `Kilos de ${producto}`];
     const filas = semanas.map((s, i) => (conExtra ? [`Semana ${i + 1}`, s, rng.entero(8, 40)] : [`Semana ${i + 1}`, s]));
     const calc: Calculo = { op: 'division', a: total, b: k };
     const d = distr(ctx, respuesta, sobranModo ? undefined : calc, sobranModo ? [k - r, q, r + 1] : [q + 1, Math.round(total / k / 10) * 10]);
     const abierta = rng.azar(0.3 + 0.5 * dif(ctx));
     return {
       enunciado: sobranModo
-        ? `La cooperativa recibió cacao durante tres semanas, como muestra la tabla. Si empaca todo en sacos de ${k} kilos, ¿cuántos kilos quedan por fuera de los sacos llenos?`
-        : `La cooperativa recibió cacao durante tres semanas, como muestra la tabla. Si empaca todo en sacos de ${k} kilos, ¿cuántos sacos llena completos?`,
+        ? `${quien} recibió ${producto} durante tres semanas, como muestra la tabla. Si empaca todo en ${paq} de ${k} kilos, ¿cuántos kilos quedan por fuera de los ${paq} llenos?`
+        : `${quien} recibió ${producto} durante tres semanas, como muestra la tabla. Si empaca todo en ${paq} de ${k} kilos, ¿cuántos ${paq} llena ${gp === 'm' ? 'completos' : 'completas'}?`,
       instruccion: 'Lee la tabla',
       ilustracion: 'bulto',
       datos: { s1, s2, s3, k },
       respuesta,
-      unidad: sobranModo ? 'kilos' : 'sacos',
+      unidad: sobranModo ? 'kilos' : paq,
       distractores: d,
       interaccion: { tipo: 'tabla', encabezados, filas, opciones: abierta ? undefined : mezclarOpciones(rng, respuesta, d) },
       calculo: calc,
@@ -875,7 +1024,7 @@ const tablaSacos: Plantilla = {
         { tipo: 'texto', texto: `${num(s1)} + ${num(s2)} + ${num(s3)} = ${num(total)}` },
         `${num(total)} ÷ ${k} = ${q}, residuo ${r}.`,
       ],
-      explicacion: `En total ${num(total)} kilos. ${num(total)} ÷ ${k} = ${q} sacos completos y sobran ${r} kilos.`,
+      explicacion: `En total ${num(total)} kilos. ${num(total)} ÷ ${k} = ${q} ${paq} completos y sobran ${r} kilos.`,
     };
   },
 };

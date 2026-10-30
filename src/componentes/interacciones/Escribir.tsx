@@ -7,6 +7,7 @@ import { CONFIANZA_MINIMA, reconocerCifra, type Reconocimiento } from '../../jue
 import { useApp } from '../../estado';
 import { retroError, sonar } from '../../servicios/sonido';
 import Icono from '../Icono';
+import { esComputador, useTeclas } from '../../servicios/teclas';
 
 const ANCHO = 150;
 const ALTO = 190;
@@ -130,13 +131,22 @@ export function PizarraNumero({ cifras, bloqueado, correcta = null, reinicio = 0
 /** Respuesta escribiendo el número con el dedo (1.º); siempre se puede pasar al teclado. */
 export default function Escribir(props: PropsInteraccion) {
   const { ej, bloqueado, onResponder, correcta, fallidas } = props;
-  const [teclado, setTeclado] = useState(false);
+  // En computador se empieza con el teclado; con el dedo se escribe en el celular.
+  const [teclado, setTeclado] = useState(esComputador);
+  const [inicial, setInicial] = useState('');
+  // Si estando en el lienzo se teclea una cifra, se pasa al teclado con esa cifra.
+  useTeclas((e) => {
+    if (!/^[0-9]$/.test(e.key)) return false;
+    setInicial(e.key);
+    setTeclado(true);
+    return true;
+  }, !teclado && !bloqueado);
   const i = ej.interaccion;
   if (i.tipo !== 'escribir') return null;
   return (
     <div className="columna">
       {teclado ? (
-        <Numerica {...props} />
+        <Numerica {...props} inicial={inicial} />
       ) : (
         <PizarraNumero
           cifras={i.cifras}
@@ -147,7 +157,10 @@ export default function Escribir(props: PropsInteraccion) {
         />
       )}
       {!bloqueado && (
-        <button type="button" className="boton secundario" onClick={() => setTeclado(!teclado)}>
+        <button type="button" className="boton secundario" onClick={() => {
+            setInicial('');
+            setTeclado(!teclado);
+          }}>
           <Icono nombre={teclado ? 'lapiz' : 'numeros'} tamano={24} /> {teclado ? 'Escribir con el dedo' : 'Usar el teclado'}
         </button>
       )}

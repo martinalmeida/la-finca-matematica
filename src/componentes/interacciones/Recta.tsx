@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { num } from '../../contenido/contexto';
 import type { PropsInteraccion } from './tipos';
 import Icono from '../Icono';
+import { esComputador, focoEnControl, useTeclas } from '../../servicios/teclas';
 
 const ANCHO = 52;
 
@@ -21,6 +22,13 @@ export function RectaDibujo({ min, max, paso, inicio, elegido, onElegir, bloquea
     const c = contenedor.current;
     if (c) c.scrollLeft = Math.max(0, 24 + ((inicio - min) / paso) * ANCHO - c.clientWidth / 2);
   }, [inicio, min, paso]);
+  // Y para que se vea la marca elegida con el teclado.
+  useEffect(() => {
+    const c = contenedor.current;
+    if (!c || elegido === null) return;
+    const px = 24 + ((elegido - min) / paso) * ANCHO;
+    if (px < c.scrollLeft + 30 || px > c.scrollLeft + c.clientWidth - 30) c.scrollLeft = Math.max(0, px - c.clientWidth / 2);
+  }, [elegido, min, paso]);
   const marcas: number[] = [];
   for (let v = min; v <= max; v += paso) marcas.push(v);
   const ancho = (marcas.length - 1) * ANCHO + 48;
@@ -70,13 +78,28 @@ export function RectaDibujo({ min, max, paso, inicio, elegido, onElegir, bloquea
 export default function Recta({ ej, bloqueado, onResponder, correcta }: PropsInteraccion) {
   const i = ej.interaccion;
   const [elegido, setElegido] = useState<number | null>(null);
+  const [computador] = useState(esComputador);
+  // En computador: ← y → mueven la marca (desde el punto de partida) y Enter responde.
+  useTeclas((e) => {
+    if (i.tipo !== 'recta') return false;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const paso = e.key === 'ArrowLeft' ? -i.paso : i.paso;
+      setElegido((v) => Math.min(i.max, Math.max(i.min, (v ?? i.inicio) + paso)));
+      return true;
+    }
+    if (e.key === 'Enter' && !focoEnControl()) {
+      if (elegido !== null) onResponder(elegido);
+      return true;
+    }
+    return false;
+  }, !bloqueado);
   if (i.tipo !== 'recta') return null;
   const mostrado = typeof correcta === 'number' ? correcta : elegido;
   return (
     <div className="columna">
       <RectaDibujo min={i.min} max={i.max} paso={i.paso} inicio={i.inicio} elegido={mostrado} onElegir={setElegido} bloqueado={bloqueado} />
       <p className="pequeno suave" style={{ margin: 0 }}>
-        Toca un número de la recta. Si no se ve completa, deslízala con el dedo.
+        {computador ? 'Haz clic en un número de la recta o muévete con las flechas ← y →; luego pulsa Enter.' : 'Toca un número de la recta. Si no se ve completa, deslízala con el dedo.'}
       </p>
       <button type="button" className="boton principal" disabled={bloqueado || elegido === null} onClick={() => elegido !== null && onResponder(elegido)}>
         <Icono nombre="check" tamano={24} /> Listo{elegido !== null ? `: ${num(elegido)}` : ''}

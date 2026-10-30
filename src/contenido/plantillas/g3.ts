@@ -2,8 +2,8 @@
 // tablas del 2 al 10 desde arreglos de surcos, multiplicación por 1 cifra,
 // división exacta (reparto y agrupación), problemas de dos pasos y estimación.
 
-import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Objeto, Plantilla, Uso, Visual } from '../../juego/tipos';
-import { adulto, arbolDe, articulosTienda, dibujoKilosDe, dosPersonas, mayus, nombresFincas, num, persona, pesos } from '../contexto';
+import type { Calculo, ContextoGeneracion, DefinicionPista, EjercicioBase, Objeto, Plantilla, Recipiente, Uso, Visual } from '../../juego/tipos';
+import { adulto, arbolDe, articulosTienda, cuantos as cuantosDe, dibujoKilosDe, dosPersonas, mayus, nombresFincas, num, persona, pesos, type Genero } from '../contexto';
 import { divisionResiduo, repartoResiduo, comprobarDivision, viajes, interpretarResiduo } from './g4';
 import { conCifras, factorTabla, dif, distractores, lerp, mezclarOpciones, modoRespuesta, parResta, parSuma, pb, pn, pt, redondear } from './util';
 
@@ -305,6 +305,34 @@ const problemaSumaResta: Plantilla = {
   },
 };
 
+/** Escenas de arreglos: filas con la misma cantidad en cada una (q = quien, f = filas, c = en cada fila). */
+type EscenaArreglo = { obj: Objeto; u: string; filas: string; fila: string; t: (q: string, f: number, c: number) => string };
+const escenasArreglo: EscenaArreglo[] = [
+  { obj: 'arbol-cacao', u: 'árboles', filas: 'los surcos', fila: 'surco', t: (q, f, c) => `${mayus(q)} sembró ${f} surcos de cacao con ${c} árboles en cada surco. Forma el arreglo tocando la cuadrícula. ¿Cuántos árboles sembró?` },
+  { obj: 'arbol-cafe', u: 'matas', filas: 'los surcos', fila: 'surco', t: (_q, f, c) => `En el cafetal de la finca hay ${f} surcos con ${c} matas de café cada uno. Forma el arreglo. ¿Cuántas matas de café hay?` },
+  { obj: 'arbol-aguacate', u: 'árboles', filas: 'las hileras', fila: 'hilera', t: (q, f, c) => `${mayus(q)} tiene un lote de aguacate con ${f} hileras de ${c} árboles. Arma las hileras en la cuadrícula. ¿Cuántos árboles de aguacate tiene?` },
+  { obj: 'arbol-naranja', u: 'naranjos', filas: 'las hileras', fila: 'hilera', t: (q, f, c) => `Detrás de la casa, ${q} plantó ${f} hileras de naranjos, con ${c} árboles por hilera. Forma el arreglo. ¿Cuántos naranjos plantó?` },
+  { obj: 'arbol-mandarina', u: 'árboles', filas: 'los surcos', fila: 'surco', t: (_q, f, c) => `En la finca hay ${f} surcos de mandarina y cada surco tiene ${c} árboles. Toca la cuadrícula para formarlos. ¿Cuántos árboles de mandarina hay?` },
+  { obj: 'arbol-limon', u: 'árboles', filas: 'las hileras', fila: 'hilera', t: (q, f, c) => `${mayus(q)} va a podar los árboles de limón: son ${f} hileras de ${c}. Forma el arreglo. ¿Cuántos árboles va a podar?` },
+  { obj: 'platanera', u: 'matas', filas: 'los surcos', fila: 'surco', t: (_q, f, c) => `En la vega de la quebrada hay ${f} surcos de plátano con ${c} matas en cada uno. Forma el arreglo. ¿Cuántas matas de plátano hay?` },
+  { obj: 'huevo', u: 'huevos', filas: 'las filas', fila: 'fila', t: (q, f, c) => `En el gallinero, ${q} acomodó los huevos en ${f} filas de ${c}. Forma el arreglo. ¿Cuántos huevos hay?` },
+  { obj: 'mata', u: 'matas', filas: 'los surcos', fila: 'surco', t: (_q, f, c) => `En la huerta escolar hay ${f} surcos con ${c} matas de yuca cada uno. Forma el arreglo. ¿Cuántas matas hay?` },
+  { obj: 'mata', u: 'plántulas', filas: 'las filas', fila: 'fila', t: (_q, f, c) => `En el vivero, las bolsas con plántulas de cacao están en ${f} filas de ${c}. Forma el arreglo. ¿Cuántas plántulas hay?` },
+  { obj: 'semilla', u: 'semillas', filas: 'las filas', fila: 'fila', t: (q, f, c) => `${mayus(q)} sembró semillas de maíz en ${f} filas, con ${c} semillas en cada fila. Arma el arreglo. ¿Cuántas semillas sembró?` },
+  { obj: 'mazorca', u: 'mazorcas', filas: 'las filas', fila: 'fila', t: (_q, f, c) => `En el patio quedaron las mazorcas de cacao en ${f} filas de ${c}, listas para partir. Forma el arreglo. ¿Cuántas mazorcas hay?` },
+  { obj: 'arepa', u: 'arepas', filas: 'las filas', fila: 'fila', t: (q, f, c) => `${mayus(q)} puso las arepas en la parrilla en ${f} filas de ${c}. Toca la cuadrícula para formarlas. ¿Cuántas arepas está asando?` },
+  { obj: 'pan', u: 'panes', filas: 'las filas', fila: 'fila', t: (_q, f, c) => `En la bandeja del horno de la panadería del pueblo caben ${f} filas de ${c} panes. Forma el arreglo. ¿Cuántos panes salen en cada horneada?` },
+  { obj: 'naranja', u: 'naranjas', filas: 'las filas', fila: 'fila', t: (q, f, c) => `En el puesto del mercado, ${q} arrumó las naranjas en ${f} filas de ${c}. Forma el arreglo. ¿Cuántas naranjas arrumó?` },
+  { obj: 'bulto', u: 'bultos', filas: 'las filas', fila: 'fila', t: (q, f, c) => `En la bodega, ${q} arrumó los bultos de cacao seco en ${f} filas de ${c}. Forma el arreglo. ¿Cuántos bultos hay?` },
+  { obj: 'aguacate', u: 'aguacates', filas: 'las filas', fila: 'fila', t: (_q, f, c) => `En la cooperativa acomodaron los aguacates en una caja grande: ${f} filas de ${c}. Forma el arreglo. ¿Cuántos aguacates caben?` },
+  { obj: 'mandarina', u: 'mandarinas', filas: 'las filas', fila: 'fila', t: (q, f, c) => `${mayus(q)} puso las mandarinas a madurar sobre el mesón en ${f} filas de ${c}. Forma el arreglo. ¿Cuántas mandarinas hay?` },
+  { obj: 'limon', u: 'limones', filas: 'las filas', fila: 'fila', t: (_q, f, c) => `En la tienda de la vereda, los limones están en el exhibidor en ${f} filas de ${c}. Forma el arreglo. ¿Cuántos limones hay?` },
+  { obj: 'platano', u: 'plátanos', filas: 'las filas', fila: 'fila', t: (q, f, c) => `${mayus(q)} colgó los plátanos para que maduren en ${f} filas de ${c}. Forma el arreglo. ¿Cuántos plátanos colgó?` },
+  { obj: 'mata', u: 'matas', filas: 'las filas', fila: 'fila', t: (q, f, c) => `En la huerta de la casa, ${q} trasplantó ${f} filas de cebolla con ${c} matas cada una. Forma el arreglo. ¿Cuántas matas trasplantó?` },
+  { obj: 'moneda', u: 'monedas', filas: 'las filas', fila: 'fila', t: (q, f, c) => `${mayus(q)} ordenó las monedas de la alcancía en ${f} filas de ${c}. Forma el arreglo. ¿Cuántas monedas tiene?` },
+  { obj: 'gallina', u: 'gallinas', filas: 'las filas', fila: 'fila', t: (_q, f, c) => `En el galpón, las gallinas duermen en los palos en ${f} filas de ${c}. Forma el arreglo. ¿Cuántas gallinas hay?` },
+];
+
 const arregloSurcos: Plantilla = {
   id: 'g3-arreglo',
   dimension: 'comprension',
@@ -316,14 +344,13 @@ const arregloSurcos: Plantilla = {
     const f = factorTabla(ctx, maxTabla);
     const c = rng.entero(2, Math.min(10, maxTabla + 1));
     const respuesta = f * c;
-    const quien = persona(rng);
-    const v = rng.elegir([
-      { obj: 'arbol-cacao' as const, t: `${quien.nombre} sembró ${f} surcos de cacao con ${c} árboles en cada surco. Forma el arreglo tocando la cuadrícula. ¿Cuántos árboles sembró?`, u: 'árboles' },
-      { obj: 'huevo' as const, t: `En el gallinero, ${quien.nombre} acomodó los huevos en ${f} filas de ${c}. Forma el arreglo. ¿Cuántos huevos hay?`, u: 'huevos' },
-      { obj: 'mata' as const, t: `En la huerta escolar hay ${f} surcos con ${c} matas de yuca cada uno. Forma el arreglo. ¿Cuántas matas hay?`, u: 'matas' },
-    ]);
+    const v = rng.elegir(escenasArreglo);
     return {
-      enunciado: v.t,
+      // La orden de armar el arreglo también cambia.
+      enunciado: v.t(adulto(rng).nombre, f, c).replace(
+        /(Forma|Arma|Toca)[^.?]*\./,
+        rng.elegir(['Forma el arreglo tocando la cuadrícula.', 'Arma el arreglo en la cuadrícula.', `Pinta en la cuadrícula una fila por cada ${v.fila}.`]),
+      ),
       instruccion: 'Forma filas y columnas',
       ilustracion: v.obj,
       datos: { f, c },
@@ -333,14 +360,34 @@ const arregloSurcos: Plantilla = {
       interaccion: { tipo: 'arreglo', filas: f, columnas: c, objeto: v.obj },
       calculo: { op: 'multiplicacion', a: f, b: c },
       pistas: [
-        `¿Cuántas filas hay y cuántos hay en cada fila?`,
+        `Cuenta ${v.filas} y mira ${/as$/.test(v.u) ? 'cuántas' : 'cuántos'} ${v.u} hay en cada ${v.fila}.`,
         { tipo: 'arreglo', filas: f, columnas: c, objeto: v.obj },
         `Son ${f} veces ${c}: ${f} × ${c}.`,
       ],
-      explicacion: `${f} × ${c} = ${respuesta}.`,
+      explicacion: `${f} × ${c} = ${respuesta} ${v.u}.`,
     };
   },
 };
+
+/** Escenas de las tablas: grupos de «a» repetidos «b» veces. ilus: dibujo; obj: lo que va en cada fila del arreglo. */
+type EscenaTabla = { ilus?: Objeto; obj?: Objeto; t: (q: string, a: number, b: number) => string };
+const escenasTabla: EscenaTabla[] = [
+  { ilus: 'arepa', obj: 'arepa', t: (_q, a, b) => `En la tienda de la vereda las arepas vienen en paquetes de ${a}. ¿Cuántas arepas hay en ${b} paquetes?` },
+  { ilus: 'huevo', obj: 'huevo', t: (q, a, b) => `Cada gallina del patio de ${q} puso ${a} huevos esta semana. Hay ${b} gallinas. ¿Cuántos huevos pusieron?` },
+  { ilus: 'bulto', obj: 'bulto', t: (_q, a, b) => `El carro de la cooperativa lleva ${a} bultos de cacao en cada viaje. ¿Cuántos bultos lleva en ${b} viajes?` },
+  { ilus: 'pan', obj: 'pan', t: (_q, a, b) => `Para el refrigerio escolar llegan bolsas de ${a} panes. ¿Cuántos panes hay en ${b} bolsas?` },
+  { ilus: 'mandarina', obj: 'mandarina', t: (q, a, b) => `${mayus(q)} llena canastillas con ${a} mandarinas cada una. ¿Cuántas mandarinas necesita para ${b} canastillas?` },
+  { ilus: 'platano', obj: 'platano', t: (q, a, b) => `Cada mano de plátano trae ${a} plátanos. ${mayus(q)} compró ${b} manos. ¿Cuántos plátanos compró?` },
+  { ilus: 'mata', obj: 'mata', t: (_q, a, b) => `En cada surco de la huerta escolar hay ${a} matas de yuca. ¿Cuántas matas hay en ${b} surcos?` },
+  { ilus: 'limon', obj: 'limon', t: (_q, a, b) => `En la cooperativa empacan ${a} limones en cada caja. ¿Cuántos limones van en ${b} cajas?` },
+  { ilus: 'aguacate', obj: 'aguacate', t: (_q, a, b) => `Cada árbol de aguacate de la finca dio ${a} aguacates maduros. ¿Cuántos aguacates dieron ${b} árboles?` },
+  { ilus: 'semilla', obj: 'semilla', t: (q, a, b) => `${mayus(q)} guarda ${a} semillas de maíz en cada sobre. ¿Cuántas semillas guarda en ${b} sobres?` },
+  { ilus: 'naranja', obj: 'naranja', t: (q, a, b) => `Para vender en el mercado del pueblo, ${q} pone ${a} naranjas en cada bolsa. Llenó ${b} bolsas. ¿Cuántas naranjas puso?` },
+  { ilus: 'moneda', obj: 'moneda', t: (q, a, b) => `${mayus(q)} echa ${a} monedas cada semana en la alcancía. ¿Cuántas monedas junta en ${b} semanas?` },
+  { ilus: 'mesa', t: (_q, a, b) => `En el restaurante escolar cada mesa tiene ${a} sillas. Hay ${b} mesas. ¿Cuántas sillas hay?` },
+  { t: (q, a, b) => `Cada vaca de ${q} da ${a} litros de leche en el ordeño de la mañana. ¿Cuántos litros dan ${b} vacas?` },
+  { ilus: 'mazorca', obj: 'mazorca', t: (q, a, b) => `De cada árbol de cacao, ${q} cortó ${a} mazorcas maduras. ¿Cuántas mazorcas cortó de ${b} árboles?` },
+];
 
 const tablas: Plantilla = {
   id: 'g3-tablas',
@@ -353,31 +400,39 @@ const tablas: Plantilla = {
     const a = factorTabla(ctx, maxTabla);
     const b = rng.entero(2, 10);
     const respuesta = a * b;
-    const [v, dibujo] = rng.elegir<[string, Objeto]>([
-      [`En la tienda de la vereda las arepas vienen en paquetes de ${a}. ¿Cuántas arepas hay en ${b} paquetes?`, 'arepa'],
-      [`Cada gallina del patio de ${adulto(rng).nombre} puso ${a} huevos esta semana. Hay ${b} gallinas. ¿Cuántos huevos pusieron?`, 'huevo'],
-      [`La mula lleva ${a} bultos en cada viaje. ¿Cuántos bultos lleva en ${b} viajes?`, 'bulto'],
-    ]);
+    const v = rng.elegir(escenasTabla);
+    const cola = rng.elegir([`(${a} × ${b})`, `Usa la tabla del ${a}.`, `Piensa en ${a} × ${b}.`]);
     const calc: Calculo = { op: 'multiplicacion', a, b };
     const modo = modoRespuesta(ctx, respuesta, calc, { abiertaMin: 0.3, abiertaMax: 0.9 });
     return {
-      enunciado: `${v} (${a} × ${b})`,
+      enunciado: `${v.t(adulto(rng).nombre, a, b)} ${cola}`,
       instruccion: 'Multiplica',
-      ilustracion: dibujo,
+      ilustracion: v.ilus,
       datos: { a, b },
       respuesta,
       ...modo,
       calculo: calc,
       pistas: [
         `¿Cuántos grupos hay y cuántos hay en cada grupo?`,
-        // Una fila por paquete, gallina o viaje, con lo que trae cada uno.
-        { tipo: 'arreglo', filas: b, columnas: a, objeto: dibujo },
+        // Una fila por grupo (paquete, gallina, viaje…), con lo que trae cada uno.
+        { tipo: 'arreglo', filas: b, columnas: a, objeto: v.obj },
         `Suma ${a} cada vez, ${b} veces: ${Array.from({ length: Math.min(b, 4) }, (_, i) => a * (i + 1)).join(', ')}…`,
       ],
       explicacion: `${a} × ${b} = ${respuesta}.`,
     };
   },
 };
+
+/** Cultivos que se siembran en surcos, con el nombre de sus plantas y su género. */
+const cultivosSurco: { nombre: string; plantas: string; g: Genero }[] = [
+  { nombre: 'cacao', plantas: 'árboles', g: 'm' },
+  { nombre: 'café', plantas: 'matas', g: 'f' },
+  { nombre: 'aguacate', plantas: 'árboles', g: 'm' },
+  { nombre: 'plátano', plantas: 'matas', g: 'f' },
+  { nombre: 'naranja', plantas: 'árboles', g: 'm' },
+  { nombre: 'mandarina', plantas: 'árboles', g: 'm' },
+  { nombre: 'limón', plantas: 'árboles', g: 'm' },
+];
 
 const surcosProblema: Plantilla = {
   id: 'g3-surcos',
@@ -390,39 +445,97 @@ const surcosProblema: Plantilla = {
     const f = factorTabla(ctx, maxTabla);
     const c = rng.entero(2, 10);
     const total = f * c;
-    const quien = persona(rng);
-    const cultivo = rng.elegir(['cacao', 'café', 'aguacate', 'plátano']);
+    const q = adulto(rng).nombre;
+    const Q = mayus(q);
+    const cul = rng.elegir(cultivosSurco);
+    const n = cul.nombre;
+    const pl = cul.plantas;
+    const Cu = cuantosDe(cul.g);
+    const cu = Cu.toLowerCase();
     const sobra = datoQueSobra(ctx);
     const extra = sobra?.texto ?? '';
-    const factor = pb(ctx, 'incognita') && dif(ctx) > 0.5 && rng.azar(0.5);
-    const calc: Calculo = factor ? { op: 'division', a: total, b: f } : { op: 'multiplicacion', a: f, b: c };
-    const respuesta = factor ? c : total;
-    const enunciado = factor
-      ? `${quien.nombre} sembró ${total} árboles de ${cultivo} en ${f} surcos, con la misma cantidad en cada surco.${extra} ¿Cuántos árboles hay en cada surco?`
-      : rng.elegir([
-          `${quien.nombre} sembró ${f} surcos de ${cultivo} con ${c} árboles en cada surco.${extra} ¿Cuántos árboles sembró?`,
-          `En la finca hay ${f} hileras de ${cultivo}. Cada hilera tiene ${c} árboles.${extra} ¿Cuántos árboles hay en total?`,
-        ]);
-    const modo = modoRespuesta(ctx, respuesta, calc, { extras: factor ? [total - f, f] : [f + c] });
+    // Incógnita: cuántas plantas por surco (porSurco) o cuántos surcos salen (surcos).
+    const incognita = pb(ctx, 'incognita') && dif(ctx) > 0.5 && rng.azar(0.5) ? rng.elegir(['porSurco', 'surcos'] as const) : null;
+    let enunciado: string;
+    let respuesta: number;
+    let calc: Calculo;
+    if (incognita === 'porSurco') {
+      respuesta = c;
+      calc = { op: 'division', a: total, b: f };
+      enunciado = rng.elegir([
+        `${Q} sembró ${total} ${pl} de ${n} en ${f} surcos, con la misma cantidad en cada surco.${extra} ¿${Cu} ${pl} hay en cada surco?`,
+        `En un lote hay ${total} ${pl} de ${n} repartidos en ${f} hileras iguales.${extra} ¿${Cu} ${pl} tiene cada hilera?`.replace('repartidos', cul.g === 'f' ? 'repartidas' : 'repartidos'),
+        `${Q} tiene ${total} ${pl} de ${n} para sembrar en ${f} surcos iguales.${extra} ¿${Cu} van en cada surco?`,
+      ]);
+    } else if (incognita === 'surcos') {
+      respuesta = f;
+      calc = { op: 'division', a: total, b: c };
+      enunciado = rng.elegir([
+        `${Q} quiere sembrar ${total} ${pl} de ${n} en surcos de ${c}.${extra} ¿Cuántos surcos le salen?`,
+        `En el lote de ${n} hay ${total} ${pl}, en hileras de ${c}.${extra} ¿Cuántas hileras hay?`,
+      ]);
+    } else {
+      respuesta = total;
+      calc = { op: 'multiplicacion', a: f, b: c };
+      enunciado = rng.elegir([
+        `${Q} sembró ${f} surcos de ${n} con ${c} ${pl} en cada surco.${extra} ¿${Cu} ${pl} sembró?`,
+        `En la finca hay ${f} hileras de ${n}. Cada hilera tiene ${c} ${pl}.${extra} ¿${Cu} ${pl} hay en total?`,
+        `${Q} va a abonar un lote de ${n} que tiene ${f} surcos de ${c} ${pl}.${extra} ¿A ${cu} ${pl} les echa abono?`,
+        `En la parcela de la escuela, los niños sembraron ${f} hileras de ${n}, con ${c} ${pl} en cada una.${extra} ¿${Cu} ${pl} sembraron?`,
+        `Al recorrer su lote de ${n}, ${q} contó ${f} surcos y ${c} ${pl} en cada surco.${extra} ¿${Cu} ${pl} tiene el lote?`,
+        `Del vivero salieron ${pl} de ${n} para ${f} surcos nuevos, ${c} por surco.${extra} ¿${Cu} ${pl} salieron del vivero?`,
+      ]);
+    }
+    const modo = modoRespuesta(ctx, respuesta, calc, { extras: incognita ? [total - f, incognita === 'porSurco' ? f : c] : [f + c] });
     return {
       enunciado,
       instruccion: 'Piensa en el arreglo',
-      ilustracion: arbolDe(cultivo),
+      ilustracion: arbolDe(n),
       datos: { f, c, total, ...(sobra ? { sobra: sobra.valor } : {}) },
       respuesta,
-      unidad: 'árboles',
+      unidad: incognita === 'surcos' ? (/hileras/.test(enunciado) ? 'hileras' : 'surcos') : pl,
       ...modo,
       calculo: calc,
-      operacion: factor ? 'division' : 'multiplicacion',
+      operacion: incognita ? 'division' : 'multiplicacion',
       pistas: [
-        sobra ? 'Un dato sobra. ¿Cuáles necesitas?' : factor ? '¿Qué número multiplicado por los surcos da el total?' : '¿Cuántos surcos y cuántos árboles en cada uno?',
-        { tipo: 'arreglo', filas: f, columnas: c, objeto: arbolDe(cultivo) },
-        factor ? `${f} × ? = ${total}. Busca en la tabla del ${f}.` : `${f} × ${c}.`,
+        sobra
+          ? 'Un dato sobra. ¿Cuáles necesitas?'
+          : incognita === 'porSurco'
+            ? '¿Qué número multiplicado por los surcos da el total?'
+            : incognita === 'surcos'
+              ? `¿Cuántas veces cabe el ${c} en ${total}?`
+              : `¿Cuántos surcos y ${cu} ${pl} en cada uno?`,
+        { tipo: 'arreglo', filas: f, columnas: c, objeto: arbolDe(n) },
+        incognita === 'porSurco' ? `${f} × ? = ${total}. Busca en la tabla del ${f}.` : incognita === 'surcos' ? `? × ${c} = ${total}. Busca en la tabla del ${c}.` : `${f} × ${c}.`,
       ],
-      explicacion: factor ? `${total} ÷ ${f} = ${c}, porque ${f} × ${c} = ${total}.` : `${f} × ${c} = ${total} árboles.`,
+      explicacion:
+        incognita === 'porSurco'
+          ? `${total} ÷ ${f} = ${c}, porque ${f} × ${c} = ${total}.`
+          : incognita === 'surcos'
+            ? `${total} ÷ ${c} = ${f}, porque ${f} × ${c} = ${total}.`
+            : `${f} × ${c} = ${total} ${pl}.`,
     };
   },
 };
+
+/** Escenas de grupos iguales: k grupos con n en cada uno. */
+type EscenaGrupos = { obj: Objeto; u: string; grupo?: Recipiente; t: (q: string, k: number, n: number) => string };
+const escenasGrupos: EscenaGrupos[] = [
+  { obj: 'mandarina', u: 'mandarinas', grupo: { nombre: 'Canastilla', dibujo: 'canasta' }, t: (q, k, n) => `${mayus(q)} llenó ${k} canastillas con ${n} mandarinas cada una. ¿Cuántas mandarinas empacó?` },
+  { obj: 'pan', u: 'panes', grupo: { nombre: 'Bolsa', dibujo: 'bolsa' }, t: (_q, k, n) => `Para el refrigerio escolar llegaron ${k} bolsas con ${n} panes cada una. ¿Cuántos panes llegaron?` },
+  { obj: 'platano', u: 'plátanos', t: (q, k, n) => `En la feria del pueblo, ${q} armó ${k} racimos con ${n} plátanos cada uno. ¿Cuántos plátanos usó?` },
+  { obj: 'huevo', u: 'huevos', grupo: { nombre: 'Caja', dibujo: 'caja' }, t: (q, k, n) => `${mayus(q)} vende los huevos en cajas de ${n}. Hoy llenó ${k} cajas. ¿Cuántos huevos empacó?` },
+  { obj: 'aguacate', u: 'aguacates', grupo: { nombre: 'Bolsa', dibujo: 'bolsa' }, t: (q, k, n) => `Para el mercado del pueblo, ${q} preparó ${k} bolsas de ${n} aguacates. ¿Cuántos aguacates lleva?` },
+  { obj: 'mazorca', u: 'mazorcas', grupo: { nombre: 'Canasto', dibujo: 'canasta' }, t: (_q, k, n) => `En la cosecha de cacao llenaron ${k} canastos con ${n} mazorcas cada uno. ¿Cuántas mazorcas cortaron?` },
+  { obj: 'arepa', u: 'arepas', grupo: { nombre: 'Mesa', dibujo: 'mesa' }, t: (_q, k, n) => `En el restaurante escolar pusieron ${n} arepas en cada una de las ${k} mesas. ¿Cuántas arepas sirvieron?` },
+  { obj: 'semilla', u: 'semillas', grupo: { nombre: 'Sobre' }, t: (q, k, n) => `${mayus(q)} regaló ${k} sobres con ${n} semillas de maíz a los vecinos. ¿Cuántas semillas regaló?` },
+  { obj: 'limon', u: 'limones', grupo: { nombre: 'Niño', dibujo: 'nino' }, t: (_q, k, n) => `Para hacer limonada en la escuela, cada uno de los ${k} niños del grupo trajo ${n} limones. ¿Cuántos limones juntaron?` },
+  { obj: 'mata', u: 'matas', t: (_q, k, n) => `En la huerta escolar hay ${k} eras con ${n} matas de cebolla cada una. ¿Cuántas matas de cebolla hay?` },
+  { obj: 'naranja', u: 'naranjas', grupo: { nombre: 'Canasta', dibujo: 'canasta' }, t: (q, k, n) => `${mayus(q)} llevó a la feria ${k} canastas con ${n} naranjas en cada una. ¿Cuántas naranjas llevó?` },
+  { obj: 'limon', u: 'limones', grupo: { nombre: 'Malla' }, t: (_q, k, n) => `En la tienda de la vereda venden los limones en mallas de ${n}. Quedan ${k} mallas. ¿Cuántos limones quedan?` },
+  { obj: 'arepa', u: 'arepas', grupo: { nombre: 'Paquete' }, t: (q, k, n) => `${mayus(q)} hizo ${k} paquetes de ${n} arepas para vender en la tienda. ¿Cuántas arepas hizo?` },
+  { obj: 'moneda', u: 'monedas', grupo: { nombre: 'Grado' }, t: (_q, k, n) => `Para la rifa de la escuela, cada uno de los ${k} grados reunió ${n} monedas de $500. ¿Cuántas monedas reunieron?` },
+];
 
 const gruposIguales: Plantilla = {
   id: 'g3-grupos',
@@ -435,16 +548,11 @@ const gruposIguales: Plantilla = {
     const k = rng.entero(2, 10);
     const n = factorTabla(ctx, maxTabla);
     const respuesta = k * n;
-    const quien = adulto(rng);
-    const v = rng.elegir([
-      { t: `${mayus(quien.nombre)} llenó ${k} canastillas con ${n} mandarinas cada una. ¿Cuántas mandarinas empacó?`, obj: 'mandarina' as const, u: 'mandarinas', grupo: { nombre: 'Canastilla', dibujo: 'canasta' as const } },
-      { t: `Para el refrigerio escolar llegaron ${k} bolsas con ${n} panes cada una. ¿Cuántos panes llegaron?`, obj: 'pan' as const, u: 'panes', grupo: { nombre: 'Bolsa', dibujo: 'bolsa' as const } },
-      { t: `En la feria del pueblo, ${quien.nombre} armó ${k} racimos con ${n} plátanos cada uno. ¿Cuántos plátanos usó?`, obj: 'platano' as const, u: 'plátanos', grupo: undefined },
-    ]);
+    const v = rng.elegir(escenasGrupos);
     const calc: Calculo = { op: 'multiplicacion', a: k, b: n };
     const modo = modoRespuesta(ctx, respuesta, calc);
     return {
-      enunciado: v.t,
+      enunciado: v.t(adulto(rng).nombre, k, n),
       instruccion: 'Grupos iguales',
       ilustracion: v.obj,
       datos: { k, n },
@@ -458,6 +566,22 @@ const gruposIguales: Plantilla = {
   },
 };
 
+/** Contextos para multiplicar a (2 o 3 cifras) por b (una cifra). */
+const contextosMult: ((q: string, a: string, b: number) => string)[] = [
+  (q, a, b) => `Cada árbol de naranja dio ${a} naranjas y ${q} tiene ${b} árboles. ¿Cuántas naranjas son?`,
+  (q, a, b) => `Cada día ${q} camina ${a} metros hasta la escuela de la vereda. ¿Cuántos metros camina en ${b} días?`,
+  (_q, a, b) => `La cooperativa empaca ${a} kilos de cacao por día. ¿Cuántos kilos empaca en ${b} días?`,
+  (_q, a, b) => `El galpón de la finca da ${a} huevos por semana. ¿Cuántos huevos da en ${b} semanas?`,
+  (q, a, b) => `${mayus(q)} entrega ${a} litros de leche cada semana al carro lechero. ¿Cuántos litros entrega en ${b} semanas?`,
+  (q, a, b) => `Cada rollo de alambre para la cerca trae ${a} metros. ${mayus(q)} compró ${b} rollos. ¿Cuántos metros de alambre compró?`,
+  (_q, a, b) => `En el beneficiadero secan ${a} kilos de café en cada tanda. ¿Cuántos kilos secan en ${b} tandas?`,
+  (_q, a, b) => `Cada paca que llega a la cooperativa trae ${a} bolsas para vivero. Llegaron ${b} pacas. ¿Cuántas bolsas llegaron?`,
+  (q, a, b) => `En la feria del pueblo, ${q} vendió ${a} arepas cada día durante ${b} días. ¿Cuántas arepas vendió?`,
+  (_q, a, b) => `Cada surco largo de la huerta tiene ${a} matas de yuca. ¿Cuántas matas hay en ${b} surcos?`,
+  (_q, a, b) => `El vivero de la vereda entrega ${a} plántulas de cacao en cada lote. ¿Cuántas plántulas hay en ${b} lotes?`,
+  (q, a, b) => `${mayus(q)} recorre ${a} metros por el camino de herradura para llevar el almuerzo al lote, y lo hace ${b} veces en la semana. ¿Cuántos metros recorre?`,
+];
+
 const algoritmoMult: Plantilla = {
   id: 'g3-algoritmo-mult',
   dimension: 'procedimiento',
@@ -469,13 +593,15 @@ const algoritmoMult: Plantilla = {
     const a = conCifras(rng, cifras);
     const b = rng.entero(2, 9);
     const respuesta = a * b;
-    const contexto = rng.elegir([
-      `Cada árbol de naranja dio ${num(a)} naranjas y ${adulto(rng).nombre} tiene ${b} árboles.`,
-      `Cada día ${persona(rng).nombre} camina ${num(a)} metros hasta la escuela de la vereda. Lo hace ${b} días.`,
-      `La cooperativa empaca ${num(a)} kilos de cacao por día durante ${b} días.`,
+    const contexto = rng.elegir(contextosMult)(adulto(rng).nombre, num(a), b);
+    const pedido = rng.elegir([
+      `Resuelve cifra por cifra: ${num(a)} × ${b}.`,
+      `Multiplica en columnas, empezando por las unidades: ${num(a)} × ${b}.`,
+      `Haz la multiplicación paso a paso: ${num(a)} × ${b}.`,
+      `Calcúlalo con la multiplicación ${num(a)} × ${b}, columna por columna.`,
     ]);
     return {
-      enunciado: `${contexto} Resuelve cifra por cifra: ${num(a)} × ${b}.`,
+      enunciado: `${contexto} ${pedido}`,
       instruccion: 'Multiplica por columnas',
       datos: { a, b },
       respuesta,
@@ -492,6 +618,24 @@ const algoritmoMult: Plantilla = {
   },
 };
 
+/** Escenas de problemas de multiplicar: rango del número que se repite (2 cifras / 3 cifras). */
+type EscenaMult = { chico: [number, number]; grande: [number, number]; u: string; dibujo?: Objeto; t: (q: string, a: number, b: number, extra: string) => string };
+const escenasMult: EscenaMult[] = [
+  { chico: [60, 99], grande: [100, 199], u: 'kilos', dibujo: 'bulto', t: (q, a, b, e) => `La mula de ${q} carga ${a} kilos de cacao en cada viaje. Hizo ${b} viajes hasta la carretera.${e} ¿Cuántos kilos llevó?` },
+  { chico: [20, 60], grande: [100, 250], u: 'mandarinas', dibujo: 'mandarina', t: (_q, a, b, e) => `Cada árbol de mandarina de la finca dio ${a} mandarinas. Hay ${b} árboles.${e} ¿Cuántas mandarinas dieron?` },
+  { chico: [12, 48], grande: [120, 360], u: 'huevos', dibujo: 'huevo', t: (_q, a, b, e) => `Un pedido de la tienda de la vereda trae ${a} huevos. Este mes llegaron ${b} pedidos iguales.${e} ¿Cuántos huevos llegaron?` },
+  { chico: [20, 80], grande: [100, 200], u: 'aguacates', dibujo: 'aguacate', t: (q, a, b, e) => `En la cosecha, cada árbol de aguacate de ${q} dio ${a} aguacates.${e} ¿Cuántos aguacates salen de ${b} árboles?` },
+  { chico: [50, 99], grande: [100, 400], u: 'metros', t: (q, a, b, e) => `De la casa de ${q} a la quebrada hay ${a} metros. Hoy hizo ${b} viajes de ida para traer agua.${e} ¿Cuántos metros caminó de ida?` },
+  { chico: [20, 90], grande: [100, 150], u: 'kilos', dibujo: 'bulto', t: (_q, a, b, e) => `En la cosecha de la finca, cada recolector cogió ${a} kilos de café en la semana. Son ${b} recolectores.${e} ¿Cuántos kilos de café cogieron?` },
+  { chico: [24, 72], grande: [100, 200], u: 'plántulas', dibujo: 'mata', t: (_q, a, b, e) => `Cada cama del vivero tiene ${a} plántulas de cacao. Hay ${b} camas.${e} ¿Cuántas plántulas hay?` },
+  { chico: [20, 99], grande: [100, 300], u: 'litros', t: (q, a, b, e) => `${mayus(q)} vende ${a} litros de leche cada semana.${e} ¿Cuántos litros vende en ${b} semanas?` },
+  { chico: [30, 99], grande: [100, 250], u: 'arepas', dibujo: 'arepa', t: (q, a, b, e) => `En la feria del pueblo, ${q} vende ${a} arepas cada día.${e} ¿Cuántas arepas vende en ${b} días?` },
+  { chico: [50, 99], grande: [100, 200], u: 'naranjas', dibujo: 'naranja', t: (_q, a, b, e) => `Cada bulto de naranjas trae ${a} naranjas. La chiva bajó ${b} bultos al pueblo.${e} ¿Cuántas naranjas bajó?` },
+  { chico: [12, 40], grande: [100, 150], u: 'matas', dibujo: 'mata', t: (_q, a, b, e) => `Cada surco de la huerta escolar tiene ${a} matas de cebolla. Hay ${b} surcos.${e} ¿Cuántas matas de cebolla hay?` },
+  { chico: [30, 99], grande: [100, 300], u: 'mazorcas', dibujo: 'mazorca', t: (q, a, b, e) => `${mayus(q)} cortó ${a} mazorcas de cacao cada día durante ${b} días.${e} ¿Cuántas mazorcas cortó?` },
+  { chico: [40, 99], grande: [100, 250], u: 'panes', dibujo: 'pan', t: (_q, a, b, e) => `La panadería del pueblo saca ${a} panes en cada horneada. Hoy hizo ${b} horneadas.${e} ¿Cuántos panes hizo?` },
+];
+
 const multProblema: Plantilla = {
   id: 'g3-mult-problema',
   dimension: 'problemas',
@@ -505,20 +649,10 @@ const multProblema: Plantilla = {
     const b = rng.entero(2, 9);
     const sobra = datoQueSobra(ctx);
     const extra = sobra?.texto ?? '';
-    const v = rng.elegir([
-      () => {
-        const a = grande ? rng.entero(100, 199) : rng.entero(60, 99);
-        return { a, t: `La mula de don Ramiro carga ${a} kilos de cacao en cada viaje. Hizo ${b} viajes hasta la carretera.${extra} ¿Cuántos kilos llevó?`, u: 'kilos', dibujo: 'bulto' as Objeto };
-      },
-      () => {
-        const a = !grande ? rng.entero(20, 60) : rng.entero(100, 250);
-        return { a, t: `Cada árbol de mandarina de la finca ${rng.elegir(nombresFincas)} dio ${a} mandarinas. Hay ${b} árboles.${extra} ¿Cuántas mandarinas dieron?`, u: 'mandarinas', dibujo: 'mandarina' as Objeto };
-      },
-      () => {
-        const a = !grande ? rng.entero(12, 48) : rng.entero(120, 360);
-        return { a, t: `Una cubeta grande trae ${a} huevos. En la tienda de la vereda compraron ${b} cubetas.${extra} ¿Cuántos huevos compraron?`, u: 'huevos', dibujo: 'huevo' as Objeto };
-      },
-    ])();
+    const e = rng.elegir(escenasMult);
+    const [lo, hi] = grande ? e.grande : e.chico;
+    const a = rng.entero(lo, hi);
+    const v = { a, t: e.t(adulto(rng).nombre, a, b, extra), u: e.u, dibujo: e.dibujo };
     const respuesta = v.a * b;
     const calc: Calculo = { op: 'multiplicacion', a: v.a, b };
     const modo = modoRespuesta(ctx, respuesta, calc, { paso: 10, extras: [v.a + b] });
@@ -541,6 +675,35 @@ const multProblema: Plantilla = {
   },
 };
 
+/** Escenas de reparto: n cosas en k partes iguales. */
+type EscenaReparto = { obj: Objeto; u: string; grupo: Recipiente; t: (q: string, n: number, k: number) => string };
+const escenasReparto: EscenaReparto[] = [
+  { obj: 'arepa', u: 'arepas', grupo: { nombre: 'Mesa', dibujo: 'mesa' }, t: (q, n, k) => `${mayus(q)} reparte ${n} arepas en partes iguales entre ${k} mesas del refrigerio escolar. ¿Cuántas arepas van en cada mesa?` },
+  { obj: 'semilla', u: 'semillas', grupo: { nombre: 'Grupo', dibujo: 'nino' }, t: (q, n, k) => `${mayus(q)} reparte ${n} semillas de maíz entre ${k} grupos de la huerta escolar, la misma cantidad para cada grupo. ¿Cuántas semillas recibe cada grupo?` },
+  { obj: 'naranja', u: 'naranjas', grupo: { nombre: 'Canasta', dibujo: 'canasta' }, t: (q, n, k) => `${mayus(q)} reparte ${n} naranjas en ${k} canastas iguales para llevar al mercado. ¿Cuántas naranjas van en cada canasta?` },
+  { obj: 'huevo', u: 'huevos', grupo: { nombre: 'Caja', dibujo: 'caja' }, t: (q, n, k) => `${mayus(q)} recogió ${n} huevos y los acomoda en ${k} cajas, todas con la misma cantidad. ¿Cuántos huevos lleva cada caja?` },
+  { obj: 'mandarina', u: 'mandarinas', grupo: { nombre: 'Niño', dibujo: 'nino' }, t: (_q, n, k) => `En el descanso, la profe reparte ${n} mandarinas entre ${k} niños por igual. ¿Cuántas mandarinas le tocan a cada niño?` },
+  { obj: 'pan', u: 'panes', grupo: { nombre: 'Bolsa', dibujo: 'bolsa' }, t: (_q, n, k) => `En la cocina de la escuela empacan ${n} panes en ${k} bolsas con la misma cantidad. ¿Cuántos panes van en cada bolsa?` },
+  { obj: 'mata', u: 'plántulas', grupo: { nombre: 'Vecino', dibujo: 'adulto' }, t: (_q, n, k) => `El vivero regala ${n} plántulas de café a ${k} vecinos de la vereda, la misma cantidad a cada uno. ¿Cuántas plántulas recibe cada vecino?` },
+  { obj: 'limon', u: 'limones', grupo: { nombre: 'Malla' }, t: (q, n, k) => `${mayus(q)} reparte ${n} limones en ${k} mallas iguales para la tienda. ¿Cuántos limones lleva cada malla?` },
+  { obj: 'aguacate', u: 'aguacates', grupo: { nombre: 'Canasto', dibujo: 'canasta' }, t: (_q, n, k) => `Para la cooperativa reparten ${n} aguacates en ${k} canastos, sin que a ninguno le falte. ¿Cuántos aguacates van en cada canasto?` },
+  { obj: 'mazorca', u: 'mazorcas', grupo: { nombre: 'Trabajador', dibujo: 'adulto' }, t: (_q, n, k) => `Hay ${n} mazorcas de cacao para partir y ${k} trabajadores, que se las reparten por igual. ¿Cuántas mazorcas parte cada trabajador?` },
+  { obj: 'platano', u: 'plátanos', grupo: { nombre: 'Familia', dibujo: 'adulto' }, t: (q, n, k) => `${mayus(q)} reparte ${n} plátanos entre ${k} familias vecinas, la misma cantidad a cada familia. ¿Cuántos plátanos recibe cada una?` },
+  { obj: 'moneda', u: 'monedas', grupo: { nombre: 'Alcancía' }, t: (q, n, k) => `${mayus(q)} guarda ${n} monedas en ${k} alcancías, la misma cantidad en cada una. ¿Cuántas monedas van en cada alcancía?` },
+  { obj: 'bulto', u: 'bultos', grupo: { nombre: 'Finca' }, t: (_q, n, k) => `En la bodega de la cooperativa hay ${n} bultos de abono para ${k} fincas, la misma cantidad para cada finca. ¿Cuántos bultos le tocan a cada finca?` },
+  { obj: 'huevo', u: 'huevos', grupo: { nombre: 'Canasta', dibujo: 'canasta' }, t: (q, n, k) => `${mayus(q)} lleva ${n} huevos a la feria en ${k} canastas con la misma cantidad. ¿Cuántos huevos van en cada canasta?` },
+  { obj: 'limon', u: 'limones', grupo: { nombre: 'Niño', dibujo: 'nino' }, t: (_q, n, k) => `Para preparar limonada, la profe reparte ${n} limones entre ${k} niños por partes iguales. ¿Cuántos limones exprime cada niño?` },
+  { obj: 'aguacate', u: 'aguacates', grupo: { nombre: 'Vecino', dibujo: 'adulto' }, t: (q, n, k) => `${mayus(q)} regala ${n} aguacates a ${k} vecinos, a todos por igual. ¿Cuántos aguacates recibe cada vecino?` },
+  { obj: 'semilla', u: 'semillas', grupo: { nombre: 'Surco' }, t: (q, n, k) => `${mayus(q)} siembra ${n} semillas de fríjol en ${k} surcos, las mismas en cada surco. ¿Cuántas semillas van en cada surco?` },
+  { obj: 'pan', u: 'panes', grupo: { nombre: 'Mesa', dibujo: 'mesa' }, t: (_q, n, k) => `En la reunión de padres de familia reparten ${n} panes en ${k} mesas por igual. ¿Cuántos panes ponen en cada mesa?` },
+  { obj: 'moneda', u: 'monedas', grupo: { nombre: 'Nieto', dibujo: 'nino' }, t: (_q, n, k) => `La abuela reparte ${n} monedas entre sus ${k} nietos, la misma cantidad a cada uno. ¿Cuántas monedas recibe cada nieto?` },
+  { obj: 'naranja', u: 'naranjas', grupo: { nombre: 'Bolsa', dibujo: 'bolsa' }, t: (q, n, k) => `${mayus(q)} reparte ${n} naranjas en ${k} bolsas iguales para mandarlas en la chiva. ¿Cuántas naranjas van en cada bolsa?` },
+  { obj: 'mazorca', u: 'mazorcas', grupo: { nombre: 'Canasta', dibujo: 'canasta' }, t: (_q, n, k) => `Para llevarlas al cajón de fermentación, acomodan ${n} mazorcas de cacao en ${k} canastas iguales. ¿Cuántas mazorcas van en cada canasta?` },
+  { obj: 'platano', u: 'plátanos', grupo: { nombre: 'Caja', dibujo: 'caja' }, t: (_q, n, k) => `La finca manda ${n} plátanos al mercado del pueblo en ${k} cajas con la misma cantidad. ¿Cuántos plátanos van en cada caja?` },
+  { obj: 'arepa', u: 'arepas', grupo: { nombre: 'Trabajador', dibujo: 'adulto' }, t: (q, n, k) => `${mayus(q)} reparte ${n} arepas entre ${k} trabajadores del corte de café, a todos por igual. ¿Cuántas arepas le tocan a cada trabajador?` },
+  { obj: 'mandarina', u: 'mandarinas', grupo: { nombre: 'Bolsa', dibujo: 'bolsa' }, t: (_q, n, k) => `Para el paseo de la escuela empacan ${n} mandarinas en ${k} bolsas iguales. ¿Cuántas mandarinas lleva cada bolsa?` },
+];
+
 const reparto: Plantilla = {
   id: 'g3-reparto',
   dimension: 'problemas',
@@ -551,17 +714,13 @@ const reparto: Plantilla = {
     const k = rng.entero(2, lerp(5, 9, dif(ctx)));
     const q = rng.entero(2, lerp(6, 15, dif(ctx)));
     const n = k * q;
-    const quien = adulto(rng);
-    const v = rng.elegir([
-      { t: `${mayus(quien.nombre)} reparte ${n} arepas en partes iguales entre ${k} mesas del refrigerio escolar. ¿Cuántas arepas van en cada mesa?`, obj: 'arepa' as const, u: 'arepas', grupo: { nombre: 'Mesa', dibujo: 'mesa' as const } },
-      { t: `El profe Julián reparte ${n} semillas de maíz entre ${k} grupos de la huerta escolar, la misma cantidad para cada grupo. ¿Cuántas semillas recibe cada grupo?`, obj: 'semilla' as const, u: 'semillas', grupo: { nombre: 'Grupo', dibujo: 'nino' as const } },
-      { t: `${mayus(quien.nombre)} reparte ${n} naranjas en ${k} canastas iguales para llevar al mercado. ¿Cuántas naranjas van en cada canasta?`, obj: 'naranja' as const, u: 'naranjas', grupo: { nombre: 'Canasta', dibujo: 'canasta' as const } },
-    ]);
+    const v = rng.elegir(escenasReparto);
+    const texto = v.t(adulto(rng).nombre, n, k);
     const calc: Calculo = { op: 'division', a: n, b: k };
     const arrastrar = n <= 18 && rng.azar(0.4);
     const modo = modoRespuesta(ctx, q, calc, { extras: [n - k, k] });
     return {
-      enunciado: arrastrar ? `${v.t} Arrastra para repartir.` : v.t,
+      enunciado: arrastrar ? `${texto} Arrastra para repartir.` : texto,
       instruccion: 'Reparte igual',
       ilustracion: v.obj,
       datos: { n, k },
@@ -579,6 +738,25 @@ const reparto: Plantilla = {
   },
 };
 
+/** Escenas de agrupación: n cosas en grupos de k; se pregunta cuántos grupos. obj: lo que va en cada fila del arreglo. */
+type EscenaAgrupar = { u: string; obj?: Objeto; dibujo?: Objeto; t: (q: string, n: number, k: number) => string };
+const escenasAgrupar: EscenaAgrupar[] = [
+  { u: 'bolsas', obj: 'aguacate', dibujo: 'aguacate', t: (q, n, k) => `${mayus(q)} empaca ${n} aguacates en bolsas de ${k}. ¿Cuántas bolsas llena?` },
+  { u: 'cubetas', obj: 'huevo', dibujo: 'cubeta', t: (q, n, k) => `${mayus(q)} acomoda ${n} huevos en cubetas pequeñas de ${k}. ¿Cuántas cubetas llena?` },
+  // Los kilos no se dibujan uno por uno.
+  { u: 'bolsas', dibujo: 'bolsa', t: (_q, n, k) => `En la cooperativa empacan ${n} kilos de cacao en bolsas de ${k} kilos. ¿Cuántas bolsas llenan?` },
+  { u: 'mallas', obj: 'naranja', dibujo: 'naranja', t: (q, n, k) => `${mayus(q)} tiene ${n} naranjas y las vende en mallas de ${k}. ¿Cuántas mallas arma?` },
+  { u: 'grupos', t: (_q, n, k) => `En la escuela hay ${n} niños para trabajar en la huerta, en grupos de ${k}. ¿Cuántos grupos se forman?` },
+  { u: 'surcos', obj: 'mata', dibujo: 'mata', t: (q, n, k) => `${mayus(q)} va a sembrar ${n} plántulas de cacao, ${k} en cada surco. ¿Cuántos surcos necesita?` },
+  { u: 'bolsas', obj: 'pan', dibujo: 'pan', t: (_q, n, k) => `Para el refrigerio hay ${n} panes y se empacan ${k} en cada bolsa. ¿Cuántas bolsas salen?` },
+  { u: 'paquetes', obj: 'arepa', dibujo: 'arepa', t: (q, n, k) => `${mayus(q)} hizo ${n} arepas y las vende en paquetes de ${k}. ¿Cuántos paquetes completa?` },
+  { u: 'huecos', obj: 'semilla', dibujo: 'semilla', t: (_q, n, k) => `En la huerta escolar echan ${k} semillas de maíz en cada hueco. Tienen ${n} semillas. ¿Cuántos huecos alcanzan a sembrar?` },
+  { u: 'canastillas', obj: 'mandarina', dibujo: 'mandarina', t: (_q, n, k) => `En la finca cogieron ${n} mandarinas y las ponen en canastillas de ${k}. ¿Cuántas canastillas llenan?` },
+  { u: 'viajes', obj: 'bulto', dibujo: 'bulto', t: (_q, n, k) => `El carro de la cooperativa lleva ${k} bultos de cacao en cada viaje. Hay ${n} bultos para llevar. ¿Cuántos viajes hace?` },
+  { u: 'manos', obj: 'platano', dibujo: 'platano', t: (q, n, k) => `${mayus(q)} cortó ${n} plátanos y los arma en manos de ${k}. ¿Cuántas manos salen?` },
+  { u: 'bolsas', obj: 'limon', dibujo: 'limon', t: (_q, n, k) => `En la tienda de la vereda empacan ${n} limones, ${k} en cada bolsa. ¿Cuántas bolsas llenan?` },
+];
+
 const agrupacion: Plantilla = {
   id: 'g3-agrupacion',
   dimension: 'problemas',
@@ -589,16 +767,11 @@ const agrupacion: Plantilla = {
     const k = rng.entero(2, lerp(5, 10, dif(ctx)));
     const q = rng.entero(2, lerp(6, 12, dif(ctx)));
     const n = k * q;
-    const v = rng.elegir([
-      // obj: lo que se cuenta en cada fila del arreglo (los kilos no se dibujan uno por uno).
-      { t: `La abuela Carmen empaca ${n} aguacates en bolsas de ${k}. ¿Cuántas bolsas llena?`, u: 'bolsas', obj: 'aguacate' as Objeto | undefined, dibujo: 'aguacate' as Objeto },
-      { t: `${mayus(adulto(rng).nombre)} acomoda ${n} huevos en cubetas de ${k}. ¿Cuántas cubetas llena?`, u: 'cubetas', obj: 'huevo' as Objeto | undefined, dibujo: 'cubeta' as Objeto },
-      { t: `En la cooperativa empacan ${n} kilos de cacao en bolsas de ${k} kilos. ¿Cuántas bolsas llenan?`, u: 'bolsas', obj: undefined, dibujo: 'bolsa' as Objeto },
-    ]);
+    const v = rng.elegir(escenasAgrupar);
     const calc: Calculo = { op: 'division', a: n, b: k };
     const modo = modoRespuesta(ctx, q, calc, { extras: [n - k, k] });
     return {
-      enunciado: v.t,
+      enunciado: v.t(adulto(rng).nombre, n, k),
       instruccion: 'Haz grupos',
       ilustracion: v.dibujo,
       datos: { n, k },
@@ -612,6 +785,29 @@ const agrupacion: Plantilla = {
   },
 };
 
+/** Escenas de «la división deshace la multiplicación»: a grupos de b son p. */
+type EscenaRelacion = { obj: Objeto; t: (q: string, a: number, b: number, p: number) => string; grupo: string };
+const escenasDeshacer: EscenaRelacion[] = [
+  { obj: 'arbol', grupo: 'surcos', t: (q, a, b, p) => `${mayus(q)} sabe que ${a} surcos de ${b} árboles son ${p} árboles (${a} × ${b} = ${p}). Si siembra ${p} árboles en surcos de ${b}, ¿cuántos surcos forma? (${p} ÷ ${b})` },
+  { obj: 'naranja', grupo: 'bolsas', t: (q, a, b, p) => `${mayus(q)} sabe que ${a} bolsas de ${b} naranjas son ${p} naranjas (${a} × ${b} = ${p}). Con ${p} naranjas, ¿cuántas bolsas de ${b} llena? (${p} ÷ ${b})` },
+  { obj: 'huevo', grupo: 'cajas', t: (_q, a, b, p) => `En la tienda saben que ${a} cajas de ${b} huevos son ${p} huevos (${a} × ${b} = ${p}). Si llegan ${p} huevos, ¿cuántas cajas de ${b} se arman? (${p} ÷ ${b})` },
+  { obj: 'arepa', grupo: 'mesas', t: (_q, a, b, p) => `En el refrigerio, ${a} mesas con ${b} arepas cada una suman ${p} arepas (${a} × ${b} = ${p}). Si hay ${p} arepas y van ${b} por mesa, ¿cuántas mesas se sirven? (${p} ÷ ${b})` },
+  { obj: 'pan', grupo: 'paquetes', t: (q, a, b, p) => `${mayus(q)} recuerda que ${a} paquetes de ${b} panes son ${p} panes (${a} × ${b} = ${p}). ¿Cuántos paquetes de ${b} salen de ${p} panes? (${p} ÷ ${b})` },
+  { obj: 'bulto', grupo: 'viajes', t: (_q, a, b, p) => `En ${a} viajes de ${b} bultos, el carro de la cooperativa lleva ${p} bultos (${a} × ${b} = ${p}). Si hay ${p} bultos y lleva ${b} por viaje, ¿cuántos viajes hace? (${p} ÷ ${b})` },
+  { obj: 'semilla', grupo: 'huecos', t: (q, a, b, p) => `${mayus(q)} sabe que en ${a} huecos con ${b} semillas caben ${p} semillas (${a} × ${b} = ${p}). Si tiene ${p} semillas y echa ${b} por hueco, ¿cuántos huecos siembra? (${p} ÷ ${b})` },
+  { obj: 'mazorca', grupo: 'canastos', t: (_q, a, b, p) => `${a} canastos con ${b} mazorcas cada uno son ${p} mazorcas (${a} × ${b} = ${p}). Si cortaron ${p} mazorcas y caben ${b} en cada canasto, ¿cuántos canastos llenan? (${p} ÷ ${b})` },
+];
+const escenasPariente: EscenaRelacion[] = [
+  { obj: 'mandarina', grupo: 'canasta', t: (q, _a, b, p) => `${mayus(q)} quiere repartir ${p} mandarinas en ${b} canastas iguales (${p} ÷ ${b}). ¿Qué multiplicación le ayuda a resolverlo?` },
+  { obj: 'limon', grupo: 'bolsa', t: (q, _a, b, p) => `${mayus(q)} va a empacar ${p} limones en ${b} bolsas con la misma cantidad (${p} ÷ ${b}). ¿Qué multiplicación sirve para saber cuántos van en cada bolsa?` },
+  { obj: 'semilla', grupo: 'sobre', t: (_q, _a, b, p) => `En la huerta escolar hay ${p} semillas para ${b} sobres iguales (${p} ÷ ${b}). ¿Qué multiplicación ayuda a encontrar cuántas van en cada sobre?` },
+  { obj: 'huevo', grupo: 'caja', t: (q, _a, b, p) => `${mayus(q)} reparte ${p} huevos en ${b} cajas iguales (${p} ÷ ${b}). ¿Con qué multiplicación lo comprueba?` },
+  { obj: 'aguacate', grupo: 'canasto', t: (_q, _a, b, p) => `Hay ${p} aguacates para ${b} canastos con la misma cantidad (${p} ÷ ${b}). ¿Qué multiplicación te dice cuántos van en cada canasto?` },
+  { obj: 'arepa', grupo: 'mesa', t: (_q, _a, b, p) => `En el restaurante escolar reparten ${p} arepas en ${b} mesas por igual (${p} ÷ ${b}). ¿Qué multiplicación usarías para saber cuántas van por mesa?` },
+  { obj: 'mata', grupo: 'surco', t: (q, _a, b, p) => `${mayus(q)} siembra ${p} plántulas de cacao en ${b} surcos iguales (${p} ÷ ${b}). ¿Qué multiplicación le ayuda a saber cuántas van en cada surco?` },
+  { obj: 'naranja', grupo: 'niño', t: (_q, _a, b, p) => `La profe reparte ${p} naranjas entre ${b} niños por igual (${p} ÷ ${b}). ¿Qué multiplicación ayuda a saber cuántas le tocan a cada niño?` },
+];
+
 const relacionDivision: Plantilla = {
   id: 'g3-relacion-division',
   dimension: 'comprension',
@@ -622,38 +818,56 @@ const relacionDivision: Plantilla = {
     const a = rng.entero(2, 9);
     const b = rng.entero(2, 9);
     const p = a * b;
-    const quien = persona(rng);
+    const quien = adulto(rng).nombre;
     if (rng.azar(0.5)) {
+      const v = rng.elegir(escenasDeshacer);
       const distr = distractores(rng, a, [b === a ? a + 1 : b, p - b, a + 1], 3, dif(ctx));
       return {
-        enunciado: `${quien.nombre} sabe que ${a} surcos de ${b} árboles son ${p} árboles (${a} × ${b} = ${p}). Si reparte ${p} árboles en surcos de ${b}, ¿cuántos surcos forma? (${p} ÷ ${b})`,
+        enunciado: v.t(quien, a, b, p),
         instruccion: 'Usa la multiplicación',
-        ilustracion: 'arbol',
+        ilustracion: v.obj,
         datos: { a, b, p },
         respuesta: a,
         distractores: distr,
         interaccion: { tipo: 'opciones', opciones: mezclarOpciones(rng, a, distr) },
         calculo: { op: 'division', a: p, b },
-        pistas: ['La división deshace la multiplicación.', { tipo: 'arreglo', filas: a, columnas: b, objeto: 'arbol' }, `${a} × ${b} = ${p}, entonces ${p} ÷ ${b} = ${a}.`],
+        pistas: ['La división deshace la multiplicación.', { tipo: 'arreglo', filas: a, columnas: b, objeto: v.obj }, `${a} × ${b} = ${p}, entonces ${p} ÷ ${b} = ${a}: son ${a} ${v.grupo}.`],
         explicacion: `Como ${a} × ${b} = ${p}, entonces ${p} ÷ ${b} = ${a}.`,
       };
     }
+    const v = rng.elegir(escenasPariente);
     const correcta = `${b} × ${a} = ${p}`;
     const otras = [`${b} + ${a} = ${b + a}`, `${p} − ${b} = ${p - b}`, `${b} × ${a + 1} = ${b * (a + 1)}`];
     const opciones = rng.barajar([correcta, ...otras]);
     return {
-      enunciado: `${quien.nombre} quiere repartir ${p} mandarinas en ${b} canastas iguales (${p} ÷ ${b}). ¿Qué multiplicación le ayuda a resolverlo?`,
+      enunciado: v.t(quien, a, b, p),
       instruccion: 'Elige la multiplicación',
-      ilustracion: 'mandarina',
+      ilustracion: v.obj,
       datos: { a, b, p },
       respuesta: correcta,
       distractores: otras,
       interaccion: { tipo: 'opciones', opciones },
-      pistas: [`Busca un número que, multiplicado por ${b}, dé ${p}.`, { tipo: 'arreglo', filas: b, columnas: a, objeto: 'mandarina' }, `${b} × ${a} = ${p}, así que cada canasta lleva ${a}.`],
+      pistas: [`Busca un número que, multiplicado por ${b}, dé ${p}.`, { tipo: 'arreglo', filas: b, columnas: a, objeto: v.obj }, `${b} × ${a} = ${p}, así que a cada ${v.grupo} le tocan ${a}.`],
       explicacion: `${p} ÷ ${b} = ${a} porque ${b} × ${a} = ${p}.`,
     };
   },
 };
+
+/** Pequeños contextos para dividir n entre k en partes iguales (con su dibujo). */
+const contextosDivision: { dibujo?: Objeto; t: (q: string, n: number, k: number) => string }[] = [
+  { dibujo: 'bulto', t: (q, n, k) => `${mayus(q)} tiene ${n} kilos de café para empacar en ${k} costales con el mismo peso.` },
+  { dibujo: 'huevo', t: (q, n, k) => `${mayus(q)} acomoda ${n} huevos en ${k} cajas iguales.` },
+  { dibujo: 'mata', t: (_q, n, k) => `En el vivero hay ${n} plántulas para ${k} surcos iguales.` },
+  { dibujo: 'naranja', t: (q, n, k) => `${mayus(q)} reparte ${n} naranjas en ${k} canastas con la misma cantidad.` },
+  { dibujo: 'arepa', t: (_q, n, k) => `En el refrigerio hay ${n} arepas para ${k} mesas, la misma cantidad en cada una.` },
+  { t: (q, n, k) => `${mayus(q)} parte ${n} metros de cerca en ${k} tramos iguales.` },
+  { dibujo: 'semilla', t: (_q, n, k) => `En la huerta escolar guardan ${n} semillas en ${k} sobres iguales.` },
+  { dibujo: 'bulto', t: (_q, n, k) => `En la cooperativa reparten ${n} kilos de cacao seco en ${k} bultos con el mismo peso.` },
+  { dibujo: 'pan', t: (_q, n, k) => `Para el paseo, la profe empaca ${n} panes en ${k} bolsas iguales.` },
+  { dibujo: 'mandarina', t: (q, n, k) => `${mayus(q)} reparte ${n} mandarinas entre ${k} niños por partes iguales.` },
+  { dibujo: 'moneda', t: (q, n, k) => `${mayus(q)} reparte ${n} monedas en ${k} alcancías por igual.` },
+  { t: () => `Sin dibujos, solo con lo que sabes de multiplicar.` },
+];
 
 const divisionCalculo: Plantilla = {
   id: 'g3-division-calculo',
@@ -667,10 +881,12 @@ const divisionCalculo: Plantilla = {
     const n = k * q;
     const calc: Calculo = { op: 'division', a: n, b: k };
     const modo = modoRespuesta(ctx, q, calc, { abiertaMin: 0.3, abiertaMax: 0.9, extras: [n - k] });
+    const c = rng.elegir(contextosDivision);
+    const pedido = rng.elegir([`Resuelve: ${n} ÷ ${k} = ?`, `Divide: ${n} ÷ ${k}.`, `¿Cuánto es ${n} ÷ ${k}?`, `Calcula ${n} ÷ ${k} con la tabla del ${k}.`]);
     return {
-      enunciado: `${mayus(adulto(rng).nombre)} tiene ${n} kilos de café para empacar en ${k} costales con el mismo peso. Resuelve: ${n} ÷ ${k} = ?`,
+      enunciado: `${c.t(adulto(rng).nombre, n, k)} ${pedido}`,
       instruccion: 'Divide',
-      ilustracion: 'bulto',
+      ilustracion: c.dibujo,
       datos: { n, k },
       respuesta: q,
       ...modo,
@@ -703,24 +919,36 @@ const dosPasos: Plantilla = {
       const c = rng.entero(10, a + b - 5);
       respuesta = a + b - c;
       calc = { op: 'resta', a: a + b, b: c };
-      enunciado = `${x.nombre} y su familia cortaron ${a} mazorcas de cacao el lunes y ${b} el martes. Guardaron ${c} para semilla y el resto lo llevaron al cajón de fermentación.${extra} ¿Cuántas mazorcas llevaron al cajón?`;
-      paso1 = `Primero junta lo de los dos días: ${a} + ${b} = ${a + b}.`;
+      [enunciado, paso1] = rng.elegir<[string, string]>([
+        [`${x.nombre} y su familia cortaron ${a} mazorcas de cacao el lunes y ${b} el martes. Guardaron ${c} para semilla y el resto lo llevaron al cajón de fermentación.${extra} ¿Cuántas mazorcas llevaron al cajón?`, `Primero junta lo de los dos días: ${a} + ${b} = ${a + b}.`],
+        [`En el galpón de ${x.nombre} recogieron ${a} huevos en marzo y ${b} en abril. Vendieron ${c} en la tienda de la vereda.${extra} ¿Cuántos huevos quedan?`, `Primero junta los huevos de los dos meses: ${a} + ${b} = ${a + b}.`],
+        [`El vivero de la vereda tenía ${a} plántulas de café y le llegaron ${b} más. Ya entregó ${c} a los vecinos.${extra} ¿Cuántas plántulas quedan en el vivero?`, `Primero calcula cuántas plántulas hubo: ${a} + ${b} = ${a + b}.`],
+        [`La cooperativa recibió ${a} kilos de cacao de una vereda y ${b} de otra. Despachó ${c} kilos al casco urbano.${extra} ¿Cuántos kilos le quedan?`, `Primero junta lo que recibió: ${a} + ${b} = ${a + b}.`],
+      ]);
     } else if (tipo === 'mult-resta') {
       const f = rng.entero(3, 9);
       const c = rng.entero(6, lerp(12, 40, d));
       const v = rng.entero(5, f * c - 1);
       respuesta = f * c - v;
       calc = { op: 'resta', a: f * c, b: v };
-      enunciado = `${mayus(adulto(rng).nombre)} llevó ${f} canastas con ${c} naranjas cada una al mercado del pueblo y vendió ${v} naranjas.${extra} ¿Cuántas naranjas le quedaron?`;
-      paso1 = `Primero calcula cuántas naranjas llevó: ${f} × ${c} = ${f * c}.`;
+      const A = mayus(adulto(rng).nombre);
+      [enunciado, paso1] = rng.elegir<[string, string]>([
+        [`${A} llevó ${f} canastas con ${c} naranjas cada una al mercado del pueblo y vendió ${v} naranjas.${extra} ¿Cuántas naranjas le quedaron?`, `Primero calcula cuántas naranjas llevó: ${f} × ${c} = ${f * c}.`],
+        [`En la feria del pueblo, ${A} llevó ${f} paquetes de ${c} arepas y vendió ${v} arepas.${extra} ¿Cuántas arepas le sobraron?`, `Primero calcula cuántas arepas llevó: ${f} × ${c} = ${f * c}.`],
+        [`En la huerta escolar hay ${f} surcos con ${c} matas de cebolla. Ya cosecharon ${v} matas.${extra} ¿Cuántas matas faltan por cosechar?`, `Primero calcula cuántas matas hay: ${f} × ${c} = ${f * c}.`],
+      ]);
     } else {
       const f = rng.entero(3, 9);
       const c = rng.entero(6, lerp(12, 40, d));
       const e = rng.entero(5, lerp(30, 200, d));
       respuesta = f * c + e;
       calc = { op: 'suma', a: f * c, b: e };
-      enunciado = `En la finca de ${adulto(rng).nombre} hay ${f} surcos con ${c} árboles de café cada uno, y ${e} árboles sueltos cerca de la casa.${extra} ¿Cuántos árboles de café hay en total?`;
-      paso1 = `Primero calcula los árboles de los surcos: ${f} × ${c} = ${f * c}.`;
+      const A = adulto(rng).nombre;
+      [enunciado, paso1] = rng.elegir<[string, string]>([
+        [`En la finca de ${A} hay ${f} surcos con ${c} árboles de café cada uno, y ${e} árboles sueltos cerca de la casa.${extra} ¿Cuántos árboles de café hay en total?`, `Primero calcula los árboles de los surcos: ${f} × ${c} = ${f * c}.`],
+        [`${mayus(A)} tiene ${f} canastos con ${c} mazorcas de cacao cada uno y ${e} mazorcas sueltas en el patio.${extra} ¿Cuántas mazorcas tiene?`, `Primero calcula las mazorcas de los canastos: ${f} × ${c} = ${f * c}.`],
+        [`Para el refrigerio llegaron ${f} bolsas con ${c} panes cada una y otros ${e} panes sueltos.${extra} ¿Cuántos panes llegaron?`, `Primero calcula los panes de las bolsas: ${f} × ${c} = ${f * c}.`],
+      ]);
     }
     const modo = modoRespuesta(ctx, respuesta, calc, { extras: tipo === 'suma-resta' ? [calc.a] : [calc.a] });
     return {
@@ -754,13 +982,34 @@ const razonable: Plantilla = {
       const b = rng.entero(3, 9);
       real = a * b;
       datos = { a, b };
-      texto = `${quien.nombre} calculó cuántos kilos de cacao carga la mula en ${b} viajes de ${a} kilos.`;
+      const Q = quien.nombre;
+      texto = rng.elegir([
+        `${Q} calculó cuántos kilos de cacao carga la mula en ${b} viajes de ${a} kilos.`,
+        `${Q} calculó cuántas naranjas hay en ${b} canastas de ${a} naranjas.`,
+        `${Q} calculó cuántos metros camina en ${b} días si cada día camina ${a} metros.`,
+        `${Q} multiplicó para saber cuántos aguacates dan ${b} árboles con ${a} aguacates cada uno.`,
+        `${Q} calculó los kilos de café que cogen ${b} recolectores si cada uno coge ${a} kilos.`,
+        `${Q} calculó cuántos huevos da el galpón en ${b} semanas, a ${a} huevos por semana.`,
+        `${Q} calculó cuántas arepas vende su mamá en ${b} días si vende ${a} cada día.`,
+        `${Q} calculó cuántas plántulas hay en ${b} camas del vivero con ${a} plántulas cada una.`,
+        `${Q} multiplicó para saber cuántos litros de leche se venden en ${b} días, a ${a} litros por día.`,
+      ]);
     } else {
       const a = rng.entero(1100, 4800);
       const b = rng.entero(1100, 4800);
       real = a + b;
       datos = { a, b };
-      texto = `${quien.nombre} sumó los kilos de café de dos semanas: ${num(a)} y ${num(b)}.`;
+      const Q = quien.nombre;
+      texto = rng.elegir([
+        `${Q} sumó los kilos de café de dos semanas: ${num(a)} y ${num(b)}.`,
+        `${Q} sumó los kilos de cacao que recibió la cooperativa en dos meses: ${num(a)} y ${num(b)}.`,
+        `${Q} sumó los metros del camino: de su casa a la escuela hay ${num(a)} metros y de la escuela al pueblo, ${num(b)}.`,
+        `${Q} sumó lo que pagó en la tienda: ${pesos(a)} por el arroz y ${pesos(b)} por la panela.`,
+        `${Q} sumó las plántulas de los dos viveros de la vereda: ${num(a)} y ${num(b)}.`,
+        `${Q} sumó los huevos que vendió la granja en dos meses: ${num(a)} y ${num(b)}.`,
+        `${Q} sumó las mazorcas de cacao de dos lotes: ${num(a)} y ${num(b)}.`,
+        `${Q} sumó los litros de leche que entregó la vereda en dos semanas: ${num(a)} y ${num(b)}.`,
+      ]);
     }
     const escala = mult ? 100 : 1000;
     const estimacion = redondear(real, escala);
@@ -769,7 +1018,7 @@ const razonable: Plantilla = {
     const propuesto = esRaz ? real : rng.elegir(lejanos);
     const distr = [estimacion + 2 * escala, estimacion - 2 * escala, estimacion + 4 * escala].filter((x) => x > 0 && x <= LIMITE).slice(0, 2);
     return {
-      enunciado: `${texto} Dice que el resultado es ${num(propuesto)}. ¿Es razonable? Después, elige la mejor estimación.`,
+      enunciado: `${texto} ${rng.elegir(['Dice que el resultado es', 'Su respuesta fue', 'En el cuaderno anotó'])} ${num(propuesto)}. ¿Es razonable? Después, elige la mejor estimación.`,
       instruccion: '¿Tiene sentido?',
       datos: { ...datos, propuesto },
       respuesta: `${esRaz ? 'si' : 'no'}:${estimacion}`,
@@ -785,6 +1034,37 @@ const razonable: Plantilla = {
   },
 };
 
+/** Tablas de empaque: cuántos recipientes de k se llenaron cada día. */
+type EscenaEmpaque = { u: string; obj: Objeto; recip: string; recipPl: string; enc: string; t: (q: string, k: number, dia: string) => string };
+const escenasEmpaque: EscenaEmpaque[] = [
+  { u: 'naranjas', obj: 'naranja', recip: 'canastilla', recipPl: 'canastillas', enc: 'Canastillas', t: (q, k, dia) => `${mayus(q)} empaca naranjas en canastillas de ${k}. La tabla muestra cuántas canastillas llenó cada día. ¿Cuántas naranjas empacó el ${dia}?` },
+  { u: 'huevos', obj: 'huevo', recip: 'caja', recipPl: 'cajas', enc: 'Cajas', t: (q, k, dia) => `${mayus(q)} vende huevos en cajas de ${k}. En la tabla están las cajas que vendió cada día. ¿Cuántos huevos vendió el ${dia}?` },
+  { u: 'aguacates', obj: 'aguacate', recip: 'bolsa', recipPl: 'bolsas', enc: 'Bolsas', t: (q, k, dia) => `Para el mercado, ${q} arma bolsas de ${k} aguacates. La tabla dice cuántas bolsas armó cada día. ¿Cuántos aguacates empacó el ${dia}?` },
+  { u: 'arepas', obj: 'arepa', recip: 'paquete', recipPl: 'paquetes', enc: 'Paquetes', t: (q, k, dia) => `${mayus(q)} vende arepas en paquetes de ${k}. Mira en la tabla los paquetes que vendió cada día. ¿Cuántas arepas vendió el ${dia}?` },
+  { u: 'plátanos', obj: 'platano', recip: 'mano', recipPl: 'manos', enc: 'Manos', t: (_q, k, dia) => `En la tienda de la vereda cada mano de plátano trae ${k} plátanos. La tabla muestra las manos que se vendieron cada día. ¿Cuántos plátanos se vendieron el ${dia}?` },
+  { u: 'semillas', obj: 'semilla', recip: 'sobre', recipPl: 'sobres', enc: 'Sobres', t: (_q, k, dia) => `En la huerta escolar guardan semillas de maíz en sobres de ${k}. La tabla muestra cuántos sobres llenaron cada día. ¿Cuántas semillas guardaron el ${dia}?` },
+  { u: 'panes', obj: 'pan', recip: 'bandeja', recipPl: 'bandejas', enc: 'Bandejas', t: (_q, k, dia) => `En la panadería del pueblo cada bandeja lleva ${k} panes. La tabla dice cuántas bandejas hornearon cada día. ¿Cuántos panes hornearon el ${dia}?` },
+  { u: 'mazorcas', obj: 'mazorca', recip: 'canasto', recipPl: 'canastos', enc: 'Canastos', t: (q, k, dia) => `En la finca de ${q} llenan canastos con ${k} mazorcas de cacao. La tabla muestra los canastos de cada día. ¿Cuántas mazorcas cortaron el ${dia}?` },
+];
+
+/** Registros de la finca en tres semanas o meses (para sumar o comparar). */
+type Registro = { u: string; g: Genero; obj?: Objeto; desc: (q: string) => string; verbo: string };
+const registros: Registro[] = [
+  { u: 'kilos', g: 'm', obj: 'bulto', desc: (q) => `los kilos de cacao que ${q} llevó a la cooperativa`, verbo: 'llevó' },
+  { u: 'kilos', g: 'm', obj: 'bulto', desc: (q) => `los kilos de café que ${q} vendió en el pueblo`, verbo: 'vendió' },
+  { u: 'huevos', g: 'm', obj: 'huevo', desc: (q) => `los huevos que ${q} recogió en el galpón`, verbo: 'recogió' },
+  { u: 'litros', g: 'm', desc: (q) => `los litros de leche que ${q} entregó al carro lechero`, verbo: 'entregó' },
+  { u: 'plántulas', g: 'f', obj: 'mata', desc: () => `las plántulas de cacao que entregó el vivero de la vereda`, verbo: 'entregó' },
+  { u: 'naranjas', g: 'f', obj: 'naranja', desc: (q) => `las naranjas que ${q} vendió en el mercado del pueblo`, verbo: 'vendió' },
+  { u: 'mazorcas', g: 'f', obj: 'mazorca', desc: (q) => `las mazorcas de cacao que cortó la familia de ${q}`, verbo: 'cortó' },
+];
+const periodos = [
+  { enc: 'Semana', filas: ['Semana 1', 'Semana 2', 'Semana 3'], en: (s: string) => `en la ${s.toLowerCase()}`, todo: 'en las tres semanas' },
+  { enc: 'Mes', filas: ['Enero', 'Febrero', 'Marzo'], en: (s: string) => `en ${s.toLowerCase()}`, todo: 'en los tres meses' },
+  { enc: 'Mes', filas: ['Agosto', 'Septiembre', 'Octubre'], en: (s: string) => `en ${s.toLowerCase()}`, todo: 'en los tres meses' },
+];
+const DIAS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
 const tablaDatos: Plantilla = {
   id: 'g3-tabla',
   dimension: 'aplicacion',
@@ -797,30 +1077,36 @@ const tablaDatos: Plantilla = {
     const quien = adulto(rng);
     if (modo === 'mult') {
       const k = rng.entero(3, 9);
-      const dias = ['lunes', 'martes', 'miércoles'];
+      const inicio = rng.entero(0, 3);
+      const dias = DIAS.slice(inicio, inicio + 3);
       const cant = dias.map(() => rng.entero(2, 10));
       const i = rng.entero(0, 2);
       const respuesta = cant[i] * k;
       const calc: Calculo = { op: 'multiplicacion', a: cant[i], b: k };
       const t = opcionesTabla(ctx, respuesta, calc);
+      const e = rng.elegir(escenasEmpaque);
       return {
-        enunciado: `${mayus(quien.nombre)} empaca naranjas en canastillas de ${k}. La tabla muestra cuántas canastillas llenó cada día. ¿Cuántas naranjas empacó el ${dias[i]}?`,
+        enunciado: e.t(quien.nombre, k, dias[i]),
         instruccion: 'Lee la tabla',
-        ilustracion: 'naranja',
+        ilustracion: e.obj,
         datos: { k, a: cant[0], b: cant[1], c: cant[2] },
         respuesta,
-        unidad: 'naranjas',
+        unidad: e.u,
         distractores: t.distractores,
-        interaccion: { tipo: 'tabla', encabezados: ['Día', 'Canastillas'], filas: dias.map((d, j) => [d, cant[j]]), opciones: t.opciones },
+        interaccion: { tipo: 'tabla', encabezados: ['Día', e.enc], filas: dias.map((d, j) => [d, cant[j]]), opciones: t.opciones },
         calculo: calc,
-        pistas: [`Busca el ${dias[i]} en la tabla. ¿Cuántas naranjas hay en cada canastilla?`, { tipo: 'arreglo', filas: cant[i], columnas: k, objeto: 'naranja' }, `${cant[i]} canastillas de ${k}: ${cant[i]} × ${k}.`],
-        explicacion: `${cant[i]} × ${k} = ${respuesta} naranjas.`,
+        pistas: [`Busca el ${dias[i]} en la tabla. ¿Cuánto trae cada ${e.recip}?`, { tipo: 'arreglo', filas: cant[i], columnas: k, objeto: e.obj }, `${cant[i]} ${e.recipPl} de ${k}: ${cant[i]} × ${k}.`],
+        explicacion: `${cant[i]} × ${k} = ${respuesta} ${e.u}.`,
       };
     }
-    const semanas = ['Semana 1', 'Semana 2', 'Semana 3'];
+    const reg = rng.elegir(registros);
+    const per = rng.elegir(periodos);
     const tope = cifras >= 4 ? 3200 : 300;
     const piso = cifras >= 4 ? 1000 : 100;
-    const valores = semanas.map(() => rng.entero(piso, tope));
+    const valores = per.filas.map(() => rng.entero(piso, tope));
+    const Cu = cuantosDe(reg.g);
+    const apertura = rng.elegir([`La tabla muestra ${reg.desc(quien.nombre)}.`, `En esta tabla están ${reg.desc(quien.nombre)}.`, `Mira la tabla con ${reg.desc(quien.nombre)}.`]);
+    const interaccionTabla = (opciones?: (number | string)[]) => ({ tipo: 'tabla' as const, encabezados: [per.enc, mayus(reg.u)], filas: per.filas.map((s, k) => [s, num(valores[k])]), opciones });
     if (modo === 'diferencia') {
       let [i, j] = rng.barajar([0, 1, 2]);
       if (valores[i] === valores[j]) valores[j] += 7;
@@ -829,34 +1115,34 @@ const tablaDatos: Plantilla = {
       const calc: Calculo = { op: 'resta', a: valores[i], b: valores[j] };
       const t = opcionesTabla(ctx, respuesta, calc, [valores[i] + valores[j]]);
       return {
-        enunciado: `La tabla muestra los kilos de cacao que ${quien.nombre} llevó a la cooperativa. ¿Cuántos kilos más llevó en la ${semanas[i].toLowerCase()} que en la ${semanas[j].toLowerCase()}?`,
+        enunciado: `${apertura} ¿${Cu} ${reg.u} más ${reg.verbo} ${per.en(per.filas[i])} que ${per.en(per.filas[j])}?`,
         instruccion: 'Lee la tabla',
-        ilustracion: 'bulto',
+        ilustracion: reg.obj,
         datos: { a: valores[0], b: valores[1], c: valores[2] },
         respuesta,
-        unidad: 'kilos',
+        unidad: reg.u,
         distractores: t.distractores,
-        interaccion: { tipo: 'tabla', encabezados: ['Semana', 'Kilos'], filas: semanas.map((s, k) => [s, num(valores[k])]), opciones: t.opciones },
+        interaccion: interaccionTabla(t.opciones),
         calculo: calc,
-        pistas: ['Busca las dos semanas. Para saber cuántos más, ¿sumas o restas?', { tipo: 'texto', texto: `${num(valores[i])} − ${num(valores[j])}` }, `Resta: ${num(valores[i])} − ${num(valores[j])}.`],
-        explicacion: `${num(valores[i])} − ${num(valores[j])} = ${num(respuesta)} kilos.`,
+        pistas: ['Busca las dos filas. Para saber cuántos más, ¿sumas o restas?', { tipo: 'texto', texto: `${num(valores[i])} − ${num(valores[j])}` }, `Resta: ${num(valores[i])} − ${num(valores[j])}.`],
+        explicacion: `${num(valores[i])} − ${num(valores[j])} = ${num(respuesta)} ${reg.u}.`,
       };
     }
     const respuesta = valores[0] + valores[1] + valores[2];
     const calc: Calculo = { op: 'suma', a: valores[0] + valores[1], b: valores[2] };
     const t = opcionesTabla(ctx, respuesta, calc, [valores[0] + valores[1]]);
     return {
-      enunciado: `La tabla muestra los kilos de cacao que ${quien.nombre} llevó a la cooperativa en tres semanas. ¿Cuántos kilos llevó en total?`,
+      enunciado: `${apertura} ¿${Cu} ${reg.u} ${reg.verbo} ${per.todo}?`,
       instruccion: 'Lee la tabla',
-      ilustracion: 'bulto',
+      ilustracion: reg.obj,
       datos: { a: valores[0], b: valores[1], c: valores[2] },
       respuesta,
-      unidad: 'kilos',
+      unidad: reg.u,
       distractores: t.distractores,
-      interaccion: { tipo: 'tabla', encabezados: ['Semana', 'Kilos'], filas: semanas.map((s, k) => [s, num(valores[k])]), opciones: t.opciones },
+      interaccion: interaccionTabla(t.opciones),
       calculo: calc,
       pistas: ['Para el total, ¿juntas o quitas?', { tipo: 'texto', texto: `${num(valores[0])} + ${num(valores[1])} + ${num(valores[2])}` }, `Primero ${num(valores[0])} + ${num(valores[1])} = ${num(valores[0] + valores[1])}; luego suma ${num(valores[2])}.`],
-      explicacion: `${num(valores[0])} + ${num(valores[1])} + ${num(valores[2])} = ${num(respuesta)} kilos.`,
+      explicacion: `${num(valores[0])} + ${num(valores[1])} + ${num(valores[2])} = ${num(respuesta)} ${reg.u}.`,
     };
   },
 };
@@ -885,18 +1171,29 @@ const tienda: Plantilla = {
       if (op === 'mult') {
         respuesta = total;
         calc = { op: 'multiplicacion', a: art.precio, b: x };
-        enunciado = `${nota} ${articuloUn(art.genero)} ${art.nombre} cuesta ${pesos(art.precio)}. ${quien.nombre} compra ${x} ${plural(art.nombre)}. ¿Cuántos pesos paga?`;
+        enunciado = rng.elegir([
+          `${nota} ${articuloUn(art.genero)} ${art.nombre} cuesta ${pesos(art.precio)}. ${quien.nombre} compra ${x} ${plural(art.nombre)}. ¿Cuántos pesos paga?`,
+          `${quien.nombre} necesita ${x} ${plural(art.nombre)} para la casa. En la tienda de la vereda ${articuloUn(art.genero)} ${art.nombre} vale ${pesos(art.precio)}. ¿Cuánto debe pagar?`,
+          `En la tienda del pueblo ${articuloUn(art.genero)} ${art.nombre} cuesta ${pesos(art.precio)}. ¿Cuánto cuestan ${x} ${plural(art.nombre)}? Ayuda a ${quien.nombre} a sacar la cuenta.`,
+        ]);
         paso = `${pesos(art.precio)} × ${x}.`;
       } else if (op === 'div') {
         respuesta = art.precio;
         calc = { op: 'division', a: total, b: x };
-        enunciado = `${nota}, ${quien.nombre} pagó ${pesos(total)} por ${x} ${plural(art.nombre)}, ${art.genero === 'f' ? 'todas' : 'todos'} al mismo precio. ¿Cuánto cuesta ${articuloUn(art.genero)} ${art.nombre}?`;
+        enunciado = rng.elegir([
+          `${nota}, ${quien.nombre} pagó ${pesos(total)} por ${x} ${plural(art.nombre)}, ${art.genero === 'f' ? 'todas' : 'todos'} al mismo precio. ¿Cuánto cuesta ${articuloUn(art.genero)} ${art.nombre}?`,
+          `${quien.nombre} gastó ${pesos(total)} en ${x} ${plural(art.nombre)} iguales en la tienda del pueblo. ¿Cuál es el precio de ${articuloUn(art.genero)} ${art.nombre}?`,
+          `Por ${x} ${plural(art.nombre)}, la tienda de la vereda le cobró ${pesos(total)} a ${quien.nombre}. ¿Cuánto vale cada ${art.nombre}?`,
+        ]);
         paso = `${pesos(total)} ÷ ${x}: ¿qué número por ${x} da ${num(total)}?`;
       } else {
         respuesta = 10000 - total;
         calc = { op: 'resta', a: 10000, b: total };
         datos.pago = 10000;
-        enunciado = `${nota} ${articuloUn(art.genero)} ${art.nombre} cuesta ${pesos(art.precio)}. ${quien.nombre} compra ${x} ${plural(art.nombre)} y paga con un billete de ${pesos(10000)}. ¿Cuánto le devuelven?`;
+        enunciado = rng.elegir([
+          `${nota} ${articuloUn(art.genero)} ${art.nombre} cuesta ${pesos(art.precio)}. ${quien.nombre} compra ${x} ${plural(art.nombre)} y paga con un billete de ${pesos(10000)}. ¿Cuánto le devuelven?`,
+          `${quien.nombre} lleva un billete de ${pesos(10000)} a la tienda y compra ${x} ${plural(art.nombre)} de ${pesos(art.precio)} ${art.genero === 'f' ? 'cada una' : 'cada uno'}. ¿Cuánta plata le sobra?`,
+        ]);
         paso = `Primero el total: ${pesos(art.precio)} × ${x} = ${pesos(total)}. Luego ${pesos(10000)} − ${pesos(total)}.`;
       }
     } else {
@@ -906,7 +1203,10 @@ const tienda: Plantilla = {
       respuesta = pago - total;
       calc = { op: 'resta', a: pago, b: total };
       datos = { p1: art.precio, p2: otro.precio, pago };
-      enunciado = `${nota} ${quien.nombre} compra ${articuloUn(art.genero)} ${art.nombre} de ${pesos(art.precio)} y ${articuloUn(otro.genero)} ${otro.nombre} de ${pesos(otro.precio)}. Paga con un billete de ${pesos(pago)}. ¿Cuánto le devuelven?`;
+      enunciado = rng.elegir([
+        `${nota} ${quien.nombre} compra ${articuloUn(art.genero)} ${art.nombre} de ${pesos(art.precio)} y ${articuloUn(otro.genero)} ${otro.nombre} de ${pesos(otro.precio)}. Paga con un billete de ${pesos(pago)}. ¿Cuánto le devuelven?`,
+        `En la tienda de la vereda, ${quien.nombre} lleva ${articuloUn(art.genero)} ${art.nombre} (${pesos(art.precio)}) y ${articuloUn(otro.genero)} ${otro.nombre} (${pesos(otro.precio)}). Entrega un billete de ${pesos(pago)}. ¿Cuánto le dan de vueltas?`,
+      ]);
       paso = `Primero suma: ${pesos(art.precio)} + ${pesos(otro.precio)} = ${pesos(total)}. Luego ${pesos(pago)} − ${pesos(total)}.`;
     }
     const modo = modoRespuesta(ctx, respuesta, calc, { paso: 500, extras: [calc.a + calc.b] });
@@ -941,7 +1241,8 @@ const produccion: Plantilla = {
     let calc: Calculo;
     let visual: Visual;
     let datos: Record<string, number>;
-    let dibujo: Objeto;
+    let dibujo: Objeto | undefined;
+    const A = adulto(rng).nombre;
     if (op === 'div') {
       const k = rng.entero(2, 9);
       const q = rng.entero(3, lerp(10, 25, d));
@@ -949,19 +1250,40 @@ const produccion: Plantilla = {
       respuesta = q;
       calc = { op: 'division', a: n, b: k };
       datos = { n, k };
-      [enunciado, dibujo] = rng.elegir<[string, Objeto]>([
-        [`En la finca ${finca} recogieron ${n} kilos de café y los empacan en ${k} costales con el mismo peso. ¿Cuántos kilos lleva cada costal?`, 'bulto'],
-        [`${k} jornaleros van a abonar ${n} árboles de cacao, la misma cantidad cada uno. ¿Cuántos árboles abona cada jornalero?`, 'arbol-cacao'],
+      // fila: lo que se dibuja en cada fila del arreglo (los kilos y los litros no se dibujan uno por uno).
+      let fila: Objeto | undefined;
+      [enunciado, dibujo, fila] = rng.elegir<[string, Objeto | undefined, Objeto | undefined]>([
+        [`En la finca ${finca} recogieron ${n} kilos de café y los empacan en ${k} costales con el mismo peso. ¿Cuántos kilos lleva cada costal?`, 'bulto', undefined],
+        [`${k} jornaleros van a abonar ${n} árboles de cacao, la misma cantidad cada uno. ¿Cuántos árboles abona cada jornalero?`, 'arbol-cacao', 'arbol-cacao'],
+        [`En el vivero de la finca ${finca} hay ${n} plántulas de café para sembrar en ${k} surcos iguales. ¿Cuántas plántulas van en cada surco?`, 'mata', 'mata'],
+        [`${mayus(A)} cortó ${n} mazorcas de cacao y las reparte en ${k} canastos con la misma cantidad. ¿Cuántas mazorcas van en cada canasto?`, 'mazorca', 'mazorca'],
+        [`En la cooperativa hay ${n} kilos de cacao seco para llenar ${k} bultos iguales. ¿Cuántos kilos van en cada bulto?`, 'bulto', undefined],
+        [`La finca ${finca} manda ${n} naranjas a la cooperativa en ${k} cajas con la misma cantidad. ¿Cuántas naranjas van en cada caja?`, 'naranja', 'naranja'],
+        [`En el ordeño salieron ${n} litros de leche y se reparten en ${k} cantinas iguales. ¿Cuántos litros van en cada cantina?`, undefined, undefined],
+        [`${mayus(A)} cosechó ${n} aguacates y los acomoda en ${k} canastas iguales para la feria. ¿Cuántos aguacates van en cada canasta?`, 'aguacate', 'aguacate'],
+        [`${k} recolectores cogieron entre todos ${n} kilos de café, la misma cantidad cada uno. ¿Cuántos kilos de café cogió cada recolector?`, 'bulto', undefined],
+        [`${mayus(A)} reparte ${n} kilos de abono entre ${k} lotes por igual. ¿Cuántos kilos le echa a cada lote?`, 'bulto', undefined],
+        [`La finca ${finca} entregó ${n} huevos a la tienda en ${k} cubetas con la misma cantidad. ¿Cuántos huevos van en cada cubeta?`, 'huevo', 'huevo'],
+        [`En la finca ${finca} cortaron ${n} plátanos que vienen en ${k} racimos iguales. ¿Cuántos plátanos tiene cada racimo?`, 'platano', 'platano'],
+        [`${k} jornaleros tienen que desyerbar ${n} surcos de café, la misma cantidad cada uno. ¿Cuántos surcos desyerba cada jornalero?`, 'arbol-cafe', undefined],
+        [`En la finca ${finca} hay ${n} gallinas para pasar a ${k} galpones iguales. ¿Cuántas gallinas van en cada galpón?`, 'gallina', 'gallina'],
+        [`La finca ${finca} vendió ${n} mandarinas a ${k} tiendas del pueblo, la misma cantidad a cada una. ¿Cuántas mandarinas recibió cada tienda?`, 'mandarina', 'mandarina'],
+        [`El secador de la finca ${finca} secó ${n} kilos de cacao en ${k} días, la misma cantidad cada día. ¿Cuántos kilos secó por día?`, 'bulto', undefined],
+        [`La finca ${finca} mandó ${n} limones a la cooperativa en ${k} bolsas iguales. ¿Cuántos limones van en cada bolsa?`, 'limon', 'limon'],
       ]);
-      // Una fila por costal o por jornalero; los árboles se dibujan, los kilos no.
-      visual = q <= 10 ? { tipo: 'arreglo', filas: k, columnas: q, objeto: dibujo === 'bulto' ? undefined : dibujo } : { tipo: 'texto', texto: `${k} × ? = ${n}` };
+      // Una fila por costal, jornalero, surco…
+      visual = q <= 10 ? { tipo: 'arreglo', filas: k, columnas: q, objeto: fila } : { tipo: 'texto', texto: `${k} × ? = ${n}` };
     } else if (op === 'suma') {
       const [a, b] = parSuma(rng, pn(ctx, 'cifras', 3), reagrupaciones(ctx, 2), LIMITE);
       respuesta = a + b;
       calc = { op: 'suma', a, b };
       datos = { a, b };
-      enunciado = `En la finca ${finca} hay dos lotes de cacao. Del primero sacaron ${num(a)} mazorcas y del segundo ${num(b)}. ¿Cuántas mazorcas sacaron en total?`;
-      dibujo = 'mazorca';
+      [enunciado, dibujo] = rng.elegir<[string, Objeto]>([
+        [`En la finca ${finca} hay dos lotes de cacao. Del primero sacaron ${num(a)} mazorcas y del segundo ${num(b)}. ¿Cuántas mazorcas sacaron en total?`, 'mazorca'],
+        [`En la finca ${finca} cogieron ${num(a)} kilos de café en la primera recolección y ${num(b)} en la segunda. ¿Cuántos kilos cogieron?`, 'bulto'],
+        [`Los dos lotes de naranja de la finca ${finca} dieron ${num(a)} y ${num(b)} naranjas. ¿Cuántas naranjas dieron entre los dos?`, 'naranja'],
+        [`El vivero de la finca ${finca} tiene ${num(a)} plántulas de cacao y ${num(b)} de café. ¿Cuántas plántulas tiene?`, 'mata'],
+      ]);
       visual = { tipo: 'texto', texto: `${num(a)} + ${num(b)}` };
     } else {
       const f = rng.entero(2, 9);
@@ -969,9 +1291,16 @@ const produccion: Plantilla = {
       respuesta = f * c;
       calc = { op: 'multiplicacion', a: c, b: f };
       datos = { f, c };
-      [enunciado, dibujo] = rng.elegir<[string, Objeto]>([
+      [enunciado, dibujo] = rng.elegir<[string, Objeto | undefined]>([
         [`En la finca ${finca} hay ${f} árboles de aguacate. En esta cosecha cada uno dio ${c} aguacates. ¿Cuántos aguacates recogieron?`, 'arbol-aguacate'],
-        [`Cada jornada de recolección, ${adulto(rng).nombre} llena ${c} kilos de mazorcas. ¿Cuántos kilos llena en ${f} jornadas?`, 'mazorca'],
+        [`Cada jornada de recolección, ${A} llena ${c} kilos de mazorcas. ¿Cuántos kilos llena en ${f} jornadas?`, 'mazorca'],
+        [`La finca ${finca} tiene ${f} lotes de café con ${c} árboles cada uno. ¿Cuántos árboles de café tiene?`, 'arbol-cafe'],
+        [`Cada vaca de la finca ${finca} da ${c} litros de leche a la semana. ¿Cuántos litros dan ${f} vacas?`, undefined],
+        [`En la finca ${finca} hay ${f} galpones con ${c} gallinas cada uno. ¿Cuántas gallinas hay?`, 'gallina'],
+        [`El beneficiadero de la finca ${finca} lava ${c} kilos de café cada día. ¿Cuántos kilos lava en ${f} días?`, 'bulto'],
+        [`En la vega, ${A} sembró ${f} surcos de plátano con ${c} matas cada uno. ¿Cuántas matas de plátano sembró?`, 'platanera'],
+        [`La finca ${finca} despachó ${f} cajas con ${c} naranjas cada una. ¿Cuántas naranjas despachó?`, 'naranja'],
+        [`${mayus(A)} llenó ${f} canastos con ${c} mazorcas de cacao cada uno. ¿Cuántas mazorcas recogió?`, 'mazorca'],
       ]);
       visual = { tipo: 'texto', texto: `${c} + ${c} + … (${f} veces) = ${c} × ${f}` };
     }

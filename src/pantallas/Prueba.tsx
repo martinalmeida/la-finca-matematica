@@ -24,6 +24,7 @@ import {
 } from '../almacenamiento/datos';
 import { sincronizarPronto } from '../servicios/sincronizacion';
 import { BANDAS, generarPrueba, type TipoPrueba } from '../juego/motor';
+import { leerVistas } from '../juego/vistas';
 import { rutaFamiliaPorPuntaje, type ResultadoPrueba } from '../juego/pruebas';
 import { darInsignia } from '../juego/progresion';
 import { barrasBanda, RESUMEN_GRADO } from '../juego/complejidad';
@@ -54,7 +55,10 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
   const yaHecha = tipo === 'diagnostica' ? pruebasGuardadas.diagnostica : pruebasGuardadas.repetirFinal ? undefined : pruebasGuardadas.final;
   // Cada repetición de la final trae preguntas nuevas (la 3.ª no repite la 2.ª).
   const intento = tipo === 'final' && pruebasGuardadas.final ? (pruebasGuardadas.finalesUsados ?? 0) + 2 : 1;
-  const ejercicios = useMemo(() => generarPrueba({ codigo: p.usuario, pista: pistaPrueba, tipo, intento }), [p.usuario, pistaPrueba, tipo, intento]);
+  const ejercicios = useMemo(
+    () => generarPrueba({ codigo: p.usuario, pista: pistaPrueba, tipo, intento, vistas: leerVistas(p.id) }),
+    [p.usuario, p.id, pistaPrueba, tipo, intento],
+  );
 
   const [fase, setFase] = useState<'intro' | 'jugando' | 'fin'>(yaHecha ? 'fin' : 'intro');
   const [indice, setIndice] = useState(0);

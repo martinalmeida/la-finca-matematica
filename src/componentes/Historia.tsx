@@ -16,6 +16,7 @@ import { BotonVideo } from './Video';
 import { videoDeLeccion } from '../contenido/videos';
 import { pistaDePerfil } from '../almacenamiento/datos';
 import { useCapaConAtras } from '../servicios/atras';
+import { useTapaTeclas } from '../servicios/teclas';
 
 export function Medidor({ barras, max = 5, etiqueta }: { barras: number; max?: number; etiqueta?: string }) {
   return (
@@ -92,6 +93,8 @@ type Props = {
 };
 
 export default function Historia({ leccion: l, unidad, adulto, alPracticar, alCerrar }: Props) {
+  // Ventana encima: las teclas no le llegan a lo que quedó debajo.
+  useTapaTeclas();
   const { ajustes, perfil } = useApp();
   useCapaConAtras(true, alCerrar);
   const [paso, setPaso] = useState(0);

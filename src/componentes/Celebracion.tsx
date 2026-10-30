@@ -2,10 +2,18 @@ import { useEffect } from 'react';
 import { sonar } from '../servicios/sonido';
 import { useApp } from '../estado';
 import Icono from './Icono';
+import { focoEnControl, useTeclas } from '../servicios/teclas';
 
 export default function Celebracion({ titulo, texto, alCerrar }: { titulo: string; texto: string; alCerrar: () => void }) {
   const { ajustes } = useApp();
   useEffect(() => sonar('cosecha', ajustes.sonido), [ajustes.sonido]);
+  useTeclas((e) => {
+    if (e.key === 'Escape' || (e.key === 'Enter' && !focoEnControl())) {
+      alCerrar();
+      return true;
+    }
+    return false;
+  }, true, true);
   return (
     <div className="celebracion" role="dialog" aria-modal="true" aria-label={titulo}>
       <div className="columna centro">

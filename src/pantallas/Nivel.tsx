@@ -3,6 +3,8 @@ import { useCapaConAtras } from '../servicios/atras';
 import { useApp } from '../estado';
 import Ejercicio, { type ResultadoEjercicio } from '../componentes/Ejercicio';
 import { generarNivel, temaDe } from '../juego/motor';
+import { leerVistas } from '../juego/vistas';
+import { focoEnControl, useTeclas } from '../servicios/teclas';
 import { etiquetaNivel, nivelConTotal, unidadDe } from '../juego/complejidad';
 import { aplicarResultado, type ResultadoNivel } from '../juego/progresion';
 import { bandaDePerfil, guardarPartida, guardarProgreso, leerProgreso, leerResumen, pistaDePerfil, registrar, sumarAlResumen } from '../almacenamiento/datos';
@@ -18,11 +20,21 @@ import { useLecturaAutomatica } from '../servicios/voz';
  * Al empezar cada nivel: de qué se trata y un video de introducción para aprender antes de jugar.
  * El video se carga solo si alguien lo toca; sin internet se puede empezar igual.
  */
+/** En computador, Enter (sin otro botón con foco) hace lo del botón principal de la pantalla. */
+function useEnterPara(accion: () => void) {
+  useTeclas((e) => {
+    if (e.key !== 'Enter' || focoEnControl()) return false;
+    accion();
+    return true;
+  });
+}
+
 function IntroNivel({ nivel, tema, idea, video, adulto, alEmpezar }: { nivel: string; tema: string; idea: string; video: Video | null; adulto: boolean; alEmpezar: () => void }) {
   const texto = adulto
     ? `Nivel ${nivel}: ${tema}. ${idea}${video ? ' Antes de empezar, vea el video de introducción.' : ''}`
     : `Nivel ${nivel}: ${tema}. ${idea}${video ? ' Antes de empezar, mira el video para aprender.' : ''}`;
   useLecturaAutomatica(`intro-${nivel}-${tema}`, texto);
+  useEnterPara(alEmpezar);
   return (
     <section className="vidrio tarjeta columna intro-nivel" aria-label="Introducción del nivel">
       <span className="agenda-etiqueta">
@@ -51,6 +63,7 @@ function IntroNivel({ nivel, tema, idea, video, adulto, alEmpezar }: { nivel: st
 function Agenda({ tema, alEmpezar }: { tema: string; alEmpezar: () => void }) {
   const texto = `Primero: ${tema}. 10 actividades, una por una. Después: ¡una planta nueva en tu finca!`;
   useLecturaAutomatica(`agenda-${tema}`, texto);
+  useEnterPara(alEmpezar);
   return (
     <section className="vidrio tarjeta columna agenda" aria-label="Lo que vamos a hacer">
       <div className="agenda-paso">
@@ -76,6 +89,14 @@ function Agenda({ tema, alEmpezar }: { tema: string; alEmpezar: () => void }) {
 /** Inclusión: un descanso tranquilo en cualquier momento. */
 function Pausa({ alSeguir }: { alSeguir: () => void }) {
   useCapaConAtras(true, alSeguir);
+  // Ventana encima del ejercicio: Enter o Escape siguen, y las demás teclas no le llegan al ejercicio.
+  useTeclas((e) => {
+    if (e.key === 'Escape' || (e.key === 'Enter' && !focoEnControl())) {
+      alSeguir();
+      return true;
+    }
+    return false;
+  }, true, true);
   useLecturaAutomatica('pausa', 'Descansamos. Respira despacio. Cuando quieras, seguimos.');
   return (
     <div className="pausa" role="dialog" aria-modal="true" aria-label="Pausa">
@@ -100,7 +121,11 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   // Las 10 preguntas del nivel se generan al entrar a él; cada entrada trae otras
   // (si sale a mitad del nivel y vuelve, no le salen las mismas que ya vio resueltas).
   const [variante] = useState(() => Date.now());
-  const ejercicios = useMemo(() => generarNivel({ codigo: p.usuario, pista, nivel, intento, repaso, banda, variante }), [p.usuario, pista, nivel, intento, repaso, banda, variante]);
+  // Nunca una pregunta que ya vio (en otro intento, otra entrada, una prueba u otro celular).
+  const ejercicios = useMemo(
+    () => generarNivel({ codigo: p.usuario, pista, nivel, intento, repaso, banda, variante, vistas: leerVistas(p.id) }),
+    [p.usuario, p.id, pista, nivel, intento, repaso, banda, variante],
+  );
   const video = ajustes.videos === false ? null : videoDeLeccion(pista, nivel - 1);
   const leccion = lecciones[pista][unidadDe(pista, nivel).indice];
   const adulto = p.rol === 'familia';
@@ -110,6 +135,12 @@ export default function Nivel({ nivel, repaso }: { nivel: number; repaso: boolea
   const [intro, setIntro] = useState(true);
   const [agenda, setAgenda] = useState(inclusion);
   const [pausa, setPausa] = useState(false);
+  // En Inclusión, Escape abre la pausa (la pausa se cierra con Escape o Enter).
+  useTeclas((e) => {
+    if (e.key !== 'Escape') return false;
+    setPausa(true);
+    return true;
+  }, inclusion && !agenda && !intro && !pausa);
 
   // Cada ejercicio se cuenta una sola vez: un segundo toque en «Siguiente» (mientras se abre el
   // resultado) no registra otra vez el último ni aplica el nivel dos veces.

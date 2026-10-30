@@ -3,8 +3,8 @@ import Teclado from '../Teclado';
 import type { PropsInteraccion } from './tipos';
 
 /** Respuesta con el teclado propio. Se reutiliza en otras interacciones. */
-export default function Numerica({ ej, bloqueado, onResponder, correcta }: PropsInteraccion) {
-  const [valor, setValor] = useState('');
+export default function Numerica({ ej, bloqueado, onResponder, correcta, inicial = '' }: PropsInteraccion & { inicial?: string }) {
+  const [valor, setValor] = useState(inicial);
   const mostrado = correcta !== null && typeof correcta === 'number' ? String(correcta) : valor;
   return (
     <Teclado

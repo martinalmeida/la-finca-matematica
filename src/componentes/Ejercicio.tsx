@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import type { Ejercicio as TEjercicio, Respuesta } from '../juego/tipos';
 import { detectarTipoError, mensajeError, type TipoError } from '../juego/errores';
 import { esFamilia, generarParecido } from '../juego/motor';
+import { leerVistas, marcarVista } from '../juego/vistas';
 import Interaccion from './interacciones/Interaccion';
 import VisualPista from './VisualPista';
 import { DibujoObjeto, esFemenino } from './Ilustraciones';
@@ -20,6 +21,7 @@ import type { Video } from '../contenido/videos';
 import Enunciado from './Enunciado';
 import PasoAPaso, { tienePasoAPaso } from './PasoAPaso';
 import { escenaDe } from './escenaConfig';
+import { esComputador, focoEnControl, useTeclas } from '../servicios/teclas';
 
 // three.js y LocAR.js solo se descargan al abrir la cámara.
 const EscenaRA = lazy(() => import('./EscenaRA'));
@@ -80,7 +82,7 @@ type Props = {
 const animosInclusion = ['Casi. Miremos el dibujo juntos.', 'Vamos otra vez, con calma.', 'Mira la ayuda y prueba de nuevo.'];
 
 export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, video, modo = 'nivel' }: Props) {
-  const { ajustes } = useApp();
+  const { ajustes, perfil } = useApp();
   const voz = useVoz();
   const adulto = esFamilia(ej.pista);
   const prueba = modo === 'prueba';
@@ -102,6 +104,8 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
   const inicio = useRef(Date.now());
   const refRetro = useRef<HTMLDivElement>(null);
   const refAcciones = useRef<HTMLDivElement>(null);
+  const refSiguiente = useRef<HTMLButtonElement>(null);
+  const refSeccion = useRef<HTMLElement>(null);
   const elogio = useMemo(() => {
     const lista = adulto ? elogiosAdultos : elogiosNinos;
     return lista[hashTexto(ej.id) % lista.length];
@@ -114,6 +118,11 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
   const puedeHablar = voz.disponible && ajustes.audioEnunciados;
   // Para quienes aún no leen: el enunciado se lee solo al aparecer.
   useLecturaAutomatica(ej.id, lectura);
+  // La pregunta cuenta como vista cuando aparece en pantalla: no le volverá a salir.
+  useEffect(() => {
+    if (perfil) marcarVista(perfil.id, ej);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ej.id, perfil?.id]);
   const decir = (texto: string) => {
     if (puedeHablar) voz.leer(texto, `${ej.id}-retro`);
   };
@@ -131,6 +140,27 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
     const quieto = document.documentElement.dataset.efectos === 'ligeros' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     el.scrollIntoView({ block: 'center', behavior: quieto ? 'auto' : 'smooth' });
   }, [estado]);
+
+  // En computador: cada pregunta nueva toma el foco (Tab empieza desde ella) y, al responder,
+  // el foco pasa a «Siguiente» para seguir con Enter.
+  useEffect(() => {
+    if (esComputador()) refSeccion.current?.focus({ preventScroll: true });
+  }, []);
+  useEffect(() => {
+    if (estado !== 'jugando' && esComputador()) refSiguiente.current?.focus({ preventScroll: true });
+  }, [estado]);
+  useTeclas((e) => {
+    if (e.key === 'Enter' && estado !== 'jugando') {
+      if (focoEnControl() && document.activeElement !== refSiguiente.current) return false;
+      terminar();
+      return true;
+    }
+    if (e.key.toLowerCase() === 'p' && estado === 'jugando' && !prueba && !(inclusion && pistasMostradas >= 3) && paso !== 'abierto') {
+      pedirPista();
+      return true;
+    }
+    return false;
+  }, !parecido && !verEscena);
 
   const responder = (r: Respuesta) => {
     if (estado !== 'jugando') return;
@@ -227,7 +257,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
   }
 
   return (
-    <section className="columna" aria-live="polite">
+    <section className="columna ejercicio" aria-live="polite" ref={refSeccion} tabIndex={-1}>
       <div className="columna vidrio tarjeta-enunciado">
         <div className="fila" style={{ alignItems: 'flex-start', flexWrap: 'nowrap' }}>
           {ej.ilustracion && (
@@ -312,7 +342,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
         <Interaccion
           key={ej.id}
           ej={ej}
-          bloqueado={estado !== 'jugando'}
+          bloqueado={estado !== 'jugando' || paso === 'abierto'}
           onResponder={responder}
           fallidas={prueba || inclusion ? [] : fallidas}
           errores={errores}
@@ -321,14 +351,15 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
       </div>
 
       {estado === 'jugando' && !prueba && !(inclusion && pistasMostradas >= 3) && (
-        <button type="button" className="boton secundario" onClick={pedirPista}>
+        <button type="button" className="boton secundario" onClick={pedirPista} aria-keyshortcuts="P">
           <Icono nombre={pistasMostradas < 3 ? 'bombillo' : 'solucion'} tamano={28} />
+          <span className="letra-atajo" aria-hidden="true">P</span>
           {inclusion ? 'Ayuda' : pistasMostradas < 3 ? `${adulto ? 'Ver una pista' : 'Pedir una pista'} (${pistasMostradas}/3)` : 'Ver la solución'}
         </button>
       )}
 
       {estado === 'solucion' && !practica && !prueba && (
-        <button type="button" className="boton secundario" onClick={() => setParecido(generarParecido(ej, hashTexto(ej.id + Date.now())))}>
+        <button type="button" className="boton secundario" onClick={() => setParecido(generarParecido(ej, hashTexto(ej.id + Date.now()), perfil ? leerVistas(perfil.id) : undefined))}>
           <Icono nombre="repetir" tamano={26} /> Practicar uno parecido
         </button>
       )}
@@ -337,7 +368,7 @@ export default function Ejercicio({ ej, onTerminar, pistaVisible, practica, vide
           Va directo en la sección (el «sticky» solo se mueve dentro de su contenedor). */}
       {estado !== 'jugando' && (
         <div ref={refAcciones} className="acciones-pegadas">
-          <button type="button" className="boton principal" onClick={terminar}>
+          <button type="button" className="boton principal" onClick={terminar} ref={refSiguiente} aria-keyshortcuts="Enter">
             {practica ? 'Volver al nivel' : 'Siguiente'} <Icono nombre="siguiente" tamano={24} />
           </button>
         </div>

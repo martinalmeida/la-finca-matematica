@@ -45,7 +45,7 @@ type Cola = { claves: Record<string, string>; eventos: Evento[]; partidas: Parti
 
 const K_COLA = PREFIJO_V1 + 'pendientes';
 /** Datos por usuario que viajan a la nube (tabla «datos_usuario»). */
-const BASES = ['progreso', 'pruebas', 'resumen', 'historiasVistas', 'reacciones', 'taller'];
+const BASES = ['progreso', 'pruebas', 'resumen', 'historiasVistas', 'reacciones', 'taller', 'preguntasVistas'];
 /** Tope de ejercicios guardados sin señal (los más viejos se descartan). */
 export const MAX_EVENTOS = 5000;
 

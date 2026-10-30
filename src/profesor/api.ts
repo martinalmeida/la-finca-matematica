@@ -60,7 +60,7 @@ export async function cargarDatos(): Promise<Datos> {
   try {
     const [usuarios, datos, partidas] = await Promise.all([
       todas<FilaPerfil>((d, h) => sb.from('perfiles').select('*').eq('rol', 'usuario').order('nombre').order('id').range(d, h)),
-      todas<DatoRemoto>((d, h) => sb.from('datos_usuario').select('*').order('usuario_id').order('clave').range(d, h)),
+      todas<DatoRemoto>((d, h) => sb.from('datos_usuario').select('*').neq('clave', 'preguntasVistas').order('usuario_id').order('clave').range(d, h)),
       todas<PartidaRemota>((d, h) => sb.from('partidas').select('*').order('t').order('id').range(d, h)),
     ]);
     return { usuarios, datos, partidas };

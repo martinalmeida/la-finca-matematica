@@ -18,6 +18,7 @@ import { alListoSinInternet, marcarOcupada, seActualizo } from './pwa/registro';
 import { cerrarSesion } from './servicios/sesion';
 import { guardarFotoLocal, nuevaVersion } from './servicios/foto';
 import { ajustarGuarda, alAtras } from './servicios/atras';
+import { useEnterPrincipal } from './servicios/teclas';
 import { alSincronizar, iniciarSincronizacion, sincronizarAhora } from './servicios/sincronizacion';
 import Entrar from './pantallas/Entrar';
 import ElegirAvatar from './pantallas/ElegirAvatar';
@@ -152,6 +153,7 @@ type PropsUsuario = {
 };
 
 function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario) {
+  useEnterPrincipal();
   const perfil = useMemo(() => perfilDeFila(cuenta), [cuenta]);
   const [pila, setPila] = useState<Pantalla[]>(() => [{ nombre: 'inicio' }]);
   const [ajustes, setAjustes] = useState<Ajustes>(() => leerAjustes());

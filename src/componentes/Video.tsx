@@ -9,6 +9,7 @@ import { useApp } from '../estado';
 import { detenerVoz } from '../servicios/voz';
 import type { Video } from '../contenido/videos';
 import Icono from './Icono';
+import { useTapaTeclas } from '../servicios/teclas';
 
 function useEnLinea() {
   const [enLinea, setEnLinea] = useState(() => navigator.onLine !== false);
@@ -97,6 +98,8 @@ export function VideoEnPagina({ video, adulto }: { video: Video; adulto: boolean
 }
 
 export function HojaVideo({ video, adulto, alCerrar }: { video: Video; adulto: boolean; alCerrar: () => void }) {
+  // Ventana encima: las teclas no le llegan a lo que quedó debajo.
+  useTapaTeclas();
   const enLinea = useEnLinea();
   useCapaConAtras(true, alCerrar);
 

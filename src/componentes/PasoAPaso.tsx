@@ -12,6 +12,7 @@ import { useVoz } from '../servicios/voz';
 import VisualPista from './VisualPista';
 import Icono, { type NombreIcono } from './Icono';
 import { esFamilia } from '../juego/motor';
+import { focoEnControl, letraOpcion, opcionDeTecla, useTeclas } from '../servicios/teclas';
 
 const ICONO_ACCION: Record<Accion, NombreIcono> = { juntar: 'mas', quitar: 'menos', repetir: 'por', repartir: 'entre' };
 
@@ -48,6 +49,21 @@ export default function PasoAPaso({ ej, alTerminar }: { ej: Ejercicio; alTermina
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // En computador: A, B, C, D eligen qué pasa; Enter sigue al paso 3.
+  useTeclas((e) => {
+    if (paso === 1) {
+      const k = opcionDeTecla(e, Object.keys(ACCIONES).length);
+      if (k < 0) return false;
+      elegir((Object.keys(ACCIONES) as Accion[])[k]);
+      return true;
+    }
+    if (e.key === 'Enter' && !focoEnControl()) {
+      alTerminar();
+      return true;
+    }
+    return false;
+  });
+
   const { a, b } = ej.calculo!;
   const info = ACCIONES[accion];
 
@@ -67,6 +83,21 @@ export default function PasoAPaso({ ej, alTerminar }: { ej: Ejercicio; alTermina
     decir(m, 'r');
   };
 
+  // En computador: A, B, C, D eligen qué pasa; Enter sigue al paso 3.
+  useTeclas((e) => {
+    if (paso === 1) {
+      const k = opcionDeTecla(e, Object.keys(ACCIONES).length);
+      if (k < 0) return false;
+      elegir((Object.keys(ACCIONES) as Accion[])[k]);
+      return true;
+    }
+    if (e.key === 'Enter' && !focoEnControl()) {
+      alTerminar();
+      return true;
+    }
+    return false;
+  });
+
   return (
     <section className="paso-a-paso vidrio columna" aria-label="Paso a paso">
       <div className="fila" style={{ flexWrap: 'nowrap' }}>
@@ -77,13 +108,14 @@ export default function PasoAPaso({ ej, alTerminar }: { ej: Ejercicio; alTermina
         <>
           <p style={{ margin: 0 }}>{pregunta}</p>
           <div className="acciones-paso" role="group" aria-label="Qué pasa en el problema">
-            {(Object.keys(ACCIONES) as Accion[]).map((x) => (
+            {(Object.keys(ACCIONES) as Accion[]).map((x, k) => (
               <button
                 key={x}
                 type="button"
                 className={`opcion texto accion-paso ${fallos >= 2 && x === accion ? 'sugerida' : ''}`}
                 onClick={() => elegir(x)}
               >
+                <span className="letra-atajo" aria-hidden="true">{letraOpcion(k)}</span>
                 <Icono nombre={ICONO_ACCION[x]} tamano={30} /> {ACCIONES[x].nombre}
               </button>
             ))}

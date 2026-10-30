@@ -46,8 +46,11 @@ export type Respuesta = number | string;
 export type Recipiente = { nombre: string; dibujo?: Objeto | 'nino' | 'adulto' | 'mula' };
 
 /** Colores y formas del pre-número (Inclusión). */
-export type ColorFigura = 'rojo' | 'azul' | 'amarillo' | 'verde';
-export type FormaFigura = 'circulo' | 'cuadrado' | 'triangulo';
+export type ColorFigura = 'rojo' | 'azul' | 'amarillo' | 'verde' | 'anaranjado' | 'morado' | 'rosado' | 'cafe';
+export type FormaFigura = 'circulo' | 'cuadrado' | 'triangulo' | 'rectangulo' | 'estrella' | 'corazon' | 'ovalo';
+
+/** Cosas que se dibujan paradas para comparar su altura (Inclusión). */
+export type CosaAlta = 'vela' | 'botella' | 'lapiz';
 
 /** Dibujo sin números para comparar y clasificar (Inclusión). La escala va de 0,4 a 1. */
 export type Figura =
@@ -58,6 +61,8 @@ export type Figura =
   | { torre: number }
   /** Un lazo: largo de 0,3 a 1. */
   | { lazo: number }
+  /** Una vela, una botella o un lápiz parado: alto de 0,4 a 1 (para ordenar por altura). */
+  | { cosa: CosaAlta; alto: number }
   /** El botón «igual» (dos grupos con la misma cantidad). */
   | { igual: true };
 

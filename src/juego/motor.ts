@@ -7,6 +7,7 @@ import type { Banda, DefinicionPista, Dimension, Ejercicio, Pista, Respuesta, Te
 import { definiciones } from '../contenido/pistas';
 import { igualNumero } from '../contenido/plantillas/util';
 import { reducirOpciones } from './apoyo';
+import { frase, huella, type Vistas } from './vistas';
 
 export const PREGUNTAS_POR_NIVEL = 10;
 /** Dificultad de las preguntas de las pruebas (diagnóstica y final). */
@@ -79,12 +80,42 @@ function construir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: st
   return apoyo ? reducirOpciones(ej) : ej;
 }
 
-/** Construye y, si el enunciado ya salió, lo intenta de nuevo (hasta 12 veces). */
-function construirSinRepetir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: string, apoyo: boolean, enunciados: Set<string>): Ejercicio {
-  let ej = construir(pista, c, rng, repaso, id, apoyo);
-  for (let r = 0; r < 12 && enunciados.has(ej.enunciado); r++) ej = construir(pista, c, rng, repaso, id, apoyo);
-  enunciados.add(ej.enunciado);
-  return ej;
+/** Preguntas de esta partida (nivel o prueba): no se repite ninguna, ni su frase si se puede. */
+type Usadas = { exactas: Set<string>; frases: Set<string> };
+
+const nuevasUsadas = (): Usadas => ({ exactas: new Set(), frases: new Set() });
+
+/** Intentos para encontrar una pregunta que el usuario no haya visto. */
+const INTENTOS = 60;
+
+/** Puntaje de una candidata: nunca vista y con frase nueva es lo ideal (150). */
+function puntaje(ej: Ejercicio, usadas: Usadas, vistas?: Vistas): number {
+  const h = huella(ej);
+  if (usadas.exactas.has(h) || vistas?.exactas.has(h)) return -1;
+  const f = frase(ej);
+  let p = usadas.frases.has(f) ? 0 : 100;
+  const reciente = vistas?.frases.get(f);
+  // Frase ya vista: mejor cuanto más vieja.
+  p += reciente === undefined ? 50 : Math.floor(50 * (1 - (reciente + 1) / Math.max(1, vistas!.frases.size)));
+  return p;
+}
+
+/** Construye la pregunta buscando una que el usuario nunca haya visto (en este nivel ni antes)
+ *  y, entre esas, una situación (frase) que no salió en este nivel ni hace poco. */
+function construirSinRepetir(pista: Pista, c: Candidato, rng: Rng, repaso: boolean, id: string, apoyo: boolean, usadas: Usadas, vistas?: Vistas): Ejercicio {
+  let mejor: Ejercicio | null = null;
+  let mejorPuntaje = -2;
+  for (let r = 0; r < INTENTOS && mejorPuntaje < 150; r++) {
+    const ej = construir(pista, c, rng, repaso, id, apoyo);
+    const p = puntaje(ej, usadas, vistas);
+    if (p > mejorPuntaje) {
+      mejor = ej;
+      mejorPuntaje = p;
+    }
+  }
+  usadas.exactas.add(huella(mejor!));
+  usadas.frases.add(frase(mejor!));
+  return mejor!;
 }
 
 export type OpcionesNivel = {
@@ -96,10 +127,12 @@ export type OpcionesNivel = {
   banda?: Banda;
   /** Cambia las preguntas en cada entrada al nivel (salir y volver no repite el mismo juego). */
   variante?: number;
+  /** Preguntas que el usuario ya vio: no se repiten. */
+  vistas?: Vistas;
 };
 
 /** Genera las 10 preguntas de un nivel: mezcla los usos del tema (y sus dimensiones) y sube la dificultad. */
-export function generarNivel({ codigo, pista, nivel, intento, repaso = false, banda = BANDA_POR_DEFECTO, variante = 0 }: OpcionesNivel): Ejercicio[] {
+export function generarNivel({ codigo, pista, nivel, intento, repaso = false, banda = BANDA_POR_DEFECTO, variante = 0, vistas }: OpcionesNivel): Ejercicio[] {
   const rng = crearRng(semillaNivel(codigo, pista, nivel, intento) ^ (repaso ? 0x5f3759df : 0) ^ (variante ? hashTexto(String(variante)) : 0));
   const usos = temaDe(pista, nivel).usos;
   const apoyo = banda === 'refuerzo' && pista !== 'inclusion';
@@ -113,7 +146,7 @@ export function generarNivel({ codigo, pista, nivel, intento, repaso = false, ba
   }
   const dimensiones = rng.barajar([...porDimension.keys()]);
   const usadas = new Map<Uso, number>();
-  const enunciados = new Set<string>();
+  const preguntas = nuevasUsadas();
   const ejercicios: Ejercicio[] = [];
 
   for (let i = 0; i < PREGUNTAS_POR_NIVEL; i++) {
@@ -123,7 +156,7 @@ export function generarNivel({ codigo, pista, nivel, intento, repaso = false, ba
     const uso = rng.elegir(grupo.filter((u) => (usadas.get(u) ?? 0) === minimo));
     usadas.set(uso, minimo + 1);
     const d = pista === 'inclusion' ? dificultadPregunta('basico', i) : dificultadPregunta(banda, i);
-    ejercicios.push(construirSinRepetir(pista, { uso, d, nivel }, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, apoyo, enunciados));
+    ejercicios.push(construirSinRepetir(pista, { uso, d, nivel }, rng, repaso, `${pista}-${nivel}-${intento}-${i}`, apoyo, preguntas, vistas));
   }
   return ejercicios;
 }
@@ -132,24 +165,25 @@ export type TipoPrueba = 'diagnostica' | 'final';
 
 /** Prueba diagnóstica o final: una pregunta por tema, con la misma dificultad.
  *  La final es una forma paralela (mismos usos, otra semilla). */
-export function generarPrueba({ codigo, pista, tipo, intento = 1 }: { codigo: string; pista: Pista; tipo: TipoPrueba; intento?: number }): Ejercicio[] {
+export function generarPrueba({ codigo, pista, tipo, intento = 1, vistas }: { codigo: string; pista: Pista; tipo: TipoPrueba; intento?: number; vistas?: Vistas }): Ejercicio[] {
   const rng = crearRng(hashTexto(`${codigo}|${pista}|prueba-${tipo}|${intento}`));
-  const enunciados = new Set<string>();
+  const preguntas = nuevasUsadas();
   return definicion(pista).temas.map((tema, k) =>
-    construirSinRepetir(pista, { uso: tema.prueba ?? tema.usos[0], d: D_PRUEBA, nivel: k + 1 }, rng, false, `${pista}-${tipo}-${intento}-${k}`, false, enunciados),
+    construirSinRepetir(pista, { uso: tema.prueba ?? tema.usos[0], d: D_PRUEBA, nivel: k + 1 }, rng, false, `${pista}-${tipo}-${intento}-${k}`, false, preguntas, vistas),
   );
 }
 
 /** Ejercicio parecido (misma plantilla y dificultad) para practicar tras ver la solución. */
-export function generarParecido(ej: Ejercicio, semilla: number): Ejercicio {
+export function generarParecido(ej: Ejercicio, semilla: number, vistas?: Vistas): Ejercicio {
   const def = definicion(ej.pista);
   const plantilla = def.plantillas.find((p) => p.id === ej.plantilla)!;
   const origen = ej.origen ?? { params: {}, d: 0, nivel: 1 };
   const rng = crearRng(semilla);
   const c = { uso: { plantilla, params: origen.params }, d: origen.d, nivel: origen.nivel };
-  let nuevo = construir(ej.pista, c, rng, true, ej.id + '-p', ej.apoyo);
-  for (let i = 0; i < 8 && nuevo.enunciado === ej.enunciado; i++) nuevo = construir(ej.pista, c, rng, true, ej.id + '-p', ej.apoyo);
-  return nuevo;
+  // La del nivel cuenta como usada: el parecido nunca es la misma pregunta.
+  const usadas = nuevasUsadas();
+  usadas.exactas.add(huella(ej));
+  return construirSinRepetir(ej.pista, c, rng, true, ej.id + '-p', ej.apoyo ?? false, usadas, vistas);
 }
 
 /** Generación de un ejercicio concreto (para pruebas y depuración). */
