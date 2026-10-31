@@ -6,6 +6,7 @@ import { insignia } from '../juego/progresion';
 import { aciertosParaAprobar, nivelMaximo } from '../juego/motor';
 import { nivelConTotal } from '../juego/complejidad';
 import { haceDiagnostica, leerPruebas } from '../almacenamiento/datos';
+import { debeEncuesta } from '../almacenamiento/encuesta';
 import Icono, { IconoEmoji } from '../componentes/Icono';
 
 const nombresEtapa = { semilla: 'semilla', brote: 'brote', planta: 'planta', flor: 'flor', fruto: 'fruto', cosecha: 'cosecha' };
@@ -21,6 +22,8 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
   // Al superar el último nivel se ofrece la prueba final (si aún no la hizo).
   const maximo = nivelMaximo(r.pista);
   const ofrecerFinal = e.aprobado && r.nivel === maximo && !!perfil && haceDiagnostica(perfil) && (!leerPruebas(perfil).final || !!leerPruebas(perfil).repetirFinal);
+  // Inclusión no tiene prueba final: al superar el último nivel sigue la encuesta de satisfacción (obligatoria).
+  const pedirEncuesta = inclusion && e.aprobado && r.nivel === maximo && !!perfil && debeEncuesta(perfil);
 
   return (
     <main className="pantalla centro">
@@ -68,6 +71,11 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
           </div>
         </div>
       )}
+      {pedirEncuesta ? (
+        <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'encuesta' }, { reemplazar: true })}>
+          Cuéntanos qué te pareció <Icono nombre="siguiente" tamano={24} />
+        </button>
+      ) : (
       <div className="columna" style={{ width: '100%' }}>
         {ofrecerFinal && (
           <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'prueba', tipo: 'final' }, { reemplazar: true })}>
@@ -91,6 +99,7 @@ export default function Resultado({ resultado: r, efecto: e }: { resultado: Resu
           <Icono nombre="mapa" tamano={26} /> Volver a la ruta
         </button>
       </div>
+      )}
     </main>
   );
 }

@@ -43,6 +43,8 @@ import {
 } from '../graficas';
 import { fmtDelta, fmtFechaCorta, fmtMin, fmtNum, fmtPct } from '../graficas/formato';
 import { hallazgos } from './hallazgos';
+import { DEFINICION_ENCUESTA, resumenEncuesta, terminoRutaAlumno, type Comentario, type ResumenPregunta } from '../encuesta';
+import { ESCALA, preguntaDe } from '../../contenido/encuesta';
 
 /** Secciones del informe (en orden). */
 export const SECCIONES = [
@@ -52,6 +54,7 @@ export const SECCIONES = [
   { id: 'evolucion', titulo: 'Evolución' },
   { id: 'temas', titulo: 'Temas y operaciones' },
   { id: 'errores', titulo: 'Errores' },
+  { id: 'encuesta', titulo: 'Encuesta' },
   { id: 'usuarios', titulo: 'Usuarios' },
 ] as const;
 
@@ -121,6 +124,7 @@ export default function Reporte({ c, anterior, deUnAlumno, impreso, secciones, a
   const filas = useMemo(() => filasAlumnos(c, ahora), [c, ahora]);
   const mErr = useMemo(() => matrizErrores(c), [c]);
   const errores = useMemo(() => contarErrores(c.eventos), [c]);
+  const enc = useMemo(() => resumenEncuesta(c.alumnos), [c]);
   const lo = useMemo(() => hallazgos(k, kAnt, ops, temas, pp, filas, deUnAlumno), [k, kAnt, ops, temas, pp, filas, deUnAlumno]);
   const pistasPrueba = pp.temas.map((t) => t.pista);
   const [pistaTemas, setPistaTemas] = useState<Pista | null>(null);
@@ -453,6 +457,8 @@ export default function Reporte({ c, anterior, deUnAlumno, impreso, secciones, a
         </Seccion>
       )}
 
+      {ver('encuesta') && <SeccionEncuesta enc={enc} alumno={deUnAlumno ? c.alumnos[0] : undefined} />}
+
       {deUnAlumno && c.alumnos[0] && (!secciones || secciones.includes('temas')) && <RutaAlumno a={c.alumnos[0]} partidas={c.partidas} impreso={impreso} />}
 
       {ver('usuarios') && (
@@ -492,7 +498,7 @@ export default function Reporte({ c, anterior, deUnAlumno, impreso, secciones, a
       {impreso && (
         <Seccion id="definiciones" titulo="Cómo se calcula cada métrica">
           <dl className="definiciones">
-            {Object.values(DEFINICIONES).map((t) => {
+            {[...Object.values(DEFINICIONES), DEFINICION_ENCUESTA].map((t) => {
               const [nombre, ...resto] = t.split(':');
               return (
                 <div key={nombre}>
@@ -505,6 +511,100 @@ export default function Reporte({ c, anterior, deUnAlumno, impreso, secciones, a
         </Seccion>
       )}
     </div>
+  );
+}
+
+const textoEscala = (x: number | null | undefined) => (x === undefined ? '—' : x === null ? 'No lo usó' : `${x} · ${ESCALA[x - 1]?.texto ?? ''}`);
+
+/** Encuesta de satisfacción: de todo el grupo o de una persona. */
+function SeccionEncuesta({ enc, alumno }: { enc: ReturnType<typeof resumenEncuesta>; alumno?: Alumno }) {
+  const nota = 'Una respuesta por usuario, al terminar su ruta; no depende del periodo elegido. Caritas de 1 (nada) a 5 (mucho).';
+  if (alumno) {
+    const e = alumno.encuesta;
+    return (
+      <Seccion id="encuesta" titulo="Encuesta de satisfacción" nota={nota}>
+        {!e ? (
+          <Vacio texto={terminoRutaAlumno(alumno) ? 'Terminó la ruta pero su encuesta aún no ha llegado (la responde o la sube la próxima vez que abra la app con internet).' : 'Responderá la encuesta al terminar su ruta.'} />
+        ) : (
+          <>
+            <TablaDatos<{ clave: string; texto: string; valor: number | null | undefined }>
+              clave={(f) => f.clave}
+              filas={Object.entries(e.respuestas ?? {}).map(([clave, valor]) => ({ clave, texto: preguntaDe(clave)?.corto ?? clave, valor }))}
+              columnas={[
+                { id: 'pregunta', titulo: 'Pregunta', valor: (f) => f.texto },
+                { id: 'respuesta', titulo: 'Respuesta', valor: (f) => textoEscala(f.valor) },
+              ]}
+            />
+            {(e.gusto || e.mejorar) && (
+              <Tarjeta titulo={`Comentarios · ${fmtFechaCorta(e.t)}`}>
+                {e.gusto && <p><strong>Lo que más le gustó:</strong> {e.gusto}</p>}
+                {e.mejorar && <p><strong>Qué mejoraría:</strong> {e.mejorar}</p>}
+              </Tarjeta>
+            )}
+          </>
+        )}
+      </Seccion>
+    );
+  }
+  const conDatos = enc.preguntas.filter((p) => p.n > 0 || p.noUso > 0);
+  return (
+    <Seccion id="encuesta" titulo="Encuesta de satisfacción" nota={nota}>
+      {!enc.respondieron ? (
+        <Vacio texto={enc.terminaron ? `${fmtNum(enc.terminaron)} ${enc.terminaron === 1 ? 'usuario terminó' : 'usuarios terminaron'} la ruta, pero aún no ha llegado ninguna encuesta.` : 'Nadie ha terminado su ruta con estos filtros: la encuesta se responde al final.'} />
+      ) : (
+        <>
+          <FilaKPI>
+            <IndicadorKPI etiqueta="Encuestas respondidas" valor={`${fmtNum(enc.respondieron)} de ${fmtNum(enc.terminaron)}`} ayuda={`Usuarios que terminaron la ruta y ya respondieron (${pctTxt(enc.tasa)}).`} />
+            <IndicadorKPI etiqueta="Satisfacción" valor={pctTxt(enc.satisfaccion)} ayuda="% de todas las respuestas que fueron 4 (bastante) o 5 (mucho)." />
+            <IndicadorKPI etiqueta="Promedio general" valor={`${dec(enc.promedio)} de 5`} ayuda="Promedio de todas las respuestas con carita." />
+            <IndicadorKPI etiqueta="Comentarios escritos" valor={fmtNum(enc.comentarios.length)} />
+          </FilaKPI>
+          <Tarjeta titulo="Promedio por pregunta" subtitulo="De 1 (nada) a 5 (mucho)">
+            <GraficaBarras escala="num" max={5} orden="original" categorias={conDatos.map((p) => ({ id: p.clave, etiqueta: p.texto, valor: p.promedio, n: p.n }))} />
+          </Tarjeta>
+          <Tarjeta titulo="Reparto de las respuestas" subtitulo="En desacuerdo (1–2) · Más o menos (3) · De acuerdo (4–5)">
+            <div className="columna encuesta-reparto">
+              {conDatos.filter((p) => p.n > 0).map((p) => (
+                <div key={p.clave}>
+                  <div className="pequeno" style={{ fontWeight: 700 }}>{p.texto}</div>
+                  <BarraApilada
+                    partes={[
+                      { id: 'bajo', etiqueta: 'En desacuerdo (1–2)', valor: p.conteo[0] + p.conteo[1], tono: 'grave' },
+                      { id: 'medio', etiqueta: 'Más o menos (3)', valor: p.conteo[2], tono: 'neutro' },
+                      { id: 'alto', etiqueta: 'De acuerdo (4–5)', valor: p.conteo[3] + p.conteo[4], tono: 'bien' },
+                    ]}
+                  />
+                </div>
+              ))}
+            </div>
+          </Tarjeta>
+          <TablaDatos<ResumenPregunta>
+            clave={(f) => f.clave}
+            filas={conDatos}
+            columnas={[
+              { id: 'pregunta', titulo: 'Pregunta', valor: (f) => f.texto },
+              ...ESCALA.map((o) => ({ id: `v${o.valor}`, titulo: `${o.valor} · ${o.texto}`, valor: (f: ResumenPregunta) => f.conteo[o.valor - 1], alinear: 'der' as const })),
+              { id: 'nouso', titulo: 'No lo usó', valor: (f) => f.noUso, alinear: 'der' },
+              { id: 'prom', titulo: 'Promedio', valor: (f) => f.promedio, formato: (x) => dec(x as number | null, 2), alinear: 'der', ordenable: true },
+              { id: 'acuerdo', titulo: 'De acuerdo', valor: (f) => f.deAcuerdo, formato: (x) => pctTxt(x as number | null), alinear: 'der', ordenable: true },
+            ]}
+          />
+          {enc.comentarios.length > 0 && (
+            <TablaDatos<Comentario>
+              clave={(f) => f.alumno.fila.id}
+              filas={enc.comentarios}
+              columnas={[
+                { id: 'nombre', titulo: 'Usuario', valor: (f) => f.alumno.fila.nombre, ordenable: true },
+                { id: 'grupo', titulo: 'Grupo', valor: (f) => nombreGrupo(f.alumno.grupo), ordenable: true },
+                { id: 'fecha', titulo: 'Fecha', valor: (f) => f.t, formato: (x) => fmtFechaCorta(String(x)), ordenable: true },
+                { id: 'gusto', titulo: 'Lo que más le gustó', valor: (f) => f.gusto ?? '—' },
+                { id: 'mejorar', titulo: 'Qué mejoraría', valor: (f) => f.mejorar ?? '—' },
+              ]}
+            />
+          )}
+        </>
+      )}
+    </Seccion>
   );
 }
 

@@ -22,6 +22,7 @@ import {
   registrar,
   type Perfil,
 } from '../almacenamiento/datos';
+import { debeEncuesta } from '../almacenamiento/encuesta';
 import { sincronizarPronto } from '../servicios/sincronizacion';
 import { BANDAS, generarPrueba, type TipoPrueba } from '../juego/motor';
 import { leerVistas } from '../juego/vistas';
@@ -186,6 +187,7 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
     const pr = leerPruebas(p);
     const banda = bandaDePerfil(p);
     const ruta = tipo === 'diagnostica' ? rutaFamiliaPorPuntaje(resultado.aciertos, resultado.total) : pistaDePerfil(p);
+    const encuesta = tipo === 'final' && debeEncuesta(p);
     return (
       <main className="pantalla">
         <section className="vidrio tarjeta-resultado columna centro">
@@ -211,10 +213,17 @@ export default function Prueba({ tipo }: { tipo: TipoPrueba }) {
           )}
         </section>
         {tipo === 'final' && pr.diagnostica && <Comparacion diagnostica={pr.diagnostica} final={resultado} adulto={adulto} />}
-        <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: tipo === 'diagnostica' ? 'mapa' : 'mifinca' })}>
-          {tipo === 'diagnostica' ? t('Ver mi ruta', 'Ver mi cuaderno') : t('Ir a mi finca', 'Ir a mi perfil')} <Icono nombre="siguiente" tamano={24} />
-        </button>
-        {tipo === 'final' && (
+        {encuesta ? (
+          // Al terminar la ruta sigue la encuesta de satisfacción (obligatoria).
+          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: 'encuesta' })}>
+            {t('Cuéntanos qué te pareció', 'Cuéntenos qué le pareció')} <Icono nombre="siguiente" tamano={24} />
+          </button>
+        ) : (
+          <button type="button" className="boton principal brillo" onClick={() => ir({ nombre: tipo === 'diagnostica' ? 'mapa' : 'mifinca' })}>
+            {tipo === 'diagnostica' ? t('Ver mi ruta', 'Ver mi cuaderno') : t('Ir a mi finca', 'Ir a mi perfil')} <Icono nombre="siguiente" tamano={24} />
+          </button>
+        )}
+        {tipo === 'final' && !encuesta && (
           <button type="button" className="boton secundario" onClick={() => ir({ nombre: 'mapa' })}>
             <Icono nombre="mapa" tamano={24} /> {t('Volver a la ruta para repasar', 'Volver a la ruta para repasar')}
           </button>

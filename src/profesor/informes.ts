@@ -7,6 +7,7 @@ import { definicion, nivelMaximo } from '../juego/motor';
 import { nombresErrores, type TipoError } from '../juego/errores';
 import type { Banda, Operacion, Pista } from '../juego/tipos';
 import type { Datos, EventoRemoto, PartidaRemota } from './api';
+import type { EncuestaRemota } from './encuesta';
 
 export type Grupo = 'g1' | 'g2' | 'g3' | 'g4' | 'g5' | 'familia' | 'inclusion';
 
@@ -43,6 +44,8 @@ export type Alumno = {
   activoSemana: boolean;
   /** Días distintos con niveles, pruebas o ejercicios (AAAA-MM-DD). */
   diasActivos: string[];
+  /** Su encuesta de satisfacción, si ya la respondió. */
+  encuesta: EncuestaRemota | null;
 };
 
 const DIA = 86_400_000;
@@ -58,6 +61,7 @@ export function armarAlumnos(d: Datos, ahora = Date.now()): Alumno[] {
     if (!partidas.has(p.usuario_id)) partidas.set(p.usuario_id, []);
     partidas.get(p.usuario_id)!.push(p);
   }
+  const encuestas = new Map((d.encuestas ?? []).map((e) => [e.usuario_id, e]));
   return d.usuarios.map((fila) => {
     const perfil = perfilDeFila(fila);
     const mapa = porUsuario.get(fila.id) ?? new Map();
@@ -81,6 +85,7 @@ export function armarAlumnos(d: Datos, ahora = Date.now()): Alumno[] {
       msPorEjercicio: ejercicios > 0 ? ms / ejercicios : null,
       activoSemana: !!ultimaActividad && ahora - new Date(ultimaActividad).getTime() < 7 * DIA,
       diasActivos,
+      encuesta: encuestas.get(fila.id) ?? null,
     };
   });
 }

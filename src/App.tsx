@@ -12,6 +12,7 @@ import {
   type FilaPerfil,
   type Perfil,
 } from './almacenamiento/datos';
+import { debeEncuesta } from './almacenamiento/encuesta';
 import { alCambiarDisponibilidad, almacenamientoDisponible } from './almacenamiento/almacen';
 import { activarCola } from './almacenamiento/cola';
 import { alListoSinInternet, marcarOcupada, seActualizo } from './pwa/registro';
@@ -54,6 +55,7 @@ const AjustesPantalla = perezosa(() => import('./pantallas/Ajustes'));
 const Familias = perezosa(() => import('./pantallas/Familias'));
 const Taller = perezosa(() => import('./pantallas/Taller'));
 const Prueba = perezosa(() => import('./pantallas/Prueba'));
+const Encuesta = perezosa(() => import('./pantallas/Encuesta'));
 // El panel del profesor no se precarga: los usuarios que juegan nunca lo abren.
 const AppProfesor = lazy(() => import('./profesor/AppProfesor'));
 
@@ -164,10 +166,16 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
   // La prueba queda en la pila, así su pantalla de resultado no desaparece al terminar.
   const pedida = pila[pila.length - 1];
   const debeDiagnostica = (esPestana(pedida) || pedida.nombre === 'nivel') && necesitaDiagnostica(perfil);
-  const pantalla: Pantalla = debeDiagnostica ? { nombre: 'prueba', tipo: 'diagnostica' } : pedida;
+  // Al terminar la ruta la encuesta de satisfacción es obligatoria: todo lleva a ella, menos la prueba
+  // y el resultado del último nivel (para que se vea cómo le fue antes de responderla).
+  const debeResponder = !debeDiagnostica && !['prueba', 'resultado', 'encuesta'].includes(pedida.nombre) && debeEncuesta(perfil);
+  const pantalla: Pantalla = debeDiagnostica ? { nombre: 'prueba', tipo: 'diagnostica' } : debeResponder ? { nombre: 'encuesta' } : pedida;
   useEffect(() => {
     if (debeDiagnostica) setPila([{ nombre: 'prueba', tipo: 'diagnostica' }]);
   }, [debeDiagnostica]);
+  useEffect(() => {
+    if (debeResponder) setPila([{ nombre: 'encuesta' }]);
+  }, [debeResponder]);
 
   const avisar = useCallback((texto: string) => {
     setAviso(texto);
@@ -181,7 +189,7 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
   }, [avisar]);
   // En un nivel, una prueba, el reto en pareja o el taller no se recarga por una actualización:
   // se aplica al salir.
-  const ocupada = ['nivel', 'prueba', 'taller'].includes(pantalla.nombre);
+  const ocupada = ['nivel', 'prueba', 'taller', 'encuesta'].includes(pantalla.nombre);
   useEffect(() => marcarOcupada(ocupada), [ocupada]);
 
   // Si la sesión vence en medio de un nivel, una prueba o el taller, no se corta el juego (se perdería
@@ -314,7 +322,7 @@ function AppUsuario({ cuenta, alCambiarCuenta, salir, pedirClave }: PropsUsuario
       </FronteraError>
       {esPestana(pantalla) && !sinAvatar && <Pestanas />}
       {/* No interrumpe un nivel en curso: se ofrece en las pestañas. */}
-      <InvitacionInstalar permitida={!sinAvatar && !['nivel', 'resultado', 'taller', 'prueba'].includes(pantalla.nombre)} />
+      <InvitacionInstalar permitida={!sinAvatar && !['nivel', 'resultado', 'taller', 'prueba', 'encuesta'].includes(pantalla.nombre)} />
       {aviso && (
         <div className="aviso" role="status" aria-live="polite">
           {aviso}
@@ -346,6 +354,8 @@ function Contenido({ pantalla, perfil }: { pantalla: Pantalla; perfil: Perfil })
       return <Taller />;
     case 'prueba':
       return <Prueba key={`${perfil.id}-${pantalla.tipo}`} tipo={pantalla.tipo} />;
+    case 'encuesta':
+      return <Encuesta key={perfil.id} />;
     case 'avatar':
       return <CambiarAvatar perfil={perfil} />;
   }

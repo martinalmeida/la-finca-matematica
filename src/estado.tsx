@@ -16,7 +16,8 @@ export type Pantalla =
   | { nombre: 'familias'; seccion?: 'menu' | 'acompanar' | 'avance' | 'videos' }
   | { nombre: 'taller' }
   | { nombre: 'avatar' }
-  | { nombre: 'prueba'; tipo: TipoPrueba };
+  | { nombre: 'prueba'; tipo: TipoPrueba }
+  | { nombre: 'encuesta' };
 
 export type EstadoApp = {
   pantalla: Pantalla;

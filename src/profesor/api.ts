@@ -6,6 +6,7 @@ import { obtenerSupabase, esErrorDeRed } from '../servicios/supabase';
 import type { FilaPerfil, TipoUsuario } from '../almacenamiento/datos';
 import type { Evento, Partida } from '../almacenamiento/cola';
 import { borrarFotoDe, urlsDeFotos } from '../servicios/foto';
+import type { EncuestaRemota } from './encuesta';
 
 export type PartidaRemota = Partida & { usuario_id: string };
 export type EventoRemoto = Evento & { usuario_id: string };
@@ -15,6 +16,8 @@ export type Datos = {
   usuarios: FilaPerfil[];
   datos: DatoRemoto[];
   partidas: PartidaRemota[];
+  /** Encuestas de satisfacción (una por usuario que la respondió). */
+  encuestas?: EncuestaRemota[];
 };
 
 /** Error con un mensaje listo para mostrar. */
@@ -58,14 +61,25 @@ async function todas<T>(consulta: (desde: number, hasta: number) => PromiseLike<
 export async function cargarDatos(): Promise<Datos> {
   const sb = await cliente();
   try {
-    const [usuarios, datos, partidas] = await Promise.all([
+    const [usuarios, datos, partidas, encuestas] = await Promise.all([
       todas<FilaPerfil>((d, h) => sb.from('perfiles').select('*').eq('rol', 'usuario').order('nombre').order('id').range(d, h)),
       todas<DatoRemoto>((d, h) => sb.from('datos_usuario').select('*').neq('clave', 'preguntasVistas').order('usuario_id').order('clave').range(d, h)),
       todas<PartidaRemota>((d, h) => sb.from('partidas').select('*').order('t').order('id').range(d, h)),
+      cargarEncuestas(sb),
     ]);
-    return { usuarios, datos, partidas };
+    return { usuarios, datos, partidas, encuestas };
   } catch (e) {
     throw e instanceof ErrorPanel ? e : traducir(e as Error);
+  }
+}
+
+/** Encuestas de satisfacción. Si la base aún no tiene la tabla (migración 006 sin aplicar), ninguna. */
+async function cargarEncuestas(sb: SupabaseClient): Promise<EncuestaRemota[]> {
+  try {
+    return await todas<EncuestaRemota>((d, h) => sb.from('encuestas').select('*').order('t').order('id').range(d, h));
+  } catch (e) {
+    if (/encuestas/.test((e as Error).message) && /not find|does not exist|no existe|schema cache/i.test((e as Error).message)) return [];
+    throw e;
   }
 }
 

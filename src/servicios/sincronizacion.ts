@@ -1,8 +1,9 @@
-// Sincronización con la nube. Sube lo pendiente de la cola (progreso, ejercicios,
-// partidas) y baja la cuenta para aplicar lo que decidió el profesor: grado, tipo,
+// Sincronización con la nube. Sube lo pendiente de la cola (progreso, ejercicios, partidas)
+// y la encuesta de satisfacción, y baja la cuenta para aplicar lo que decidió el profesor: grado, tipo,
 // exigencia, permiso de repetir la final, desactivación o reinicio del progreso.
 
-import { borrarDatosLocales, confirmarLote, pendientes, tomarLote, type Lote } from '../almacenamiento/cola';
+import { borrarDatosLocales, confirmarLote, pendientes as pendientesCola, tomarLote, type Lote } from '../almacenamiento/cola';
+import { encuestaPorEnviar, marcarEncuestaEnviada } from '../almacenamiento/encuesta';
 import { conPendientes, guardarCuenta, guardarSiloEscuela, leerCuenta, type FilaPerfil } from '../almacenamiento/datos';
 import { escribir, leer, PREFIJO_V1 } from '../almacenamiento/almacen';
 import { esErrorDeRed, obtenerSupabase } from './supabase';
@@ -47,7 +48,11 @@ export function ultimaSincronizacion(): string | null {
   return leer<string | null>(K_ULTIMA, null);
 }
 
-export { pendientes };
+/** Cuántas cosas faltan por subir (la encuesta respondida sin señal cuenta como una). */
+export function pendientes(): number {
+  const cuenta = leerCuenta();
+  return pendientesCola() + (cuenta && encuestaPorEnviar(cuenta.id) ? 1 : 0);
+}
 
 /** Parte el lote para no mandar miles de ejercicios en una sola llamada. */
 function partir(lote: Lote): Lote[] {
@@ -115,6 +120,22 @@ async function sincronizar(): Promise<EstadoSync> {
       if (cambioVisible(cuenta, perfil)) avisar({ estado: 'ok', cuentaCambio: true });
       // Foto cambiada desde otro celular (o quitada por el profesor). La foto no es crítica: si falla, la próxima vez.
       if ('foto' in perfil && !(leerCuenta() ?? actual).fotoPendiente) await traerDeLaNube(sb, cuenta.id, perfil.foto).catch(() => undefined);
+    }
+    // La encuesta no depende de la generación: trata de la app, no del progreso.
+    const encuesta = encuestaPorEnviar(cuenta.id);
+    if (encuesta) {
+      const { error } = await sb.rpc('enviar_encuesta', {
+        p_id: encuesta.id,
+        p_t: encuesta.t,
+        p_pista: encuesta.pista,
+        p_respuestas: encuesta.respuestas,
+        p_gusto: encuesta.gusto,
+        p_mejorar: encuesta.mejorar,
+        p_version: encuesta.version,
+      });
+      // Si falla, queda pendiente para la próxima vez (sin frenar lo demás).
+      if (!error) marcarEncuestaEnviada(cuenta.id);
+      else if (estadoDeCuenta(error)) return estadoDeCuenta(error)!;
     }
     const silo = await sb.rpc('silo_escuela');
     if (!silo.error && typeof silo.data === 'number') guardarSiloEscuela(silo.data);

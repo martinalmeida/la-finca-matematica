@@ -22,6 +22,8 @@ import {
   type FilaDesglose,
 } from '../metricas';
 import { nombresOperacion } from '../../juego/informes';
+import { COLUMNAS_ENCUESTA, DEFINICION_ENCUESTA, resumenEncuesta, valoresEncuesta } from '../encuesta';
+import { ESCALA } from '../../contenido/encuesta';
 import type { Operacion } from '../../juego/tipos';
 
 const r = (x: number | null | undefined, d = 1) => (x === null || x === undefined || !Number.isFinite(x) ? null : Math.round(x * 10 ** d) / 10 ** d);
@@ -52,6 +54,7 @@ export function hojasInforme(c: Conjunto, meta: { titulo: string; filtros: strin
   const e = pp.estadistica;
   const generado = `Generado el ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })} por ${meta.profesor}`;
   const por = new Map(c.alumnos.map((a) => [a.fila.id, a]));
+  const enc = resumenEncuesta(c.alumnos);
 
   const resumen: Hoja = {
     nombre: 'Resumen',
@@ -89,6 +92,11 @@ export function hojasInforme(c: Conjunto, meta: { titulo: string; filtros: strin
       ['Wilcoxon p', { valor: e?.wilcoxon?.p, formato: 'probabilidad' }, 'Con seis decimales.'],
       ['Ganancia normalizada promedio', r(pp.gananciaNormalizadaProm, 3), DEFINICIONES.ganancia],
       ['Mejoraron / igual / bajaron', e ? `${e.mejoraron} / ${e.iguales} / ${e.bajaron}` : '', ''],
+      ['Usuarios que terminaron la ruta', enc.terminaron, 'Prueba final hecha (en Inclusión, último nivel superado).'],
+      ['Encuestas de satisfacción respondidas', enc.respondieron, ''],
+      ['Tasa de respuesta de la encuesta (%)', r(enc.tasa), ''],
+      ['Satisfacción (%)', r(enc.satisfaccion), '% de las respuestas de la encuesta que fueron 4 o 5.'],
+      ['Promedio de la encuesta (de 1 a 5)', r(enc.promedio, 2), ''],
     ],
     filtro: false,
   };
@@ -203,6 +211,31 @@ export function hojasInforme(c: Conjunto, meta: { titulo: string; filtros: strin
     filas: c.partidas.map((p) => [p.t, por.get(p.usuario_id)?.fila.nombre ?? p.usuario_id, p.tipo === 'nivel' ? 'Nivel' : p.tipo === 'prueba-final' ? 'Prueba final' : 'Prueba de entrada', nombrePista(p.pista), p.nivel, p.aciertos, p.total, p.estrellas, r((p.ms_total ?? 0) / 60000), p.repaso, p.banda ?? '']),
   };
 
+  const encuesta: Hoja = {
+    nombre: 'Encuesta',
+    titulo: 'Encuesta de satisfacción por usuario',
+    subtitulo: [`Una respuesta por usuario, al terminar la ruta (no depende del periodo). ${ESCALA.map((o) => `${o.valor} = ${o.texto}`).join(', ')}. Vacío: no se le hizo esa pregunta (Inclusión responde una versión corta).`],
+    columnas: [
+      { titulo: 'Usuario', ancho: 26 },
+      { titulo: 'Nombre de usuario', ancho: 18 },
+      { titulo: 'Grupo' },
+      { titulo: 'Ruta', ancho: 20 },
+      { titulo: 'Fecha', formato: 'fechaHora' },
+      ...COLUMNAS_ENCUESTA.map((t, i) => (i < COLUMNAS_ENCUESTA.length - 2 ? { titulo: t, ancho: 12 } : { titulo: t, ancho: 60 })),
+      { titulo: 'Versión de la app', ancho: 12 },
+    ],
+    filas: c.alumnos
+      .filter((a) => a.encuesta)
+      .map((a) => [a.fila.nombre, a.fila.usuario, nombreGrupo(a.grupo), nombrePista(a.encuesta!.pista), a.encuesta!.t, ...valoresEncuesta(a.encuesta!), a.encuesta!.version_app ?? '']),
+  };
+
+  const encuestaPreguntas: Hoja = {
+    nombre: 'Encuesta por pregunta',
+    titulo: 'Encuesta de satisfacción: reparto de las respuestas',
+    columnas: [{ titulo: 'Pregunta', ancho: 24 }, ...ESCALA.map((o) => ({ titulo: `${o.valor} · ${o.texto}`, formato: 'entero' as const })), { titulo: 'No lo usó', formato: 'entero' }, { titulo: 'Respuestas', formato: 'entero' }, { titulo: 'Promedio', formato: 'decimal' }, { titulo: 'De acuerdo (4–5) %', formato: 'porcentaje' }],
+    filas: enc.preguntas.map((p) => [p.texto, ...p.conteo, p.noUso, p.n, r(p.promedio, 2), r(p.deAcuerdo)]),
+  };
+
   return [
     resumen,
     usuarios,
@@ -213,13 +246,15 @@ export function hojasInforme(c: Conjunto, meta: { titulo: string; filtros: strin
     hojaDesglose('Por tema', 'Desempeño por tema', 'Tema', porTema(c)),
     hojaDesglose('Por plantilla', 'Desempeño por tipo de ejercicio (plantilla)', 'Plantilla', porPlantilla(c)),
     errores,
+    encuesta,
+    encuestaPreguntas,
     ejercicios,
     partidas,
     {
       nombre: 'Definiciones',
       titulo: 'Cómo se calcula cada métrica',
       columnas: [{ titulo: 'Métrica', ancho: 24 }, { titulo: 'Definición', ancho: 120 }],
-      filas: Object.entries(DEFINICIONES).map(([, t]) => {
+      filas: [...Object.values(DEFINICIONES), DEFINICION_ENCUESTA].map((t) => {
         const [nombre, ...resto] = t.split(':');
         return [nombre, resto.join(':').trim()];
       }),

@@ -9,6 +9,17 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.4.0] - 2026-10-31
+
+### Nuevo
+- Encuesta de satisfacción sobre la aplicación al terminar la ruta: después de la prueba final (en Inclusión, al superar el último nivel). Es obligatoria y se responde una sola vez por usuario.
+- Siete preguntas con caritas de 1 (nada) a 5 (mucho): fácil de usar, le gustó, aprendió, videos y lecciones, dibujos y voz, la usaría otra vez y la recomendaría; y dos preguntas para escribir que no son obligatorias. Inclusión responde una versión corta de cuatro preguntas, sin escribir. Todo se lee en voz alta.
+- Se puede responder sin internet: se guarda en el celular y sube a la nube cuando hay señal.
+- Informes del profesor: sección «Encuesta de satisfacción» con las respuestas recibidas, la satisfacción (% de respuestas 4 o 5), el promedio y el reparto de cada pregunta y los comentarios. También va en el PDF, en el informe de cada usuario y en dos hojas nuevas del Excel («Encuesta» y «Encuesta por pregunta»).
+
+### Cambiado
+- Quien ya había presentado la prueba final la verá la próxima vez que abra la aplicación.
+
 ## [1.3.0] - 2026-10-30
 
 ### Nuevo

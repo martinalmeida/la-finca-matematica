@@ -3,6 +3,8 @@
 
 import type { FilaPerfil } from '../src/almacenamiento/datos';
 import type { Datos, EventoRemoto, PartidaRemota, DatoRemoto } from '../src/profesor/api';
+import type { EncuestaRemota } from '../src/profesor/encuesta';
+import { PREGUNTAS_ENCUESTA } from '../src/contenido/encuesta';
 import { crearRng } from '../src/juego/rng';
 import { definicion, nivelMaximo } from '../src/juego/motor';
 import type { Operacion, Pista } from '../src/juego/tipos';
@@ -21,6 +23,7 @@ export function datosDemo(ahora = Date.parse('2026-10-30T15:00:00Z'), semilla = 
   const datos: DatoRemoto[] = [];
   const partidas: PartidaRemota[] = [];
   const eventos: EventoRemoto[] = [];
+  const terminaron: { f: FilaPerfil; pista: Pista; t: number }[] = [];
   let id = 1;
   let ev = 1;
 
@@ -102,12 +105,32 @@ export function datosDemo(ahora = Date.parse('2026-10-30T15:00:00Z'), semilla = 
           eventos.push({ id: uuid(100000 + ev++), usuario_id: u.f.id, t: new Date(t0 + k * 40_000).toISOString(), tipo: 'prueba-final', pista: u.pistaPrueba!, nivel: k + 1, plantilla: `${u.pistaPrueba}-prueba-${k + 1}`, operacion: 'mixta', correcto: ok, intentos: 1, pistas_usadas: 0, tipo_error: ok ? undefined : rng.elegir(ERRORES), ms: rng.entero(18_000, 80_000) });
         });
         pruebas.final = { fecha: new Date(t0).toISOString(), pista: u.pistaPrueba, porTema: porTemaDespues, aciertos: porTemaDespues.filter(Boolean).length, total: porTemaDespues.length, ms: 540_000 };
+        terminaron.push({ f: u.f, pista: u.pista, t: t0 + 600_000 });
         partidas.push({ id: uuid(500000 + ev++), usuario_id: u.f.id, t: new Date(t0 + 450_000).toISOString(), tipo: 'prueba-final', pista: u.pistaPrueba, nivel: null, aciertos: porTemaDespues.filter(Boolean).length, total: porTemaDespues.length, estrellas: null, ms_total: 450_000, repaso: false, banda: null });
       }
       datos.push({ usuario_id: u.f.id, clave: `pruebas:${u.pistaPrueba}`, valor: pruebas, actualizado: new Date(ahora).toISOString() });
     }
   }
+  // Encuestas de satisfacción de casi todos los que terminaron (otra semilla: no cambia lo de arriba).
+  const rngEncuesta = crearRng(semilla + 1);
+  const GUSTOS = ['Los videos y la gallina', 'Que puedo jugar sin internet', 'Las canastas para contar', ''];
+  const MEJORAS = ['Más niveles', '', 'Que la voz hable más despacio', ''];
+  const encuestas: EncuestaRemota[] = terminaron
+    .filter(() => rngEncuesta.siguiente() < 0.85)
+    .map((x, k) => ({
+      id: uuid(900000 + k),
+      usuario_id: x.f.id,
+      t: new Date(x.t).toISOString(),
+      pista: x.pista,
+      tipo: x.f.tipo,
+      grado: x.f.grado,
+      version_app: '1.4.0',
+      respuestas: Object.fromEntries(PREGUNTAS_ENCUESTA.map((p) => [p.clave, p.clave === 'videos' && k % 5 === 0 ? null : rngEncuesta.entero(3, 5)])),
+      gusto: rngEncuesta.elegir(GUSTOS) || null,
+      mejorar: rngEncuesta.elegir(MEJORAS) || null,
+      recibida: new Date(x.t + 60_000).toISOString(),
+    }));
   eventos.sort((a, b) => a.t.localeCompare(b.t));
   partidas.sort((a, b) => a.t.localeCompare(b.t));
-  return { usuarios, datos, partidas, eventos };
+  return { usuarios, datos, partidas, eventos, encuestas };
 }

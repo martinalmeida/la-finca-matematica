@@ -153,14 +153,17 @@ El informe tiene estas secciones (el índice de arriba lleva a cada una):
 4. **Evolución:** acierto, ejercicios, tiempo, usuarios activos y pistas por día, semana o mes, según el periodo.
 5. **Temas y operaciones:** acierto por operación y por tema frente a la meta del 70 %, y el mapa usuario × tema.
 6. **Errores:** tipos de error y su cruce con la operación.
-7. **Usuarios:** tabla comparativa que se ordena por cualquier columna; tocar un nombre abre su ficha.
+7. **Encuesta:** la encuesta de satisfacción sobre la aplicación (ver abajo).
+8. **Usuarios:** tabla comparativa que se ordena por cualquier columna; tocar un nombre abre su ficha.
+
+**Encuesta de satisfacción.** Al terminar su ruta (después de la prueba final; en Inclusión, al superar el último nivel) cada usuario responde una vez, de forma obligatoria, una encuesta sobre la aplicación: siete preguntas con caritas de 1 (nada) a 5 (mucho) y dos preguntas para escribir que no son obligatorias. Inclusión responde una versión corta de cuatro preguntas. La sección muestra cuántos de los que terminaron ya respondieron, la satisfacción (% de respuestas 4 o 5), el promedio y el reparto de cada pregunta y los comentarios. Como las pruebas, no depende del periodo. Si el celular estaba sin señal, la respuesta llega cuando sincronice. Reiniciar el progreso de un usuario no borra su encuesta (eliminar la cuenta sí).
 
 Cada métrica tiene un **«?»** con su definición, y cada gráfica un **«Ver tabla»** con los números exactos.
 
 Los botones **PDF** y **Excel** descargan **exactamente lo que se ve, con los mismos filtros**:
 
 - **PDF:** se abre la ventana de impresión; elija «Guardar como PDF». Trae portada (institución, quién lo generó, fecha y filtros), todas las secciones con sus gráficas y, al final, cómo se calcula cada métrica.
-- **Excel (.xlsx):** una hoja por tabla: Resumen (con toda la estadística del pre/post), Usuarios, Entrada vs final (con cada pregunta, 1 = acierto), Temas de las pruebas, Evolución, Por operación, Por tema, Por plantilla, Errores, Ejercicios (uno por fila), Partidas y Definiciones. Sirve para SPSS, R o el capítulo de resultados.
+- **Excel (.xlsx):** una hoja por tabla: Resumen (con toda la estadística del pre/post), Usuarios, Entrada vs final (con cada pregunta, 1 = acierto), Temas de las pruebas, Evolución, Por operación, Por tema, Por plantilla, Errores, Encuesta (una fila por usuario), Encuesta por pregunta, Ejercicios (uno por fila), Partidas y Definiciones. Sirve para SPSS, R o el capítulo de resultados.
 
 En **Exportar** están además el Excel con todos los datos, el PDF de todos los usuarios (uno por página) y las tablas CSV de siempre. Los archivos traen nombres: guárdelos con cuidado.
 

@@ -3,6 +3,7 @@
 
 import { activarCola, aplicarRemotas, borrarDatosLocales } from '../almacenamiento/cola';
 import { borrarCuenta, conPendientes, guardarCuenta, leerCuenta, type FilaPerfil } from '../almacenamiento/datos';
+import { guardarEncuesta, leerEncuesta } from '../almacenamiento/encuesta';
 import { guardarFotoLocal, traerDeLaNube } from './foto';
 import { correoDe, esErrorDeRed, normalizarUsuario, obtenerSupabase } from './supabase';
 
@@ -59,6 +60,12 @@ export async function iniciarSesion(usuario: string, clave: string): Promise<Ent
       const { data: filas, error: errorDatos } = await sb.from('datos_usuario').select('clave, valor').eq('usuario_id', id);
       if (errorDatos) return { ok: false, error: esErrorDeRed(errorDatos) ? SIN_INTERNET : 'No se pudo descargar tu avance. Inténtalo de nuevo.' };
       aplicarRemotas(id, filas ?? []);
+      // ¿Ya respondió la encuesta en otro celular? Entonces aquí no se vuelve a pedir. (Si falla, se pide:
+      // la nube guarda solo la primera respuesta.)
+      if (!leerEncuesta(id)) {
+        const { data: encuesta } = await sb.from('encuestas').select('id').eq('usuario_id', id).maybeSingle();
+        if (encuesta) guardarEncuesta(id, { enviada: true });
+      }
       // La foto no impide entrar: si no baja ahora, baja en la próxima sincronización.
       if (fila.foto) await traerDeLaNube(sb, id, fila.foto).catch(() => undefined);
     }

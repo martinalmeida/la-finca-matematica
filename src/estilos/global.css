@@ -4120,6 +4120,95 @@ button.frase:active {
   color: var(--verde);
 }
 
+/* ===================== Encuesta de satisfacción ===================== */
+.encuesta-pregunta {
+  gap: 14px;
+}
+
+.encuesta-caritas {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.carita {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: var(--toque);
+  padding: 8px 4px;
+  border-radius: 20px;
+  border: 1px solid var(--borde-vidrio);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--sombra), var(--brillo-interno);
+  font-weight: 750;
+  font-size: 0.85rem;
+  line-height: 1.15;
+  text-align: center;
+  transition: transform 0.2s var(--resorte), background 0.15s;
+}
+
+.carita svg {
+  width: 100%;
+  max-width: 64px;
+  height: auto;
+  aspect-ratio: 1;
+  flex: none;
+}
+
+.carita:active {
+  transform: scale(0.95);
+}
+
+.carita[aria-checked='true'] {
+  background: rgba(220, 252, 231, 0.95);
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.45), var(--sombra);
+}
+
+.carita-no-uso {
+  font-size: 1rem;
+}
+
+/* En pantallas angostas (o con letra grande) las caritas van una debajo de otra, con su nombre al lado. */
+@container (max-width: 430px) {
+  .encuesta-caritas .carita {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 6px 16px;
+    font-size: 1.1rem;
+  }
+
+  .encuesta-caritas .carita svg {
+    width: 46px;
+  }
+}
+
+.encuesta-reparto {
+  gap: 12px;
+}
+
+.encuesta-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.encuesta-texto textarea {
+  font: inherit;
+  font-weight: 400;
+  min-height: 96px;
+  padding: 10px 14px;
+  resize: vertical;
+}
+
 .asi-se-responde {
   padding: 18px 16px;
   border-radius: var(--radio-grande);
