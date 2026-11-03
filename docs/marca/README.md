@@ -1,6 +1,6 @@
 # Marca: La Finca Matemática
 
-Todo se genera con `npm run iconos` a partir de `scripts/generar-iconos.mjs`. Si cambia el diseño, cámbielo allí y vuelva a correr el comando; no edite los PNG a mano.
+> **Diseño anterior.** El ícono actual de la app es el isotipo «Brote»: sus archivos y reglas de uso están en `public/iconos/LEEME.md`. Lo que sigue describe el ícono de la mazorca, que ya no se usa en la app.
 
 ## Ícono de la aplicación
 
@@ -14,7 +14,7 @@ Mazorca de cacao con su hoja, sobre un fondo verde con sol y lomas, más una ins
 | `icono-play-512.png` | Ícono de Google Play (512 × 512, cuadrado; Play redondea las esquinas). |
 | `grafico-destacado-1024x500.png` | Gráfico destacado de Google Play. |
 
-En `public/iconos` quedan los íconos de la PWA: 192 y 512 (normal y adaptable), monocromo para los íconos temáticos de Android 13+, 180 para iPhone/iPad y favicon de 32. El logo dentro de la app es `public/favicon.svg`, el mismo diseño.
+Los íconos de la PWA (`public/iconos`) y el logo dentro de la app (`public/iconos/icon.svg`) ya son del isotipo «Brote»; ver `public/iconos/LEEME.md`.
 
 ## Colores
 

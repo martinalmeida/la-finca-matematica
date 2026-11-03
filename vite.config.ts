@@ -22,7 +22,7 @@ export default defineConfig({
       registerType: 'prompt',
       injectRegister: false,
       includeManifestIcons: false,
-      includeAssets: ['favicon.svg', 'iconos/icono-192.png', 'iconos/icono-maskable-192.png', 'iconos/icono-apple-180.png', 'iconos/favicon-32.png'],
+      includeAssets: ['favicon.ico', 'iconos/icon.svg', 'iconos/icon-192.png', 'iconos/icon-maskable-192.png', 'iconos/apple-touch-icon.png'],
       manifest: {
         name: 'La Finca Matemática',
         short_name: 'Finca Mate',
@@ -43,19 +43,18 @@ export default defineConfig({
         // Si ya está abierta, el ícono vuelve a la misma ventana en lugar de abrir otra.
         launch_handler: { client_mode: ['navigate-existing', 'auto'] },
         icons: [
-          { src: 'iconos/icono-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: 'iconos/icono-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: 'iconos/icono-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-          { src: 'iconos/icono-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-          { src: 'iconos/icono-apple-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
-          // Android 13+: ícono temático (toma los colores del fondo de pantalla).
-          { src: 'iconos/icono-monocromo-512.png', sizes: '512x512', type: 'image/png', purpose: 'monochrome' },
+          { src: 'iconos/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'iconos/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'iconos/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: 'iconos/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'iconos/apple-touch-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
         ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,json}'],
-        // Los íconos de 512 solo los usa el sistema al instalar: no hace falta guardarlos sin conexión.
-        globIgnores: ['**/iconos/*-512.png'],
+        // Los íconos de 512 solo los usa el sistema al instalar y el isotipo de 1024 es para documentos
+        // e impresos: no hace falta guardarlos sin conexión.
+        globIgnores: ['**/iconos/*-512.png', '**/iconos/isotipo*'],
         navigateFallback: 'index.html',
         // Al activarse una versión nueva se borran los archivos de la versión anterior.
         cleanupOutdatedCaches: true,

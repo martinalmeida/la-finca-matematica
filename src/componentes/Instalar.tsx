@@ -287,7 +287,7 @@ export function HojaInstalar({ alCerrar, automatica = false }: { alCerrar: () =>
     <div className="velo-instalar" onClick={cerrar}>
       <section className="hoja-instalar tarjeta columna" role="dialog" aria-modal="true" aria-labelledby="titulo-instalar" onClick={(e) => e.stopPropagation()}>
         <header className="hoja-cabeza">
-          <img src="./iconos/icono-apple-180.png" alt="" width={56} height={56} className="hoja-logo" />
+          <img src="./iconos/apple-touch-icon.png" alt="" width={56} height={56} className="hoja-logo" />
           <div className="hoja-cabeza-textos">
             <h2 id="titulo-instalar">{t('Instala', 'Instale')} La Finca Matemática</h2>
             <p className="pequeno suave">Gratis · sin anuncios</p>

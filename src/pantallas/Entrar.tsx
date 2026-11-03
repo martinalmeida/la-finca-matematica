@@ -2,7 +2,7 @@
 // Mismo lenguaje de diseño que el resto de la app: fondo vivo, vidrio y botón de acento.
 
 import { useState, type FormEvent } from 'react';
-import { EscenaFinca, Logo } from '../componentes/Ilustraciones';
+import { Logo } from '../componentes/Ilustraciones';
 import Icono from '../componentes/Icono';
 import { BotonInstalar } from '../componentes/Instalar';
 import { iniciarSesion } from '../servicios/sesion';
@@ -48,10 +48,6 @@ export default function Entrar({ alEntrar, usuarioPrevio, motivo }: { alEntrar: 
       </header>
 
       <form className="vidrio tarjeta columna entrar" onSubmit={enviar} noValidate aria-describedby={error ? 'entrar-error' : undefined}>
-        <div className="escena entrar-escena" aria-hidden="true">
-          <EscenaFinca />
-        </div>
-
         <div className="columna" style={{ gap: 4 }}>
           <h2 style={{ margin: 0 }}>Entrar</h2>
           <p className="suave" style={{ margin: 0 }}>

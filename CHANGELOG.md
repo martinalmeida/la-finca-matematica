@@ -9,6 +9,12 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.4.1] - 2026-11-02
+
+### Cambiado
+- Ícono nuevo de la aplicación, el isotipo «Brote»: un signo + del que nace un brote. Se ve en la pantalla de inicio del celular, en la pestaña del navegador y dentro de la app.
+- La pantalla de entrada muestra solo el formulario, sin la ilustración de la finca.
+
 ## [1.4.0] - 2026-10-31
 
 ### Nuevo

@@ -30,7 +30,6 @@ npm run dev        # servidor de desarrollo en http://localhost:5173
 npm run build      # build de producción en dist/ (incluye el service worker)
 npm run preview    # sirve dist/ en http://localhost:4173 para probar la PWA
 npm test           # pruebas (Vitest): generadores, pruebas diagnóstica y final, detector de errores, progresión, almacenamiento, refuerzo, cifras, vibración
-npm run iconos     # vuelve a generar los íconos PNG (public/iconos)
 npm run catalogo   # vuelve a generar docs/PLANTILLAS.md
 ```
 

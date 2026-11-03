@@ -1,7 +1,7 @@
 {
   "name": "la-finca-matematica",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.4.1",
   "author": "Yerson Julian Albarracin Almeida",
   "license": "UNLICENSED",
   "type": "module",
@@ -11,7 +11,6 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "iconos": "node scripts/generar-iconos.mjs",
     "catalogo": "tsx scripts/catalogo-plantillas.ts",
     "db:aplicar": "node scripts/supabase/aplicar.mjs",
     "crear-profesor": "node scripts/supabase/crear-profesor.mjs"

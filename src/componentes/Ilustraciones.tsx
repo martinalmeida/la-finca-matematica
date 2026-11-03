@@ -818,46 +818,11 @@ export function Planta({ etapa, tamano = 160 }: { etapa: EtapaPlanta; tamano?: n
   );
 }
 
-// --- Escena de la finca (bienvenida) ---
-
-export function EscenaFinca({ alto = 180 }: { alto?: number }) {
-  return (
-    <svg width="100%" height={alto} viewBox="0 0 360 180" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Una finca de cacao en la vereda, con montañas al fondo">
-      <rect width="360" height="180" fill="#cdeaf5" />
-      <circle cx="300" cy="38" r="20" fill="#ffd54f" />
-      <path d="M0 95 L50 55 L95 80 L150 40 L210 78 L260 50 L320 82 L360 62 L360 120 L0 120Z" fill="#6f8f6a" />
-      <path d="M0 110 Q90 80 180 104 Q270 128 360 98 L360 180 L0 180Z" fill="#7fb24a" />
-      <path d="M0 140 Q120 118 220 140 Q300 156 360 140 L360 180 L0 180Z" fill="#5c9a35" />
-      <g transform="translate(205 78)">
-        <rect x="0" y="18" width="56" height="34" fill="#f4e3c1" stroke="#8a6d33" />
-        <path d="M-6 20 L28 0 L62 20Z" fill="#b5532a" />
-        <rect x="22" y="30" width="12" height="22" fill="#7a4a21" />
-        <rect x="6" y="26" width="10" height="9" fill="#9fd3e6" stroke="#7a4a21" />
-        <rect x="40" y="26" width="10" height="9" fill="#9fd3e6" stroke="#7a4a21" />
-      </g>
-      {[30, 80, 130].map((x, k) => (
-        <g key={x} transform={`translate(${x} ${108 + (k % 2) * 8})`}>
-          <rect x="-3" y="10" width="6" height="22" fill="#6b4423" />
-          <ellipse cx="0" cy="6" rx="18" ry="14" fill="#3f8a2e" />
-          <ellipse cx="-6" cy="22" rx="3" ry="5" fill="#d9822b" />
-          <ellipse cx="6" cy="20" rx="3" ry="5" fill="#e0a020" />
-        </g>
-      ))}
-      <g transform="translate(290 128)">
-        <ellipse cx="0" cy="14" rx="10" ry="8" fill="#c96f2d" />
-        <circle cx="8" cy="6" r="5" fill="#c96f2d" />
-        <path d="M6 1 Q8 -3 10 1" fill="#d32f2f" />
-        <path d="M13 6 L17 7 L13 8Z" fill="#f4b400" />
-      </g>
-    </svg>
-  );
-}
-
 // --- Logo ---
 
-/** El mismo ícono de la app (public/favicon.svg, generado por scripts/generar-iconos.mjs). */
+/** El mismo ícono de la app (public/iconos/icon.svg, ver public/iconos/LEEME.md). */
 export function Logo({ tamano = 72 }: { tamano?: number }) {
-  return <img src="./favicon.svg" width={tamano} height={tamano} alt="La Finca Matemática" className="logo-marca" draggable={false} />;
+  return <img src="./iconos/icon.svg" width={tamano} height={tamano} alt="La Finca Matemática" className="logo-marca" draggable={false} />;
 }
 
 export function Tienda({ tamano = 80 }: { tamano?: number }) {
