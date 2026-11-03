@@ -9,6 +9,11 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.4.3] - 2026-11-02
+
+### Cambiado
+- La pantalla de arranque de la app instalada también es verde «Monte» (#17804A), con el ícono encima.
+
 ## [1.4.2] - 2026-11-02
 
 ### Cambiado

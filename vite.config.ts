@@ -37,7 +37,7 @@ export default defineConfig({
         start_url: './',
         scope: './',
         theme_color: '#17804A',
-        background_color: '#fbf5e6',
+        background_color: '#17804A',
         categories: ['education', 'kids', 'games'],
         prefer_related_applications: false,
         // Si ya está abierta, el ícono vuelve a la misma ventana en lugar de abrir otra.
