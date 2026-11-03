@@ -51,15 +51,3 @@ Retícula de 512 × 512. Los brazos del + miden 80 de grosor y 320 de largo, con
 ## Iconos de la interfaz
 
 Los iconos internos (`src/componentes/Icono.tsx`) y los objetos de la finca (`src/componentes/Ilustraciones.tsx`) comparten la paleta de `src/componentes/paleta.tsx`: tres tonos por color, luz desde arriba a la izquierda, sombra suave abajo y brillo de vidrio. `tests/iconos.test.ts` comprueba que todos se dibujan y que sus degradados existen.
-
-## Diseño anterior: la mazorca
-
-Hasta la versión 1.4.0 el ícono era una mazorca de cacao con su hoja, sobre un fondo verde con sol y lomas, con una insignia «+». Ya no se usa en la app; sus archivos quedan en esta carpeta como registro:
-
-| Archivo | Uso |
-| --- | --- |
-| `icono.svg` | Original vectorial con esquinas redondeadas |
-| `icono-adaptable.svg` | Original a sangre con margen de seguridad |
-| `icono-1024.png` | Alta resolución |
-| `icono-play-512.png` | Ícono de Google Play (512 × 512) |
-| `grafico-destacado-1024x500.png` | Gráfico destacado de Google Play |
