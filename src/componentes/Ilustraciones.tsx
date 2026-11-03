@@ -820,7 +820,7 @@ export function Planta({ etapa, tamano = 160 }: { etapa: EtapaPlanta; tamano?: n
 
 // --- Logo ---
 
-/** El mismo ícono de la app (public/iconos/icon.svg, ver public/iconos/LEEME.md). */
+/** El mismo ícono de la app (public/iconos/icon.svg, ver docs/marca/README.md). */
 export function Logo({ tamano = 72 }: { tamano?: number }) {
   return <img src="./iconos/icon.svg" width={tamano} height={tamano} alt="La Finca Matemática" className="logo-marca" draggable={false} />;
 }
