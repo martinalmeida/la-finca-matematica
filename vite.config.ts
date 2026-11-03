@@ -36,7 +36,7 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: './',
         scope: './',
-        theme_color: '#4a6b2f',
+        theme_color: '#17804A',
         background_color: '#fbf5e6',
         categories: ['education', 'kids', 'games'],
         prefer_related_applications: false,

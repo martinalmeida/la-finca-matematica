@@ -9,6 +9,11 @@ Las versiones siguen [SemVer](https://semver.org/lang/es/): MAYOR.MENOR.PARCHE.
 
 La aplicación muestra estas notas en *Ajustes → Aplicación* (estudiantes y familias) y en el panel del profesor.
 
+## [1.4.2] - 2026-11-02
+
+### Cambiado
+- Color del tema verde «Monte» (#17804A), el mismo del ícono nuevo: se ve en la barra del navegador y del celular.
+
 ## [1.4.1] - 2026-11-02
 
 ### Cambiado
